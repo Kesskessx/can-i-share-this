@@ -13,7 +13,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -36,6 +36,9 @@ jobs:
           grep -q 'User-agent: \*' dist/robots.txt
           grep -q 'Allow: /' dist/robots.txt
           grep -q 'https://canisharethis.com/sitemap.xml' dist/robots.txt
+          INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
+          test -f "dist/${INDEXNOW_KEY}.txt"
+          test "$(tr -d '\r\n' < "dist/${INDEXNOW_KEY}.txt")" = "$INDEXNOW_KEY"
           ! grep -Rqi 'noindex' dist/google-drive-link-checker.html dist/google-drive-permission-checker.html dist/google-drive-link-not-working.html dist/google-drive-folder-sharing-checker.html dist/google-drive-share-link-test.html dist/dropbox-link-checker.html dist/dropbox-shared-link-not-working.html dist/dropbox-permission-checker.html dist/dropbox-link-expiration-checker.html dist/drive-vs-dropbox-share-link-checker.html
           for page in \
             google-drive-link-checker \
@@ -81,3 +84,53 @@ jobs:
           test -f api/check.js
           test -f api/counter.js
           test -f api/feedback.js
+
+      - name: Notify Bing and IndexNow
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
+          KEY_URL="https://canisharethis.com/${INDEXNOW_KEY}.txt"
+          READY=0
+          for attempt in $(seq 1 30); do
+            LIVE_KEY="$(curl -fsSL --max-time 10 "$KEY_URL" 2>/dev/null || true)"
+            if [ "$LIVE_KEY" = "$INDEXNOW_KEY" ]; then
+              READY=1
+              break
+            fi
+            sleep 5
+          done
+          if [ "$READY" -ne 1 ]; then
+            echo "::warning::IndexNow key is not live yet; skipping this submission."
+            exit 0
+          fi
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import re
+          key = pathlib.Path('seo/indexnow-key.txt').read_text().strip()
+          xml = pathlib.Path('dist/sitemap.xml').read_text(encoding='utf-8')
+          urls = re.findall(r'<loc>\s*(.*?)\s*</loc>', xml, flags=re.I | re.S)
+          payload = {
+              'host': 'canisharethis.com',
+              'key': key,
+              'keyLocation': f'https://canisharethis.com/{key}.txt',
+              'urlList': urls,
+          }
+          pathlib.Path('/tmp/indexnow.json').write_text(json.dumps(payload), encoding='utf-8')
+          print(f'Prepared {len(urls)} URLs for IndexNow')
+          PY
+          HTTP_CODE="$(curl -sS -o /tmp/indexnow-response.txt -w '%{http_code}' \
+            -X POST 'https://api.indexnow.org/IndexNow' \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            --data-binary @/tmp/indexnow.json || true)"
+          case "$HTTP_CODE" in
+            200|202)
+              echo "IndexNow accepted the sitemap URLs (HTTP $HTTP_CODE)."
+              ;;
+            *)
+              echo "::warning::IndexNow returned HTTP ${HTTP_CODE:-unknown}."
+              cat /tmp/indexnow-response.txt 2>/dev/null || true
+              ;;
+          esac
