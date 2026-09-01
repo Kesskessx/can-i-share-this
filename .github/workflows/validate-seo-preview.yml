@@ -1,0 +1,59 @@
+name: Validate SEO preview
+
+on:
+  push:
+    branches:
+      - seo-2026-safe-integration
+  pull_request:
+    paths:
+      - 'seo/**'
+      - 'chunks/**'
+      - 'build.sh'
+      - 'vercel.json'
+      - 'scripts/validate_seo_preview.py'
+      - '.github/workflows/validate-seo-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rebuild static preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash build.sh
+          test -d dist
+          test -f dist/index.html
+          printf 'Static files: '
+          find dist -type f | wc -l
+
+      - name: Validate SEO routes and generated HTML
+        run: python scripts/validate_seo_preview.py
+
+      - name: Verify preview safety marker
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'PREVIEW ONLY' PREVIEW_ONLY.md
+          grep -q 'Do not merge or promote this branch to production as-is' PREVIEW_ONLY.md
+
+      - name: Verify production branch was not bundled into preview config
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '"outputDirectory": "dist"' vercel.json
+          grep -q 'https://canisharethis.com/api/' vercel.json
