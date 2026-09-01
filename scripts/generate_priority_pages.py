@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the 10 prepared SEO pages as a reversible overlay on the static preview."""
+"""Generate the 10 prepared SEO pages as a reversible static overlay."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def extract_page_section(source: str, route: str) -> str:
     return body.split(marker, 1)[1].strip()
 
 
-def route_exists(route: str, priority_routes: set[str]) -> bool:
+def static_route_exists(route: str, priority_routes: set[str]) -> bool:
     if route in priority_routes or route == "/":
         return True
     rel = route.lstrip("/").rstrip("/")
@@ -50,16 +50,15 @@ def route_exists(route: str, priority_routes: set[str]) -> bool:
 
 
 def render_body(markdown: str, priority_routes: set[str]) -> str:
-    lines = markdown.splitlines()
     out: list[str] = []
     paragraph: list[str] = []
     list_items: list[str] = []
-    in_internal_links = False
+    internal_links = False
 
     def flush_paragraph() -> None:
         nonlocal paragraph
         if paragraph:
-            text = " ".join(line.strip() for line in paragraph).strip()
+            text = " ".join(x.strip() for x in paragraph).strip()
             if text:
                 out.append(f"<p>{inline(text)}</p>")
             paragraph = []
@@ -70,67 +69,66 @@ def render_body(markdown: str, priority_routes: set[str]) -> str:
             out.append("<ul>" + "".join(list_items) + "</ul>")
             list_items = []
 
-    for raw in lines:
-        line = raw.rstrip()
-        stripped = line.strip()
-
-        if not stripped:
+    for raw in markdown.splitlines():
+        text = raw.strip()
+        if not text:
             flush_paragraph()
             flush_list()
             continue
 
-        if stripped == "## Main copy":
-            flush_paragraph(); flush_list()
+        if text == "## Main copy":
+            flush_paragraph(); flush_list(); internal_links = False
             continue
-        if stripped == "## FAQ":
-            flush_paragraph(); flush_list()
+        if text == "## FAQ":
+            flush_paragraph(); flush_list(); internal_links = False
             out.append("<h2>Frequently asked questions</h2>")
-            in_internal_links = False
             continue
-        if stripped == "## Internal links":
-            flush_paragraph(); flush_list()
+        if text == "## Internal links":
+            flush_paragraph(); flush_list(); internal_links = True
             out.append("<h2>Related checks</h2>")
-            in_internal_links = True
             continue
-        if stripped.startswith("## "):
-            flush_paragraph(); flush_list()
-            out.append(f"<h2>{inline(stripped[3:])}</h2>")
-            in_internal_links = False
+        if text.startswith("## "):
+            flush_paragraph(); flush_list(); internal_links = False
+            out.append(f"<h2>{inline(text[3:])}</h2>")
             continue
-        if stripped.startswith("### "):
+        if text.startswith("### "):
             flush_paragraph(); flush_list()
-            out.append(f"<h2>{inline(stripped[4:])}</h2>")
+            out.append(f"<h2>{inline(text[4:])}</h2>")
             continue
 
-        if stripped.startswith("- "):
+        if text.startswith("- "):
             flush_paragraph()
-            item = stripped[2:].strip()
-            if in_internal_links:
-                m = re.match(r"`(/[^`]+)`\s*(?:—|-)\s*(.+)", item)
-                if m:
-                    target, label = m.groups()
-                    if route_exists(target, priority_routes):
+            item = text[2:].strip()
+            if internal_links:
+                match = re.match(r"`(/[^`]+)`\s*(?:—|-)\s*(.+)", item)
+                if match:
+                    target, label = match.groups()
+                    if static_route_exists(target, priority_routes):
                         list_items.append(
-                            f'<li><a href="{html.escape(target)}">{inline(label)}</a></li>'
+                            f'<li><a href="{html.escape(target, quote=True)}">{inline(label)}</a></li>'
                         )
                     continue
             list_items.append(f"<li>{inline(item)}</li>")
             continue
 
-        numbered = re.match(r"^\d+\.\s+(.+)$", stripped)
+        numbered = re.match(r"^\d+\.\s+(.+)$", text)
         if numbered:
             flush_paragraph()
             list_items.append(f"<li>{inline(numbered.group(1))}</li>")
             continue
 
-        paragraph.append(stripped)
+        paragraph.append(text)
 
     flush_paragraph()
     flush_list()
     return "\n".join(out)
 
 
-def page_html(route: dict, body_html: str) -> str:
+def json_ld(value: dict) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+
+
+def render_page(route: dict, body_html: str) -> str:
     path = route["path"]
     canonical = CANONICAL_HOST + path
     title = route["title"]
@@ -168,8 +166,8 @@ def page_html(route: dict, body_html: str) -> str:
   <meta property="og:description" content="{html.escape(description, quote=True)}">
   <meta property="og:url" content="{html.escape(canonical, quote=True)}">
   <meta name="twitter:card" content="summary">
-  <script type="application/ld+json">{html.escape(json.dumps(breadcrumb, ensure_ascii=False))}</script>
-  <script type="application/ld+json">{html.escape(json.dumps(webpage, ensure_ascii=False))}</script>
+  <script type="application/ld+json">{json_ld(breadcrumb)}</script>
+  <script type="application/ld+json">{json_ld(webpage)}</script>
   <style>
     :root{{color-scheme:light dark;--bg:#f7f7f5;--card:#fff;--text:#171717;--muted:#626262;--line:#deded8;--accent:#111;--accentText:#fff}}
     @media(prefers-color-scheme:dark){{:root{{--bg:#101010;--card:#171717;--text:#f1f1f1;--muted:#aaa;--line:#303030;--accent:#f5f5f5;--accentText:#111}}}}
@@ -196,32 +194,37 @@ def page_html(route: dict, body_html: str) -> str:
 
 def write_route(route: dict, source: str, priority_routes: set[str]) -> None:
     section = extract_page_section(source, route["path"])
-    body = render_body(section, priority_routes)
+    body_html = render_body(section, priority_routes)
     target = DIST / f"{route['path'].lstrip('/').rstrip('/')}.html"
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(page_html(route, body), encoding="utf-8")
+    target.write_text(render_page(route, body_html), encoding="utf-8")
 
 
 def update_sitemap(routes: list[dict]) -> None:
     sitemap = DIST / "sitemap.xml"
     urls: set[str] = set()
+
     if sitemap.is_file():
         old = sitemap.read_text(encoding="utf-8", errors="replace")
         for loc in re.findall(r"<loc>\s*(.*?)\s*</loc>", old, flags=re.I | re.S):
             parsed = urlparse(html.unescape(loc.strip()))
             if parsed.path:
                 urls.add(CANONICAL_HOST + (parsed.path.rstrip("/") or "/"))
+
     urls.add(CANONICAL_HOST + "/")
     for route in routes:
         urls.add(CANONICAL_HOST + route["path"])
 
-    body = "\n".join(f"  <url><loc>{html.escape(url)}</loc></url>" for url in sorted(urls))
-    sitemap.write_text(
+    entries = "\n".join(
+        f"  <url><loc>{html.escape(url)}</loc></url>" for url in sorted(urls)
+    )
+    xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        f'{body}\n'</urlset>\n',
-        encoding="utf-8",
+        + entries
+        + '\n</urlset>\n'
     )
+    sitemap.write_text(xml, encoding="utf-8")
 
 
 def main() -> None:
@@ -229,6 +232,7 @@ def main() -> None:
     routes = manifest["routes"]
     source = CONTENT_PATH.read_text(encoding="utf-8")
     priority_routes = {route["path"] for route in routes}
+
     for route in routes:
         write_route(route, source, priority_routes)
     update_sitemap(routes)
