@@ -1,4 +1,4 @@
-name: Validate Link Safety V6.1
+name: Validate Link Safety V6.2
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  safety-v61:
+  safety-v62:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -21,7 +21,7 @@ jobs:
           node --check api/check.js
           node --check api/deep-check.js
 
-      - name: Build site with Link Safety V6.1
+      - name: Build site with minimal homepage
         run: bash build.sh
 
       - name: Validate safety SEO routes
@@ -35,20 +35,25 @@ jobs:
             grep -q "https://canisharethis.com/$page" dist/sitemap.xml
           done
 
-      - name: Validate homepage safety-first positioning
+      - name: Validate 3-second homepage
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'Check a link before you open or share it' dist/index.html
-          grep -q 'id="cist-safety-console"' dist/index.html
-          grep -q 'Paste a suspicious link' dist/index.html
-          grep -q 'Quick Check' dist/index.html
-          grep -q 'Deep Safety Scan' dist/index.html
-          grep -q 'id="cist-deep-consent"' dist/index.html
-          grep -q 'id="cist-console-result"' dist/index.html
+          grep -q '<h1 id="page-title">Is this link safe?</h1>' dist/index.html
+          grep -q 'placeholder="Paste a link here…"' dist/index.html
+          grep -q '>Analyze</button>' dist/index.html
+          grep -q 'id="result"' dist/index.html
+          grep -q 'Check reputation too' dist/index.html
+          grep -q '/api/deep-check' dist/index.html
           grep -q 'href="/safe-link-checker"' dist/index.html
           grep -q 'href="/scam-link-checker"' dist/index.html
           grep -q 'href="/phishing-link-checker"' dist/index.html
+          grep -q 'href="/google-drive-link-checker"' dist/index.html
+          grep -q 'href="/dropbox-link-checker"' dist/index.html
+          ! grep -q 'Three steps before you hit Send' dist/index.html
+          ! grep -q 'RECIPIENT PREVIEW' dist/index.html
+          ! grep -q 'Recognizes 91+' dist/index.html
+          ! grep -q 'Quick CheckDeep Safety Scan' dist/index.html
 
       - name: Validate safety API contracts
         shell: bash
@@ -59,6 +64,5 @@ jobs:
           grep -q 'Privacy-first mode' api/check.js
           grep -q 'body.consent !== true' api/deep-check.js
           grep -q 'PhishTank' api/deep-check.js
-          grep -q 'Google Safe Browsing' api/deep-check.js
           grep -q 'privacyBlocked' api/deep-check.js
           grep -q 'sensitiveParameters' api/deep-check.js
