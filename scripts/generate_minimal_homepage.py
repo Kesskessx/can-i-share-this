@@ -2,7 +2,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DIST = ROOT / "dist"
+DIST = ROOT / 'dist'
 
 HTML = r'''<!doctype html>
 <html lang="en">
@@ -22,105 +22,85 @@ HTML = r'''<!doctype html>
   <style>
     :root{color-scheme:light dark;--bg:#f7f8fa;--card:#fff;--text:#17191d;--muted:#6d7480;--line:#e2e5e9;--button:#17191d;--buttonText:#fff;--soft:#f1f3f5;--green:#137333;--amber:#9a5b00;--red:#b3261e;--shadow:0 18px 50px rgba(17,24,39,.08)}
     @media(prefers-color-scheme:dark){:root{--bg:#0d0f12;--card:#15181d;--text:#f4f5f7;--muted:#a6acb7;--line:#2a2f37;--button:#f4f5f7;--buttonText:#111318;--soft:#1c2026;--green:#75d18b;--amber:#ffc266;--red:#ff8f87;--shadow:0 18px 50px rgba(0,0,0,.28)}}
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}button,input{font:inherit}a{color:inherit}
-    header{height:66px;display:flex;align-items:center;border-bottom:1px solid var(--line)}.top{width:min(940px,calc(100% - 36px));margin:auto;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:850;text-decoration:none;letter-spacing:-.025em}.mini-link{font-size:13px;color:var(--muted);text-decoration:none}
-    main{width:min(760px,calc(100% - 32px));margin:0 auto;padding:clamp(54px,9vw,105px) 0 70px}.hero{text-align:center}.eyebrow{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}.hero h1{font-size:clamp(38px,8vw,68px);line-height:.98;letter-spacing:-.055em;margin:0;text-wrap:balance}.sub{max-width:590px;margin:18px auto 28px;color:var(--muted);font-size:clamp(16px,2.4vw,19px);line-height:1.55}
-    .scan-form{display:flex;gap:10px;padding:9px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.scan-form:focus-within{outline:3px solid color-mix(in srgb,var(--text) 12%,transparent)}.scan-form input{min-width:0;flex:1;height:52px;border:0;outline:0;background:transparent;color:var(--text);padding:0 13px;font-size:16px}.scan-form input::placeholder{color:var(--muted)}.primary{height:52px;border:0;border-radius:12px;background:var(--button);color:var(--buttonText);padding:0 22px;font-weight:800;cursor:pointer}.primary:disabled{opacity:.55;cursor:wait}.privacy{margin:12px 0 0;color:var(--muted);font-size:12px}
-    #result{margin-top:24px;text-align:left}.hidden{display:none!important}.result-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,4vw,30px);box-shadow:var(--shadow)}.result-top{display:flex;gap:14px;align-items:flex-start}.status-icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--soft);font-size:21px;font-weight:900;flex:0 0 auto}.result-main{min-width:0;flex:1}.result-main h2{margin:0;font-size:clamp(23px,4vw,31px);line-height:1.12;letter-spacing:-.035em}.result-summary{margin:7px 0 0;color:var(--muted)}.status-low .status-icon,.status-low h2{color:var(--green)}.status-caution .status-icon,.status-caution h2{color:var(--amber)}.status-high .status-icon,.status-high h2{color:var(--red)}
-    .meta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.pill{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}.signals{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:9px}.signals li{position:relative;padding:12px 14px 12px 38px;background:var(--soft);border-radius:12px;font-size:14px}.signals li:before{content:"•";position:absolute;left:16px;font-weight:900}.caveat{font-size:12px;color:var(--muted);margin:14px 0 0}
-    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.secondary{border:1px solid var(--line);background:transparent;color:var(--text);border-radius:11px;padding:10px 13px;font-weight:750;cursor:pointer}.deep-note{margin:12px 0 0;font-size:12px;color:var(--muted)}.consent{margin-top:12px;padding:14px;border:1px solid var(--line);background:var(--soft);border-radius:12px}.consent p{margin:0 0 10px;font-size:13px}.consent-actions{display:flex;gap:8px}.small-primary{border:0;background:var(--button);color:var(--buttonText);border-radius:9px;padding:8px 12px;font-weight:800;cursor:pointer}.small-secondary{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:9px;padding:8px 12px;font-weight:750;cursor:pointer}
-    .reputation{margin-top:14px;border-radius:12px;padding:13px 14px;background:var(--soft);font-size:14px}.reputation strong{display:block;margin-bottom:3px}.reputation.bad strong{color:var(--red)}.reputation.good strong{color:var(--green)}
-    details.technical{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}details.technical summary{cursor:pointer;font-size:13px;font-weight:750;color:var(--muted)}.technical-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.tech{padding:10px 12px;background:var(--soft);border-radius:10px}.tech span{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}.tech strong{font-size:13px;word-break:break-word}.provider-list{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:8px}.provider-list li{padding:10px 12px;background:var(--soft);border-radius:10px;font-size:12px}
-    footer{width:min(760px,calc(100% - 32px));margin:0 auto 35px;color:var(--muted);font-size:12px;text-align:center}.footer-main{padding-top:24px;border-top:1px solid var(--line)}footer details{margin:10px auto;max-width:520px}footer summary{cursor:pointer}footer nav{display:flex;justify-content:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px}footer nav a{text-underline-offset:3px}
-    @media(max-width:600px){header{height:58px}.top{width:calc(100% - 28px)}.mini-link{display:none}main{width:calc(100% - 24px);padding-top:46px}.hero h1{font-size:44px}.sub{margin-top:14px;margin-bottom:22px}.scan-form{display:block;padding:8px}.scan-form input{width:100%;height:50px}.primary{width:100%;height:48px}.result-card{border-radius:16px}.result-top{gap:11px}.status-icon{width:38px;height:38px}.technical-grid{grid-template-columns:1fr}.actions>*{flex:1}.consent-actions>*{flex:1}}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}button,input{font:inherit}a{color:inherit}.hidden{display:none!important}
+    header{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center}.top{width:min(920px,calc(100% - 32px));margin:auto;display:flex;justify-content:space-between;align-items:center}.brand{text-decoration:none;font-weight:850;letter-spacing:-.025em}.qr-top{font-size:13px;color:var(--muted);text-decoration:none}
+    main{width:min(720px,calc(100% - 28px));margin:auto;padding:clamp(52px,9vw,98px) 0 64px}.hero{text-align:center}.eyebrow{margin:0 0 12px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}h1{font-size:clamp(40px,8vw,66px);line-height:.98;letter-spacing:-.055em;margin:0}.sub{max-width:570px;margin:17px auto 26px;color:var(--muted);font-size:clamp(16px,2.2vw,19px)}
+    .scan-form{display:flex;gap:8px;padding:8px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.input-wrap{display:flex;align-items:center;flex:1;min-width:0}.input-wrap input{min-width:0;flex:1;height:52px;border:0;outline:0;background:transparent;color:var(--text);padding:0 12px}.paste{height:38px;border:0;background:var(--soft);color:var(--text);border-radius:10px;padding:0 11px;font-weight:750;cursor:pointer}.primary{height:52px;border:0;border-radius:12px;background:var(--button);color:var(--buttonText);padding:0 22px;font-weight:850;cursor:pointer}.primary:disabled{opacity:.55}.under-form{display:flex;justify-content:center;gap:8px 14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}.under-form a{text-underline-offset:3px}
+    #result{margin-top:24px}.result-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:clamp(20px,4vw,28px);box-shadow:var(--shadow)}.result-top{display:flex;gap:13px;align-items:flex-start}.status-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:var(--soft);font-size:21px;font-weight:900;flex:0 0 auto}.result-main h2{margin:0;font-size:clamp(24px,4vw,31px);line-height:1.12;letter-spacing:-.035em}.result-summary{margin:7px 0 0;color:var(--muted)}.status-low .status-icon,.status-low h2{color:var(--green)}.status-caution .status-icon,.status-caution h2{color:var(--amber)}.status-high .status-icon,.status-high h2{color:var(--red)}
+    .signals{list-style:none;padding:0;margin:17px 0 0;display:grid;gap:8px}.signals li{padding:11px 13px;border-radius:11px;background:var(--soft);font-size:14px}.advice{margin-top:18px;padding:15px;border:1px solid var(--line);border-radius:13px}.advice strong{display:block;margin-bottom:4px}.advice p{margin:0;color:var(--muted);font-size:14px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}.secondary{border:1px solid var(--line);background:transparent;color:var(--text);border-radius:10px;padding:9px 12px;font-weight:750;cursor:pointer}.consent,.reputation{margin-top:13px;padding:13px 14px;border-radius:12px;background:var(--soft);font-size:13px}.consent p{margin:0 0 10px}.consent-actions{display:flex;gap:8px}.small-primary,.small-secondary{border-radius:9px;padding:8px 11px;font-weight:800;cursor:pointer}.small-primary{border:0;background:var(--button);color:var(--buttonText)}.small-secondary{border:1px solid var(--line);background:var(--card);color:var(--text)}.reputation.bad{color:var(--red)}.reputation.good{color:var(--green)}
+    details.technical{margin-top:15px;border-top:1px solid var(--line);padding-top:13px}details.technical summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:750}.tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}.tech{padding:10px 11px;background:var(--soft);border-radius:10px}.tech span{display:block;color:var(--muted);font-size:11px}.tech strong{font-size:13px;word-break:break-word}.providers{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:7px}.providers li{padding:9px 11px;background:var(--soft);border-radius:9px;font-size:12px}
+    footer{width:min(720px,calc(100% - 28px));margin:0 auto 32px;text-align:center;color:var(--muted);font-size:12px}.footer-line{border-top:1px solid var(--line);padding-top:22px}footer details{margin-top:9px}footer nav{display:flex;justify-content:center;gap:8px 13px;flex-wrap:wrap;margin-top:9px}
+    @media(max-width:600px){header{height:58px}.qr-top{display:none}main{padding-top:44px}.scan-form{display:block}.input-wrap{height:50px}.primary{width:100%;height:48px}.result-card{border-radius:16px}.tech-grid{grid-template-columns:1fr}.actions>*{flex:1}.consent-actions>*{flex:1}}
   </style>
 </head>
 <body>
-<header><div class="top"><a class="brand" href="/">↗ Can I Share This?</a><a class="mini-link" href="/safe-link-checker">How it works</a></div></header>
-<main id="top">
+<header><div class="top"><a class="brand" href="/">↗ Can I Share This?</a><a class="qr-top" href="/qr-code-link-checker">Scan QR</a></div></header>
+<main>
   <section class="hero" aria-labelledby="page-title">
     <p class="eyebrow">Link safety checker</p>
     <h1 id="page-title">Is this link safe?</h1>
-    <p class="sub">Paste a suspicious link. We’ll check for common scam, phishing, redirect and risky-download warning signs before you open it.</p>
+    <p class="sub">Paste a suspicious link. We’ll check the warning signs before you open it.</p>
     <form id="scan-form" class="scan-form">
-      <input id="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste a link here…" aria-label="Link to analyze" required>
+      <div class="input-wrap"><input id="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste a link here…" aria-label="Link to analyze" required><button id="paste" class="paste" type="button">Paste</button></div>
       <button id="analyze" class="primary" type="submit">Analyze</button>
     </form>
-    <p class="privacy">No account required. The first scan does not send your URL to third-party reputation databases.</p>
+    <div class="under-form"><span>🔒 Links aren’t stored</span><a href="/qr-code-link-checker">Scan a QR code instead</a></div>
   </section>
 
   <section id="result" class="hidden" aria-live="polite">
     <div id="result-card" class="result-card">
-      <div class="result-top">
-        <div id="status-icon" class="status-icon">…</div>
-        <div class="result-main">
-          <h2 id="verdict">Analyzing…</h2>
-          <p id="summary" class="result-summary">Checking the URL and destination.</p>
-        </div>
-      </div>
-      <div id="meta" class="meta hidden"></div>
+      <div class="result-top"><div id="status-icon" class="status-icon">…</div><div class="result-main"><h2 id="verdict">Analyzing…</h2><p id="summary" class="result-summary">Checking the URL and destination.</p></div></div>
       <ul id="signals" class="signals hidden"></ul>
-      <p id="caveat" class="caveat hidden">This is a risk assessment, not a guarantee that a website is malware-free.</p>
-      <div id="actions" class="actions hidden">
-        <button id="deep" class="secondary" type="button">Check reputation too</button>
-        <button id="again" class="secondary" type="button">Check another link</button>
-      </div>
-      <p id="deep-note" class="deep-note hidden">Optional: the reputation check can share this public URL with external threat databases.</p>
-      <div id="consent" class="consent hidden">
-        <p>Continue only for a public link. Private or signed URLs may contain sensitive access tokens.</p>
-        <div class="consent-actions"><button id="deep-confirm" class="small-primary" type="button">Continue</button><button id="deep-cancel" class="small-secondary" type="button">Cancel</button></div>
-      </div>
+      <div id="advice" class="advice hidden"><strong>What should I do?</strong><p id="advice-text"></p></div>
+      <div id="actions" class="actions hidden"><button id="deep" class="secondary" type="button">Check reputation</button><button id="share" class="secondary" type="button">Share result</button><button id="again" class="secondary" type="button">Check another</button></div>
+      <div id="consent" class="consent hidden"><p>Reputation checks share this public URL with external threat databases. Private or signed links may contain access tokens.</p><div class="consent-actions"><button id="deep-confirm" class="small-primary" type="button">Continue</button><button id="deep-cancel" class="small-secondary" type="button">Cancel</button></div></div>
       <div id="reputation" class="reputation hidden"></div>
-      <details id="technical" class="technical hidden">
-        <summary>Technical details</summary>
-        <div id="technical-grid" class="technical-grid"></div>
-        <ul id="provider-list" class="provider-list"></ul>
-      </details>
+      <details id="technical" class="technical hidden"><summary>Technical details</summary><div id="tech-grid" class="tech-grid"></div><ul id="providers" class="providers"></ul></details>
     </div>
   </section>
 </main>
-<footer>
-  <div class="footer-main">Can I Share This? checks warning signs before you click. It cannot guarantee that a link is safe.</div>
-  <details><summary>Specialized link checks</summary><nav><a href="/safe-link-checker">Safe link</a><a href="/scam-link-checker">Scam link</a><a href="/phishing-link-checker">Phishing</a><a href="/google-drive-link-checker">Google Drive</a><a href="/dropbox-link-checker">Dropbox</a><a href="/drive-vs-dropbox-share-link-checker">Drive vs Dropbox</a></nav></details>
-</footer>
-<script id="minimal-homepage-script">
+<footer><div class="footer-line">Can I Share This? checks warning signs before you click. No scanner can guarantee a link is safe.</div><details><summary>Specialized checks</summary><nav><a href="/safe-link-checker">Safe link</a><a href="/scam-link-checker">Scam</a><a href="/phishing-link-checker">Phishing</a><a href="/qr-code-link-checker">QR code</a><a href="/google-drive-link-checker">Google Drive</a><a href="/dropbox-link-checker">Dropbox</a></nav></details></footer>
+<script>
 (function(){
-  var form=document.getElementById('scan-form'), input=document.getElementById('url'), analyze=document.getElementById('analyze');
-  var result=document.getElementById('result'), card=document.getElementById('result-card'), icon=document.getElementById('status-icon'), verdict=document.getElementById('verdict'), summary=document.getElementById('summary');
-  var meta=document.getElementById('meta'), signals=document.getElementById('signals'), caveat=document.getElementById('caveat'), actions=document.getElementById('actions'), deep=document.getElementById('deep'), again=document.getElementById('again'), deepNote=document.getElementById('deep-note'), consent=document.getElementById('consent'), deepConfirm=document.getElementById('deep-confirm'), deepCancel=document.getElementById('deep-cancel'), reputation=document.getElementById('reputation'), technical=document.getElementById('technical'), technicalGrid=document.getElementById('technical-grid'), providerList=document.getElementById('provider-list');
-  var currentUrl='';
+  var form=document.getElementById('scan-form'),input=document.getElementById('url'),paste=document.getElementById('paste'),analyze=document.getElementById('analyze');
+  var result=document.getElementById('result'),card=document.getElementById('result-card'),icon=document.getElementById('status-icon'),verdict=document.getElementById('verdict'),summary=document.getElementById('summary'),signals=document.getElementById('signals'),advice=document.getElementById('advice'),adviceText=document.getElementById('advice-text'),actions=document.getElementById('actions'),deep=document.getElementById('deep'),share=document.getElementById('share'),again=document.getElementById('again'),consent=document.getElementById('consent'),deepConfirm=document.getElementById('deep-confirm'),deepCancel=document.getElementById('deep-cancel'),reputation=document.getElementById('reputation'),technical=document.getElementById('technical'),techGrid=document.getElementById('tech-grid'),providers=document.getElementById('providers');
+  var currentUrl='',lastStatus='unknown',lastVerdict='';
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
   function normalize(v){v=String(v||'').trim();if(v&&!/^https?:\/\//i.test(v))v='https://'+v;return v}
+  function track(event){try{var b=new Blob([JSON.stringify({event:event})],{type:'application/json'});navigator.sendBeacon('/api/event',b)}catch(e){}}
   function busy(on){analyze.disabled=on;analyze.textContent=on?'Analyzing…':'Analyze'}
-  function resetExtras(){meta.classList.add('hidden');signals.classList.add('hidden');caveat.classList.add('hidden');actions.classList.add('hidden');deepNote.classList.add('hidden');consent.classList.add('hidden');reputation.classList.add('hidden');reputation.className='reputation hidden';technical.classList.add('hidden');technical.open=false;technicalGrid.innerHTML='';providerList.innerHTML=''}
-  function loading(){resetExtras();result.classList.remove('hidden');card.className='result-card';icon.textContent='…';verdict.textContent='Analyzing…';summary.textContent='Checking the URL and destination.'}
+  function clearExtra(){signals.classList.add('hidden');advice.classList.add('hidden');actions.classList.add('hidden');consent.classList.add('hidden');reputation.classList.add('hidden');technical.classList.add('hidden');technical.open=false;signals.innerHTML='';techGrid.innerHTML='';providers.innerHTML=''}
+  function loading(){clearExtra();result.classList.remove('hidden');card.className='result-card';icon.textContent='…';verdict.textContent='Analyzing…';summary.textContent='Checking the URL and destination.'}
+  function guidance(status){if(status==='high')return 'Do not open this link. Delete the message and visit the company or service through its official website instead.';if(status==='caution')return 'Verify the sender and the final domain before continuing. Avoid signing in, paying, or downloading anything until you are sure.';if(status==='low')return 'If you expected this link, you can continue cautiously. Be extra careful if the message asks for a password, payment, or download.';return 'Do not trust the link yet. Verify the sender or use the official website directly.'}
   function renderQuick(data){
-    var s=data&&data.safety?data.safety:{};var status=['low','caution','high'].indexOf(s.status)>=0?s.status:'unknown';
-    card.className='result-card status-'+status;
-    icon.textContent=status==='low'?'✓':status==='caution'?'!':status==='high'?'×':'?';
-    verdict.textContent=status==='low'?'No obvious danger found':status==='caution'?'Be careful with this link':status==='high'?'High-risk signals found':'We could not fully check this link';
-    summary.textContent=status==='low'?'No obvious scam or malicious URL pattern was detected.':status==='caution'?'Some characteristics deserve a closer look before you continue.':status==='high'?'Do not open, sign in, pay, or download anything until you verify the link.':(data.error||'The destination could not be assessed completely.');
-    var score=Number.isFinite(s.riskScore)?s.riskScore:0;var host=data.finalHost||'';meta.innerHTML=(host?'<span class="pill">'+esc(host)+'</span>':'')+'<span class="pill">Risk '+esc(score)+'/100</span>';meta.classList.remove('hidden');
-    var list=Array.isArray(s.signals)?s.signals.slice(0,3):[];
-    if(!list.length) list=[{title:'No obvious suspicious URL pattern detected.'}];
-    signals.innerHTML=list.map(function(x){return '<li>'+esc(x.title||x.detail||'Warning sign detected')+'</li>'}).join('');signals.classList.remove('hidden');caveat.classList.remove('hidden');actions.classList.remove('hidden');deepNote.classList.remove('hidden');
-    technicalGrid.innerHTML='<div class="tech"><span>Final domain</span><strong>'+esc(host||'Unknown')+'</strong></div><div class="tech"><span>HTTP status</span><strong>'+esc(data.status||'Unknown')+'</strong></div><div class="tech"><span>Redirects</span><strong>'+esc(Array.isArray(data.redirects)?data.redirects.length:0)+'</strong></div><div class="tech"><span>Login gate</span><strong>'+esc(data.loginRequired?'Detected':'Not detected')+'</strong></div>';
-    technical.classList.remove('hidden');
+    var s=data&&data.safety?data.safety:{};var status=['low','caution','high'].indexOf(s.status)>=0?s.status:'unknown';lastStatus=status;
+    card.className='result-card status-'+status;icon.textContent=status==='low'?'✓':status==='caution'?'!':status==='high'?'×':'?';
+    lastVerdict=status==='low'?'NO KNOWN DANGER FOUND':status==='caution'?'BE CAREFUL':status==='high'?'DANGEROUS LINK SIGNALS':'CHECK INCOMPLETE';verdict.textContent=lastVerdict;
+    summary.textContent=status==='low'?'No obvious scam or malicious URL pattern was detected.':status==='caution'?'Suspicious characteristics were detected.':status==='high'?'High-risk warning signs were detected. Do not open it.':(data.error||'We could not fully assess this destination.');
+    var list=Array.isArray(s.signals)?s.signals.slice(0,3):[];if(status!=='low'&&list.length){signals.innerHTML=list.map(function(x){return '<li>'+esc(x.title||x.detail||'Warning sign detected')+'</li>'}).join('');signals.classList.remove('hidden')}
+    adviceText.textContent=guidance(status);advice.classList.remove('hidden');actions.classList.remove('hidden');technical.classList.remove('hidden');
+    var host=data.finalHost||'';var score=Number.isFinite(s.riskScore)?s.riskScore:0;techGrid.innerHTML='<div class="tech"><span>Final host</span><strong>'+esc(host||'Unknown')+'</strong></div><div class="tech"><span>Risk score</span><strong>'+esc(score)+'/100</strong></div><div class="tech"><span>HTTP status</span><strong>'+esc(data.status||'Unknown')+'</strong></div><div class="tech"><span>Redirects</span><strong>'+esc(Array.isArray(data.redirects)?data.redirects.length:0)+'</strong></div>';
   }
-  async function quickScan(url){loading();busy(true);try{var r=await fetch('/api/check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:url})});var data=await r.json();renderQuick(data)}catch(e){card.className='result-card status-unknown';icon.textContent='?';verdict.textContent='Check failed';summary.textContent='Please try again in a moment.';actions.classList.remove('hidden')}finally{busy(false)}}
-  function renderDeep(data){consent.classList.add('hidden');reputation.classList.remove('hidden');var status=data&&data.status||'unknown';if(data&&data.privacyBlocked){reputation.className='reputation';reputation.innerHTML='<strong>Protected: deep check skipped</strong>This link appears to contain a private token or signature, so it was not sent to external databases.'}else if(status==='known-dangerous'){reputation.className='reputation bad';reputation.innerHTML='<strong>Known threat reported</strong>At least one external reputation source flags this URL. Do not continue.'}else if(status==='no-known-threat'){reputation.className='reputation good';reputation.innerHTML='<strong>No known threat found</strong>The available reputation sources did not report this URL. This is not a guarantee of safety.'}else{reputation.className='reputation';reputation.innerHTML='<strong>Reputation check unavailable</strong>The external databases could not provide a reliable answer right now.'}
-    var providers=Array.isArray(data&&data.providers)?data.providers:[];providerList.innerHTML=providers.map(function(p){return '<li><strong>'+esc(p.provider||'Provider')+'</strong><br>'+esc(p.detail||p.status||'No detail')+'</li>'}).join('');technical.open=false
-  }
-  form.addEventListener('submit',function(e){e.preventDefault();var url=normalize(input.value);if(!url)return;currentUrl=url;input.value=url;quickScan(url)});
-  deep.addEventListener('click',function(){consent.classList.remove('hidden');deepNote.classList.add('hidden')});
-  deepCancel.addEventListener('click',function(){consent.classList.add('hidden');deepNote.classList.remove('hidden')});
-  deepConfirm.addEventListener('click',async function(){if(!currentUrl)return;deepConfirm.disabled=true;deepConfirm.textContent='Checking…';try{var r=await fetch('/api/deep-check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:currentUrl,consent:true})});renderDeep(await r.json())}catch(e){renderDeep({status:'unknown',providers:[]})}finally{deepConfirm.disabled=false;deepConfirm.textContent='Continue'}});
-  again.addEventListener('click',function(){result.classList.add('hidden');resetExtras();input.value='';currentUrl='';input.focus()});
+  async function runScan(url){currentUrl=normalize(url);if(!currentUrl)return;input.value=currentUrl;loading();busy(true);track('analyze');try{var r=await fetch('/api/check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:currentUrl})});renderQuick(await r.json())}catch(e){renderQuick({error:'The safety check could not complete.',safety:{status:'unknown',riskScore:0,signals:[]}})}finally{busy(false)}}
+  form.addEventListener('submit',function(e){e.preventDefault();runScan(input.value)});
+  input.addEventListener('paste',function(){track('paste')});
+  paste.addEventListener('click',async function(){try{var text=await navigator.clipboard.readText();if(text){input.value=text;track('paste');input.focus()}}catch(e){input.focus()}});
+  again.addEventListener('click',function(){result.classList.add('hidden');input.value='';currentUrl='';input.focus()});
+  deep.addEventListener('click',function(){consent.classList.remove('hidden')});deepCancel.addEventListener('click',function(){consent.classList.add('hidden')});
+  deepConfirm.addEventListener('click',async function(){consent.classList.add('hidden');reputation.className='reputation';reputation.textContent='Checking reputation…';track('deep_scan');try{var r=await fetch('/api/deep-check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:currentUrl,consent:true})});var d=await r.json();providers.innerHTML=(d.providers||[]).map(function(p){return '<li><strong>'+esc(p.provider)+'</strong> — '+esc(p.detail||p.status||'')+'</li>'}).join('');if(d.status==='known-dangerous'){reputation.className='reputation bad';reputation.textContent='Known threat reported. Do not open this link.';lastStatus='high';lastVerdict='DANGEROUS LINK'}else if(d.status==='no-known-threat'){reputation.className='reputation good';reputation.textContent='No known threat was found by the available reputation sources.'}else if(d.status==='privacy-blocked'){reputation.className='reputation';reputation.textContent='Deep scan was blocked because this URL appears to contain sensitive access data.'}else{reputation.className='reputation';reputation.textContent='External reputation could not be confirmed right now.'}}catch(e){reputation.className='reputation';reputation.textContent='External reputation could not be checked right now.'}});
+  share.addEventListener('click',async function(){var text='Can I Share This? result: '+lastVerdict+'. '+(lastStatus==='high'?'Do not open this link.':lastStatus==='caution'?'Use caution before opening this link.':'No obvious danger was found, but no scanner can guarantee safety.')+' Check suspicious links at https://canisharethis.com/';try{if(navigator.share)await navigator.share({title:'Can I Share This? link safety result',text:text});else{await navigator.clipboard.writeText(text);share.textContent='Copied';setTimeout(function(){share.textContent='Share result'},1500)}}catch(e){}});
+  track('homepage_view');
+  try{var pending=sessionStorage.getItem('cist_pending_url');if(pending){sessionStorage.removeItem('cist_pending_url');input.value=pending;runScan(pending)}}catch(e){}
 })();
 </script>
 </body>
-</html>
-'''
+</html>'''
 
-(DIST / "index.html").write_text(HTML, encoding="utf-8")
-print("Generated minimal 3-second homepage")
+
+def main():
+    DIST.mkdir(parents=True, exist_ok=True)
+    (DIST / 'index.html').write_text(HTML, encoding='utf-8')
+    print('Generated minimal V7.5 homepage')
+
+if __name__ == '__main__':
+    main()
