@@ -1,0 +1,62 @@
+name: Validate production candidate
+
+on:
+  push:
+    branches:
+      - production-ready-2026
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate API syntax
+        run: |
+          node --check api/check.js
+          node --check api/counter.js
+          node --check api/feedback.js
+
+      - name: Build production candidate
+        run: bash build.sh
+
+      - name: Validate production indexing and routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist/robots.txt
+          test -f dist/sitemap.xml
+          grep -q 'User-agent: \*' dist/robots.txt
+          grep -q 'Allow: /' dist/robots.txt
+          ! grep -Rqi 'noindex' dist/google-drive-link-checker.html dist/google-drive-permission-checker.html dist/google-drive-link-not-working.html dist/google-drive-folder-sharing-checker.html dist/google-drive-share-link-test.html dist/dropbox-link-checker.html dist/dropbox-shared-link-not-working.html dist/dropbox-permission-checker.html dist/dropbox-link-expiration-checker.html dist/drive-vs-dropbox-share-link-checker.html
+          for page in \
+            google-drive-link-checker \
+            google-drive-permission-checker \
+            google-drive-link-not-working \
+            google-drive-folder-sharing-checker \
+            google-drive-share-link-test \
+            dropbox-link-checker \
+            dropbox-shared-link-not-working \
+            dropbox-permission-checker \
+            dropbox-link-expiration-checker \
+            drive-vs-dropbox-share-link-checker; do
+            test -f "dist/$page.html"
+            grep -q "https://canisharethis.com/$page" dist/sitemap.xml
+            grep -q '<meta name="robots" content="index,follow">' "dist/$page.html"
+          done
+
+      - name: Validate production API routing
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -q 'canisharethis.com/api/' vercel.json
+          ! grep -qi 'noindex' vercel.json
+          test -f api/check.js
+          test -f api/counter.js
+          test -f api/feedback.js
