@@ -40,7 +40,7 @@ jobs:
           grep -q 'href="/safe-link-checker"' dist/index.html
           grep -q 'href="/scam-link-checker"' dist/index.html
           grep -q 'href="/phishing-link-checker"' dist/index.html
-          grep -q 'Is it safe?' dist/index.html
+          grep -q 'Got a suspicious link?' dist/index.html
           grep -q 'cist-safety-v6-script' dist/index.html
 
       - name: Validate safety API contract

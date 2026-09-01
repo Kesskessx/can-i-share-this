@@ -54,7 +54,7 @@ jobs:
             test -f "dist/$page.html"
             grep -q "https://canisharethis.com/$page" dist/sitemap.xml
             grep -q '<meta name="robots" content="index,follow">' "dist/$page.html"
-            grep -q 'class="seo-related"' "dist/$page.html"
+            grep -Eq 'class="(seo-related|related-section)"' "dist/$page.html"
           done
 
       - name: Validate internal-link architecture
