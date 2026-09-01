@@ -1,0 +1,53 @@
+name: Validate Link Safety V6
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  safety-v6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate safety API syntax
+        run: node --check api/check.js
+
+      - name: Build site with Link Safety V6
+        run: bash build.sh
+
+      - name: Validate safety SEO routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for page in safe-link-checker scam-link-checker phishing-link-checker; do
+            test -f "dist/$page.html"
+            grep -q '<meta name="robots" content="index,follow">' "dist/$page.html"
+            grep -q "https://canisharethis.com/$page" "dist/$page.html"
+            grep -q "https://canisharethis.com/$page" dist/sitemap.xml
+          done
+
+      - name: Validate homepage safety positioning
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'href="/safe-link-checker"' dist/index.html
+          grep -q 'href="/scam-link-checker"' dist/index.html
+          grep -q 'href="/phishing-link-checker"' dist/index.html
+          grep -q 'Is it safe?' dist/index.html
+          grep -q 'cist-safety-v6-script' dist/index.html
+
+      - name: Validate safety API contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'riskScore' api/check.js
+          grep -q 'brand-lookalike patterns' api/check.js
+          grep -q 'Privacy-first mode' api/check.js
+          grep -q 'safety' api/check.js
