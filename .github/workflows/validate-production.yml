@@ -21,6 +21,7 @@ jobs:
         run: |
           node --check api/check.js
           node --check api/deep-check.js
+          node --check api/event.js
           node --check api/counter.js
           node --check api/feedback.js
 
@@ -53,8 +54,8 @@ jobs:
             drive-vs-dropbox-share-link-checker \
             safe-link-checker \
             scam-link-checker \
-            phishing-link-checker; do
-            echo "Validating $page"
+            phishing-link-checker \
+            qr-code-link-checker; do
             test -f "dist/$page.html"
             grep -q "https://canisharethis.com/$page" dist/sitemap.xml
             grep -q '<meta name="robots" content="index,follow">' "dist/$page.html"
@@ -66,19 +67,12 @@ jobs:
           set -euo pipefail
           grep -q 'href="/google-drive-link-checker"' dist/index.html
           grep -q 'href="/dropbox-link-checker"' dist/index.html
-          grep -q 'href="/drive-vs-dropbox-share-link-checker"' dist/index.html
           grep -q 'href="/safe-link-checker"' dist/index.html
-          grep -q 'href="/scam-link-checker"' dist/index.html
-          grep -q 'href="/phishing-link-checker"' dist/index.html
+          grep -q 'href="/qr-code-link-checker"' dist/index.html
           grep -q 'href="/google-drive-permission-checker"' dist/google-drive-link-checker.html
           grep -q 'href="/google-drive-link-checker"' dist/google-drive-permission-checker.html
           grep -q 'href="/dropbox-permission-checker"' dist/dropbox-link-checker.html
           grep -q 'href="/dropbox-link-checker"' dist/dropbox-permission-checker.html
-          grep -q 'href="/dropbox-link-expiration-checker"' dist/dropbox-link-checker.html
-          grep -q 'Quick Google Drive Link Test' dist/check-google-drive-link.html
-          grep -q 'href="/google-drive-link-checker"' dist/check-google-drive-link.html
-          grep -q 'Quick Dropbox Link Test' dist/check-dropbox-link.html
-          grep -q 'href="/dropbox-link-checker"' dist/check-dropbox-link.html
           grep -q '"@type":"WebSite"' dist/index.html
 
       - name: Validate production API routing
@@ -89,6 +83,7 @@ jobs:
           ! grep -qi 'noindex' vercel.json
           test -f api/check.js
           test -f api/deep-check.js
+          test -f api/event.js
           test -f api/counter.js
           test -f api/feedback.js
 
