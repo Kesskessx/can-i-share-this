@@ -1,4 +1,4 @@
-name: Validate Link Safety V6
+name: Validate Link Safety V6.1
 
 on:
   push:
@@ -10,16 +10,18 @@ permissions:
   contents: read
 
 jobs:
-  safety-v6:
+  safety-v61:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
 
       - name: Validate safety API syntax
-        run: node --check api/check.js
+        run: |
+          node --check api/check.js
+          node --check api/deep-check.js
 
-      - name: Build site with Link Safety V6
+      - name: Build site with Link Safety V6.1
         run: bash build.sh
 
       - name: Validate safety SEO routes
@@ -33,21 +35,30 @@ jobs:
             grep -q "https://canisharethis.com/$page" dist/sitemap.xml
           done
 
-      - name: Validate homepage safety positioning
+      - name: Validate homepage safety-first positioning
         shell: bash
         run: |
           set -euo pipefail
+          grep -q 'Check a link before you open or share it' dist/index.html
+          grep -q 'id="cist-safety-console"' dist/index.html
+          grep -q 'Paste a suspicious link' dist/index.html
+          grep -q 'Quick Check' dist/index.html
+          grep -q 'Deep Safety Scan' dist/index.html
+          grep -q 'id="cist-deep-consent"' dist/index.html
+          grep -q 'id="cist-console-result"' dist/index.html
           grep -q 'href="/safe-link-checker"' dist/index.html
           grep -q 'href="/scam-link-checker"' dist/index.html
           grep -q 'href="/phishing-link-checker"' dist/index.html
-          grep -q 'Got a suspicious link?' dist/index.html
-          grep -q 'cist-safety-v6-script' dist/index.html
 
-      - name: Validate safety API contract
+      - name: Validate safety API contracts
         shell: bash
         run: |
           set -euo pipefail
           grep -q 'riskScore' api/check.js
           grep -q 'brand-lookalike patterns' api/check.js
           grep -q 'Privacy-first mode' api/check.js
-          grep -q 'safety' api/check.js
+          grep -q 'body.consent !== true' api/deep-check.js
+          grep -q 'PhishTank' api/deep-check.js
+          grep -q 'Google Safe Browsing' api/deep-check.js
+          grep -q 'privacyBlocked' api/deep-check.js
+          grep -q 'sensitiveParameters' api/deep-check.js
