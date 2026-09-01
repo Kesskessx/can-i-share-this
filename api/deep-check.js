@@ -15,9 +15,7 @@ function sensitiveParameters(url) {
   const found = [];
   for (const [key] of url.searchParams.entries()) {
     const normalized = key.toLowerCase();
-    if (SENSITIVE_QUERY_KEYS.has(normalized) || normalized.includes('token') || normalized.includes('secret')) {
-      found.push(key);
-    }
+    if (SENSITIVE_QUERY_KEYS.has(normalized) || normalized.includes('token') || normalized.includes('secret')) found.push(key);
   }
   return [...new Set(found)].slice(0, 8);
 }
@@ -36,21 +34,57 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 6500) {
   }
 }
 
+async function checkWebRisk(url) {
+  const key = process.env.GOOGLE_WEB_RISK_API_KEY;
+  if (!key) {
+    return { provider: 'Google Web Risk', checked: false, status: 'not-configured', detail: 'Google Web Risk is ready but no server API key is configured yet.' };
+  }
+
+  try {
+    const params = new URLSearchParams();
+    params.append('threatTypes', 'MALWARE');
+    params.append('threatTypes', 'SOCIAL_ENGINEERING');
+    params.append('threatTypes', 'UNWANTED_SOFTWARE');
+    params.set('uri', url.toString());
+    params.set('key', key);
+    const response = await fetchWithTimeout(`https://webrisk.googleapis.com/v1/uris:search?${params.toString()}`, {
+      method: 'GET',
+      headers: { 'user-agent': 'CanIShareThis/7.5 (+https://canisharethis.com)' }
+    });
+    if (!response.ok) {
+      return { provider: 'Google Web Risk', checked: false, status: 'unavailable', detail: `Provider returned HTTP ${response.status}.` };
+    }
+    const data = await response.json();
+    const types = Array.isArray(data?.threat?.threatTypes) ? data.threat.threatTypes : [];
+    const dangerous = types.length > 0;
+    return {
+      provider: 'Google Web Risk',
+      checked: true,
+      dangerous,
+      status: dangerous ? 'known-threat' : 'no-known-threat',
+      threatTypes: types,
+      detail: dangerous ? `Google Web Risk reports: ${types.join(', ')}.` : 'No matching threat was returned by Google Web Risk.'
+    };
+  } catch (error) {
+    return { provider: 'Google Web Risk', checked: false, status: 'unavailable', detail: 'Google Web Risk could not be reached for this scan.' };
+  }
+}
+
 async function checkPhishTank(url) {
-  const body = new URLSearchParams({ url: url.toString(), format: 'json' });
-  if (process.env.PHISHTANK_APP_KEY) body.set('app_key', process.env.PHISHTANK_APP_KEY);
+  const appKey = process.env.PHISHTANK_APP_KEY;
+  if (!appKey) return { provider: 'PhishTank', checked: false, status: 'not-configured', detail: 'PhishTank is available when an application key is configured.' };
+
+  const body = new URLSearchParams({ url: url.toString(), format: 'json', app_key: appKey });
   try {
     const response = await fetchWithTimeout('https://checkurl.phishtank.com/checkurl/', {
       method: 'POST',
       headers: {
         'content-type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'user-agent': 'CanIShareThis/6.1 (+https://canisharethis.com)'
+        'user-agent': 'CanIShareThis/7.5 (+https://canisharethis.com)'
       },
       body
     });
-    if (!response.ok) {
-      return { provider: 'PhishTank', checked: false, status: 'unavailable', detail: `Provider returned HTTP ${response.status}.` };
-    }
+    if (!response.ok) return { provider: 'PhishTank', checked: false, status: 'unavailable', detail: `Provider returned HTTP ${response.status}.` };
     const data = await response.json();
     const result = data?.results || data?.result || {};
     const inDatabase = truthy(result.in_database);
@@ -60,55 +94,13 @@ async function checkPhishTank(url) {
     return {
       provider: 'PhishTank',
       checked: true,
-      status: dangerous ? 'known-phishing' : 'no-known-phish',
       dangerous,
-      detail: dangerous
-        ? 'This URL is listed as a verified phishing page in PhishTank.'
-        : inDatabase
-          ? 'The URL exists in PhishTank, but it is not currently confirmed as a valid verified phish.'
-          : 'No matching phishing record was found in PhishTank.',
+      status: dangerous ? 'known-phishing' : 'no-known-phish',
+      detail: dangerous ? 'This URL is listed as a verified phishing page in PhishTank.' : 'No verified phishing match was returned by PhishTank.',
       referenceId: result.phish_id || undefined
     };
-  } catch (error) {
+  } catch {
     return { provider: 'PhishTank', checked: false, status: 'unavailable', detail: 'PhishTank could not be reached for this scan.' };
-  }
-}
-
-async function checkGoogleSafeBrowsing(url) {
-  const key = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
-  if (!key) {
-    return { provider: 'Google Safe Browsing', checked: false, status: 'not-configured', detail: 'Google Safe Browsing is ready but no server API key is configured yet.' };
-  }
-  try {
-    const response = await fetchWithTimeout(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${encodeURIComponent(key)}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        client: { clientId: 'can-i-share-this', clientVersion: '6.1' },
-        threatInfo: {
-          threatTypes: ['MALWARE', 'SOCIAL_ENGINEERING', 'UNWANTED_SOFTWARE', 'POTENTIALLY_HARMFUL_APPLICATION'],
-          platformTypes: ['ANY_PLATFORM'],
-          threatEntryTypes: ['URL'],
-          threatEntries: [{ url: url.toString() }]
-        }
-      })
-    });
-    if (!response.ok) {
-      return { provider: 'Google Safe Browsing', checked: false, status: 'unavailable', detail: `Provider returned HTTP ${response.status}.` };
-    }
-    const data = await response.json();
-    const matches = Array.isArray(data?.matches) ? data.matches : [];
-    const dangerous = matches.length > 0;
-    return {
-      provider: 'Google Safe Browsing',
-      checked: true,
-      status: dangerous ? 'known-threat' : 'no-known-threat',
-      dangerous,
-      detail: dangerous ? 'Google Safe Browsing reports this URL as matching a known threat list.' : 'No matching threat was returned by Google Safe Browsing.',
-      threatTypes: [...new Set(matches.map(item => item?.threatType).filter(Boolean))]
-    };
-  } catch (error) {
-    return { provider: 'Google Safe Browsing', checked: false, status: 'unavailable', detail: 'Google Safe Browsing could not be reached for this scan.' };
   }
 }
 
@@ -122,6 +114,7 @@ module.exports = async function handler(req, res) {
     if (body.consent !== true) {
       return res.status(400).json({ error: 'Deep Scan requires explicit consent before the URL is shared with external threat-intelligence providers.' });
     }
+
     const url = parsePublicUrl(body.url);
     const sensitive = sensitiveParameters(url);
     if (sensitive.length) {
@@ -129,18 +122,19 @@ module.exports = async function handler(req, res) {
         deepScan: true,
         privacyBlocked: true,
         status: 'privacy-blocked',
-        verdict: 'Deep Scan was not sent to external providers',
+        verdict: 'External reputation check was blocked for privacy',
         sensitiveParameters: sensitive,
         providers: [],
-        disclaimer: 'This URL appears to contain a token, signature, session identifier, or other sensitive query parameter. Use Quick Check instead.'
+        disclaimer: 'This URL appears to contain a token, signature, session identifier, or other sensitive query parameter. The URL was not sent to external providers.'
       });
     }
 
-    const providers = await Promise.all([checkPhishTank(url), checkGoogleSafeBrowsing(url)]);
+    const providers = await Promise.all([checkWebRisk(url), checkPhishTank(url)]);
     const dangerousProviders = providers.filter(item => item.dangerous);
     const checkedProviders = providers.filter(item => item.checked);
     let status = 'unknown';
     let verdict = 'External reputation is currently unavailable';
+
     if (dangerousProviders.length) {
       status = 'known-dangerous';
       verdict = 'Known threat reported by an external reputation source';
