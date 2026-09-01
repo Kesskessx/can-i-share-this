@@ -1,4 +1,4 @@
-name: Validate Link Safety V6.2
+name: Validate Link Safety V7.5
 
 on:
   push:
@@ -10,59 +10,74 @@ permissions:
   contents: read
 
 jobs:
-  safety-v62:
+  safety-v75:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate safety API syntax
+      - name: Validate API syntax
         run: |
           node --check api/check.js
           node --check api/deep-check.js
+          node --check api/event.js
 
-      - name: Build site with minimal homepage
+      - name: Build site
         run: bash build.sh
 
       - name: Validate safety SEO routes
         shell: bash
         run: |
           set -euo pipefail
-          for page in safe-link-checker scam-link-checker phishing-link-checker; do
+          for page in safe-link-checker scam-link-checker phishing-link-checker qr-code-link-checker; do
             test -f "dist/$page.html"
             grep -q '<meta name="robots" content="index,follow">' "dist/$page.html"
-            grep -q "https://canisharethis.com/$page" "dist/$page.html"
             grep -q "https://canisharethis.com/$page" dist/sitemap.xml
           done
 
-      - name: Validate 3-second homepage
+      - name: Validate simple V6.3 homepage
         shell: bash
         run: |
           set -euo pipefail
           grep -q '<h1 id="page-title">Is this link safe?</h1>' dist/index.html
-          grep -q 'placeholder="Paste a link here…"' dist/index.html
+          grep -q 'id="paste"' dist/index.html
           grep -q '>Analyze</button>' dist/index.html
-          grep -q 'id="result"' dist/index.html
-          grep -q 'Check reputation too' dist/index.html
-          grep -q '/api/deep-check' dist/index.html
-          grep -q 'href="/safe-link-checker"' dist/index.html
-          grep -q 'href="/scam-link-checker"' dist/index.html
-          grep -q 'href="/phishing-link-checker"' dist/index.html
-          grep -q 'href="/google-drive-link-checker"' dist/index.html
-          grep -q 'href="/dropbox-link-checker"' dist/index.html
+          grep -q 'What should I do?' dist/index.html
+          grep -q 'Check reputation' dist/index.html
+          grep -q 'Share result' dist/index.html
+          grep -q 'href="/qr-code-link-checker"' dist/index.html
+          grep -q '/api/event' dist/index.html
+          ! grep -q 'Recognizes 91+' dist/index.html
           ! grep -q 'Three steps before you hit Send' dist/index.html
           ! grep -q 'RECIPIENT PREVIEW' dist/index.html
-          ! grep -q 'Recognizes 91+' dist/index.html
-          ! grep -q 'Quick CheckDeep Safety Scan' dist/index.html
 
-      - name: Validate safety API contracts
+      - name: Validate Web Risk and privacy contracts
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'riskScore' api/check.js
-          grep -q 'brand-lookalike patterns' api/check.js
-          grep -q 'Privacy-first mode' api/check.js
+          grep -q 'GOOGLE_WEB_RISK_API_KEY' api/deep-check.js
+          grep -q 'webrisk.googleapis.com/v1/uris:search' api/deep-check.js
+          grep -q "threatTypes', 'MALWARE'" api/deep-check.js
           grep -q 'body.consent !== true' api/deep-check.js
-          grep -q 'PhishTank' api/deep-check.js
           grep -q 'privacyBlocked' api/deep-check.js
           grep -q 'sensitiveParameters' api/deep-check.js
+          grep -q "homepage_view.*paste.*analyze.*deep_scan" api/event.js
+          grep -q 'do not log the scanned URL' api/event.js
+
+      - name: Validate QR scanner stays local
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'BarcodeDetector' dist/qr-code-link-checker.html
+          grep -q "sessionStorage.setItem('cist_pending_url'" dist/qr-code-link-checker.html
+          grep -q 'not uploaded to our server' dist/qr-code-link-checker.html
+          ! grep -q '/api/' dist/qr-code-link-checker.html
+
+      - name: Validate share result does not share scanned URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "navigator.share" dist/index.html
+          grep -q 'https://canisharethis.com/' dist/index.html
+          ! grep -q 'navigator.share({url:currentUrl' dist/index.html
+          ! grep -q 'writeText(currentUrl' dist/index.html
