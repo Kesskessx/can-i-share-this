@@ -20,6 +20,7 @@ jobs:
       - name: Validate API syntax
         run: |
           node --check api/check.js
+          node --check api/deep-check.js
           node --check api/counter.js
           node --check api/feedback.js
 
@@ -49,7 +50,10 @@ jobs:
             dropbox-shared-link-not-working \
             dropbox-permission-checker \
             dropbox-link-expiration-checker \
-            drive-vs-dropbox-share-link-checker; do
+            drive-vs-dropbox-share-link-checker \
+            safe-link-checker \
+            scam-link-checker \
+            phishing-link-checker; do
             echo "Validating $page"
             test -f "dist/$page.html"
             grep -q "https://canisharethis.com/$page" dist/sitemap.xml
@@ -63,6 +67,9 @@ jobs:
           grep -q 'href="/google-drive-link-checker"' dist/index.html
           grep -q 'href="/dropbox-link-checker"' dist/index.html
           grep -q 'href="/drive-vs-dropbox-share-link-checker"' dist/index.html
+          grep -q 'href="/safe-link-checker"' dist/index.html
+          grep -q 'href="/scam-link-checker"' dist/index.html
+          grep -q 'href="/phishing-link-checker"' dist/index.html
           grep -q 'href="/google-drive-permission-checker"' dist/google-drive-link-checker.html
           grep -q 'href="/google-drive-link-checker"' dist/google-drive-permission-checker.html
           grep -q 'href="/dropbox-permission-checker"' dist/dropbox-link-checker.html
@@ -81,6 +88,7 @@ jobs:
           ! grep -q 'canisharethis.com/api/' vercel.json
           ! grep -qi 'noindex' vercel.json
           test -f api/check.js
+          test -f api/deep-check.js
           test -f api/counter.js
           test -f api/feedback.js
 
