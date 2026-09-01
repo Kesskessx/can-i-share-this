@@ -3,6 +3,7 @@ name: Validate production candidate
 on:
   push:
     branches:
+      - main
       - production-ready-2026
   workflow_dispatch:
 
@@ -34,6 +35,7 @@ jobs:
           test -f dist/sitemap.xml
           grep -q 'User-agent: \*' dist/robots.txt
           grep -q 'Allow: /' dist/robots.txt
+          grep -q 'https://canisharethis.com/sitemap.xml' dist/robots.txt
           ! grep -Rqi 'noindex' dist/google-drive-link-checker.html dist/google-drive-permission-checker.html dist/google-drive-link-not-working.html dist/google-drive-folder-sharing-checker.html dist/google-drive-share-link-test.html dist/dropbox-link-checker.html dist/dropbox-shared-link-not-working.html dist/dropbox-permission-checker.html dist/dropbox-link-expiration-checker.html dist/drive-vs-dropbox-share-link-checker.html
           for page in \
             google-drive-link-checker \
@@ -49,7 +51,26 @@ jobs:
             test -f "dist/$page.html"
             grep -q "https://canisharethis.com/$page" dist/sitemap.xml
             grep -q '<meta name="robots" content="index,follow">' "dist/$page.html"
+            grep -q 'class="seo-related"' "dist/$page.html"
           done
+
+      - name: Validate internal-link architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'href="/google-drive-link-checker"' dist/index.html
+          grep -q 'href="/dropbox-link-checker"' dist/index.html
+          grep -q 'href="/drive-vs-dropbox-share-link-checker"' dist/index.html
+          grep -q 'href="/google-drive-permission-checker"' dist/google-drive-link-checker.html
+          grep -q 'href="/google-drive-link-checker"' dist/google-drive-permission-checker.html
+          grep -q 'href="/dropbox-permission-checker"' dist/dropbox-link-checker.html
+          grep -q 'href="/dropbox-link-checker"' dist/dropbox-permission-checker.html
+          grep -q 'href="/dropbox-link-expiration-checker"' dist/dropbox-link-checker.html
+          grep -q 'Quick Google Drive Link Test' dist/check-google-drive-link.html
+          grep -q 'href="/google-drive-link-checker"' dist/check-google-drive-link.html
+          grep -q 'Quick Dropbox Link Test' dist/check-dropbox-link.html
+          grep -q 'href="/dropbox-link-checker"' dist/check-dropbox-link.html
+          grep -q '"@type":"WebSite"' dist/index.html
 
       - name: Validate production API routing
         shell: bash
