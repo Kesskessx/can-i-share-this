@@ -1,0 +1,97 @@
+{
+  "version": "2026-09-01",
+  "status": "prepared-not-deployed",
+  "canonicalHost": "https://YOUR-PRODUCTION-DOMAIN",
+  "routes": [
+    {
+      "path": "/google-drive-link-checker",
+      "cluster": "google-drive",
+      "role": "hub",
+      "title": "Google Drive Link Checker — Will the Link Open for Anyone?",
+      "description": "Check a Google Drive link before you share it. See whether a recipient is likely to open it, hit a permission wall, or need to sign in.",
+      "h1": "Check Whether Your Google Drive Link Will Open",
+      "index": true
+    },
+    {
+      "path": "/google-drive-permission-checker",
+      "cluster": "google-drive",
+      "role": "support",
+      "title": "Google Drive Permission Checker — Test Recipient Access",
+      "description": "Test whether a Google Drive file appears accessible to a recipient or blocked by permissions, account requirements, or a sign-in wall.",
+      "h1": "Google Drive Permission Checker",
+      "index": true
+    },
+    {
+      "path": "/google-drive-link-not-working",
+      "cluster": "google-drive",
+      "role": "support",
+      "title": "Google Drive Link Not Working? 7 Reasons and How to Check It",
+      "description": "Google Drive link not working for someone else? Check permissions, sign-in requirements, deleted files, organization restrictions, and malformed links.",
+      "h1": "Why Your Google Drive Link Is Not Working",
+      "index": true
+    },
+    {
+      "path": "/google-drive-folder-sharing-checker",
+      "cluster": "google-drive",
+      "role": "support",
+      "title": "Google Drive Folder Sharing Checker — Test Folder Access",
+      "description": "Check a Google Drive folder link before sharing it. Detect likely permission or login barriers from a recipient-style perspective.",
+      "h1": "Check a Shared Google Drive Folder Before Sending It",
+      "index": true
+    },
+    {
+      "path": "/google-drive-share-link-test",
+      "cluster": "google-drive",
+      "role": "support",
+      "title": "Test a Google Drive Share Link Before Sending It",
+      "description": "Test the exact Google Drive share URL your recipient will receive. Catch sign-in, permission, and access problems before you send the message.",
+      "h1": "Test Your Google Drive Share Link",
+      "index": true
+    },
+    {
+      "path": "/dropbox-link-checker",
+      "cluster": "dropbox",
+      "role": "hub",
+      "title": "Dropbox Link Checker — Will Your Shared Link Open?",
+      "description": "Check a Dropbox shared link before sending it. Detect likely access restrictions, login barriers, URL issues, and expiration risk.",
+      "h1": "Check Whether Your Dropbox Link Will Open",
+      "index": true
+    },
+    {
+      "path": "/dropbox-shared-link-not-working",
+      "cluster": "dropbox",
+      "role": "support",
+      "title": "Dropbox Shared Link Not Working? Diagnose the Problem",
+      "description": "Dropbox shared link not working? Check access restrictions, deleted files, disabled links, sign-in requirements, expiration, and malformed URLs.",
+      "h1": "Why Your Dropbox Shared Link Is Not Working",
+      "index": true
+    },
+    {
+      "path": "/dropbox-permission-checker",
+      "cluster": "dropbox",
+      "role": "support",
+      "title": "Dropbox Permission Checker — Test Shared-Link Access",
+      "description": "Check whether a Dropbox link appears open to the intended audience or blocked by login, account, team, or sharing restrictions.",
+      "h1": "Dropbox Permission Checker",
+      "index": true
+    },
+    {
+      "path": "/dropbox-link-expiration-checker",
+      "cluster": "dropbox",
+      "role": "support",
+      "title": "Dropbox Link Expiration Checker — Is the Link Still Valid?",
+      "description": "Check a Dropbox shared link for signs that it is expired, disabled, inaccessible, or likely to stop working before your recipient opens it.",
+      "h1": "Check Whether a Dropbox Link Has Expired",
+      "index": true
+    },
+    {
+      "path": "/drive-vs-dropbox-share-link-checker",
+      "cluster": "comparison",
+      "role": "bridge",
+      "title": "Google Drive vs Dropbox Share Links — Check Before You Send",
+      "description": "Compare Google Drive and Dropbox share-link risks and test recipient access, permissions, login barriers, privacy signals, and expiration before sending.",
+      "h1": "Google Drive vs Dropbox: Check the Share Link, Not Just the Platform",
+      "index": true
+    }
+  ]
+}
