@@ -96,7 +96,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q '<h1 id="page-title">Is this link safe?</h1>' dist/index.html
+          grep -q '<h1 id="page-title">Is this link <span class="hero-safe">safe?</span></h1>' dist/index.html
+          grep -q 'id="cist-homepage-brand-accent"' dist/index.html
           grep -q 'id="paste"' dist/index.html
           grep -q '>Analyze</button>' dist/index.html
           grep -q 'What should I do?' dist/index.html
