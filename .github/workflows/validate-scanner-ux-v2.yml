@@ -22,6 +22,7 @@ jobs:
           python3 -m py_compile scripts/apply_reputation_visibility.py
           python3 -m py_compile scripts/apply_plain_language.py
           python3 -m py_compile scripts/apply_one_click_scan.py
+          python3 -m py_compile scripts/apply_universal_result_v12.py
 
       - name: Build site
         run: bash build.sh
@@ -78,7 +79,13 @@ jobs:
           grep -q 'Public links may be compared with online safety lists.' dist/index.html
           grep -q 'deepConfirm.click()' dist/index.html
           grep -q 'Running the full safety check' dist/index.html
-          grep -q 'No known danger reported' dist/index.html
+          grep -q "verdict.textContent='No known threat found'" dist/index.html
+          grep -q "value:'No known threat found'" dist/index.html
+          grep -q 'No known malware or phishing threat was reported.' dist/index.html
+          grep -q 'Known threat lists did not report this link as dangerous.' dist/index.html
+          grep -q "queueMicrotask(cistUpdateUniversalSummary)" dist/index.html
+          grep -q 'Continue only if you expected this link.' dist/index.html
+          ! grep -q 'No known danger was reported by the security services we checked.' dist/index.html
           grep -q 'Dangerous warning signs found' dist/index.html
           grep -q 'Extra check skipped to protect your privacy' dist/index.html
           grep -q '#deep,#consent{display:none!important}' dist/index.html
