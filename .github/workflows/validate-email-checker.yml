@@ -74,7 +74,7 @@ jobs:
           grep -q 'Monitoring only (p=none)' dist/index.html
           grep -q 'Could not verify' dist/index.html
           grep -q 'Could not determine' dist/index.html
-          grep -q 'Final destination' dist/index.html
+          grep -q 'Where this link goes' dist/index.html
           grep -q 'Website response' dist/index.html
           grep -q 'Redirects followed' dist/index.html
           grep -q "if(currentInputType==='url')trackScanSummary(d)" dist/index.html
