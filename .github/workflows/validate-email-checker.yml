@@ -55,25 +55,37 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'Paste a link or email address…' dist/index.html
-          grep -q 'Link or email address to analyze' dist/index.html
-          grep -q 'Inputs aren’t stored' dist/index.html
-          grep -q "'/api/email-check'" dist/index.html
-          grep -q "'/api/check'" dist/index.html
-          grep -q "currentInputType==='email'" dist/index.html
-          grep -q 'Email domain' dist/index.html
-          grep -q 'Mail servers (MX)' dist/index.html
-          grep -q 'SPF protection' dist/index.html
-          grep -q 'DMARC protection' dist/index.html
-          grep -q 'Domain age' dist/index.html
-          grep -q 'DNSSEC protection' dist/index.html
-          grep -q 'MTA-STS' dist/index.html
-          grep -q 'TLS-RPT' dist/index.html
-          grep -q 'Technical details <span class="advanced-label">(advanced)</span>' dist/index.html
-          grep -q 'For advanced users. These technical signals help explain the result' dist/index.html
-          grep -q 'Monitoring only (p=none)' dist/index.html
-          grep -q 'Could not verify' dist/index.html
-          grep -q 'Could not determine' dist/index.html
+          python3 - <<'PY'
+          from pathlib import Path
+
+          html = Path('dist/index.html').read_text(encoding='utf-8')
+          checks = {
+              'universal placeholder': 'Paste a link or email address…',
+              'accessible universal input label': 'Link or email address to analyze',
+              'input privacy wording': 'Inputs aren’t stored',
+              'email API route': "'/api/email-check'",
+              'URL API route': "'/api/check'",
+              'email routing state': "currentInputType==='email'",
+              'email domain field': 'Email domain',
+              'MX field': 'Mail servers (MX)',
+              'SPF field': 'SPF protection',
+              'DMARC field': 'DMARC protection',
+              'domain age field': 'Domain age',
+              'DNSSEC field': 'DNSSEC protection',
+              'MTA-STS field': 'MTA-STS',
+              'TLS-RPT field': 'TLS-RPT',
+              'advanced technical summary': 'Technical details <span class="advanced-label">(advanced)</span>',
+              'technical help copy': 'For advanced users. These technical signals help explain the result',
+              'DMARC p=none explanation': 'Monitoring only (p=none)',
+              'RDAP unavailable wording': 'Could not verify',
+              'DNS capability unavailable wording': 'Could not determine',
+          }
+          missing = [name for name, token in checks.items() if token not in html]
+          for name in checks:
+              print(('MISSING' if name in missing else 'OK').ljust(8), name)
+          if missing:
+              raise SystemExit('Missing email homepage invariants: ' + ', '.join(missing))
+          PY
 
       - name: Validate email SEO pages
         shell: bash
