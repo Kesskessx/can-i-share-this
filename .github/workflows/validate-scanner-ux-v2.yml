@@ -17,7 +17,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate patch syntax
-        run: python3 -m py_compile scripts/apply_scanner_ux_v2.py
+        run: |
+          python3 -m py_compile scripts/apply_scanner_ux_v2.py
+          python3 -m py_compile scripts/apply_reputation_visibility.py
 
       - name: Build site
         run: bash build.sh
@@ -36,7 +38,7 @@ jobs:
           grep -q 'Why this verdict?' dist/index.html
           grep -q 'id="contextual-prevention"' dist/index.html
           grep -q 'renderScannerUx(d)' dist/index.html
-          grep -q "lastVerdict=status==='low'?'Looks low risk'" dist/index.html
+          grep -q "lastVerdict=status==='low'?'No obvious local warning signs'" dist/index.html
           grep -q "status==='high'?'High-risk email'" dist/index.html
           grep -q "status==='high'?'High-risk link'" dist/index.html
           grep -q 'input.addEventListener('"'"'input'"'"',updateInputKind)' dist/index.html
@@ -47,6 +49,21 @@ jobs:
           grep -q '/how-to-tell-if-a-link-is-phishing' dist/index.html
           grep -q '/redirect-risk-explained' dist/index.html
           grep -qi '#8ea2ff' dist/index.html
+
+      - name: Validate visibility and reputation hierarchy
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'class="check-grid"' dist/index.html
+          grep -q '<strong>Phishing</strong>' dist/index.html
+          grep -q '<strong>Malware</strong>' dist/index.html
+          grep -q '<strong>Redirects</strong>' dist/index.html
+          grep -q '<strong>Lookalikes</strong>' dist/index.html
+          grep -q 'Local signal score' dist/index.html
+          grep -q 'Reputation not checked yet' dist/index.html
+          grep -q 'Known threat reported — do not open' dist/index.html
+          grep -q 'This reputation match overrides the local heuristic score.' dist/index.html
+          grep -q "riskMeter.classList.add('hidden')" dist/index.html
 
       - name: Validate contextual guide destinations
         shell: bash
