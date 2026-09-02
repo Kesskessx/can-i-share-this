@@ -1,0 +1,65 @@
+name: Validate Scanner UX V2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scanner-ux-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate patch syntax
+        run: python3 -m py_compile scripts/apply_scanner_ux_v2.py
+
+      - name: Build site
+        run: bash build.sh
+
+      - name: Validate scanner UX
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'id="input-kind"' dist/index.html
+          grep -q 'id="scan-progress"' dist/index.html
+          grep -q 'Checking link signals…' dist/index.html
+          grep -q 'Checking email signals…' dist/index.html
+          grep -q 'Domain · Redirects · Phishing signals · Downloads' dist/index.html
+          grep -q 'Address · Mail setup · Impersonation · Domain age' dist/index.html
+          grep -q 'id="why-verdict"' dist/index.html
+          grep -q 'Why this verdict?' dist/index.html
+          grep -q 'id="contextual-prevention"' dist/index.html
+          grep -q 'renderScannerUx(d)' dist/index.html
+          grep -q "lastVerdict=status==='low'?'Looks low risk'" dist/index.html
+          grep -q "status==='high'?'High-risk email'" dist/index.html
+          grep -q "status==='high'?'High-risk link'" dist/index.html
+          grep -q 'input.addEventListener('"'"'input'"'"',updateInputKind)' dist/index.html
+          grep -q 'setScanProgress(!!on)' dist/index.html
+          grep -q 'href="/scam-prevention"' dist/index.html
+          grep -q '/scam-warning-signs' dist/index.html
+          grep -q '/can-a-link-give-you-a-virus' dist/index.html
+          grep -q '/how-to-tell-if-a-link-is-phishing' dist/index.html
+          grep -q '/redirect-risk-explained' dist/index.html
+          grep -qi '#8ea2ff' dist/index.html
+
+      - name: Validate contextual guide destinations
+        shell: bash
+        run: |
+          set -euo pipefail
+          for slug in scam-prevention scam-warning-signs can-a-link-give-you-a-virus how-to-tell-if-a-link-is-phishing redirect-risk-explained; do
+            test -s "dist/${slug}.html"
+          done
+
+      - name: Preserve privacy and technical disclosure
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "if(currentInputType==='url')trackScanSummary(d)" dist/index.html
+          grep -q 'Technical details (advanced)' dist/index.html
+          ! grep -qi '100% safe' dist/index.html
