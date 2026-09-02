@@ -4,6 +4,15 @@ const SENSITIVE_QUERY_KEYS = new Set([
   'api_key','apikey','client_secret','secret','password','passwd','session','sessionid'
 ]);
 
+const WEB_RISK_KEY_RE = /^AIza[0-9A-Za-z_-]{35}$/;
+const WEB_RISK_EXTENDED = 'SOCIAL_ENGINEERING_EXTENDED_COVERAGE';
+const WEB_RISK_THREAT_TYPES = [
+  'MALWARE',
+  'SOCIAL_ENGINEERING',
+  'UNWANTED_SOFTWARE',
+  WEB_RISK_EXTENDED
+];
+
 function parsePublicUrl(input) {
   const url = new URL(String(input || '').trim());
   if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Only HTTP and HTTPS links are supported.');
@@ -34,39 +43,69 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 6500) {
   }
 }
 
+function webRiskFailure(status) {
+  if (status === 400) return 'Google Web Risk rejected the request. Check the API configuration and enabled threat types.';
+  if (status === 401 || status === 403) return 'Google Web Risk rejected the server credentials or API access. Check the Vercel key and Google Cloud API restrictions.';
+  if (status === 429) return 'Google Web Risk rate limit was reached. Try again shortly.';
+  return `Google Web Risk returned HTTP ${status}.`;
+}
+
 async function checkWebRisk(url) {
-  const key = process.env.GOOGLE_WEB_RISK_API_KEY;
+  const key = String(process.env.GOOGLE_WEB_RISK_API_KEY || '').trim();
   if (!key) {
     return { provider: 'Google Web Risk', checked: false, status: 'not-configured', detail: 'Google Web Risk is ready but no server API key is configured yet.' };
+  }
+  if (!WEB_RISK_KEY_RE.test(key)) {
+    return { provider: 'Google Web Risk', checked: false, status: 'misconfigured', detail: 'The Google Web Risk server key has an unexpected format. Check GOOGLE_WEB_RISK_API_KEY in Vercel.' };
   }
 
   try {
     const params = new URLSearchParams();
-    params.append('threatTypes', 'MALWARE');
-    params.append('threatTypes', 'SOCIAL_ENGINEERING');
-    params.append('threatTypes', 'UNWANTED_SOFTWARE');
+    for (const threatType of WEB_RISK_THREAT_TYPES) params.append('threatTypes', threatType);
     params.set('uri', url.toString());
     params.set('key', key);
+
     const response = await fetchWithTimeout(`https://webrisk.googleapis.com/v1/uris:search?${params.toString()}`, {
       method: 'GET',
       headers: { 'user-agent': 'CanIShareThis/7.5 (+https://canisharethis.com)' }
     });
+
     if (!response.ok) {
-      return { provider: 'Google Web Risk', checked: false, status: 'unavailable', detail: `Provider returned HTTP ${response.status}.` };
+      return { provider: 'Google Web Risk', checked: false, status: 'unavailable', httpStatus: response.status, detail: webRiskFailure(response.status) };
     }
+
     const data = await response.json();
     const types = Array.isArray(data?.threat?.threatTypes) ? data.threat.threatTypes : [];
-    const dangerous = types.length > 0;
+    const standardTypes = types.filter(type => type !== WEB_RISK_EXTENDED);
+    const extendedCoverage = types.includes(WEB_RISK_EXTENDED);
+    const dangerous = standardTypes.length > 0;
+    const caution = !dangerous && extendedCoverage;
+
+    let status = 'no-known-threat';
+    let detail = 'No matching threat was returned by Google Web Risk.';
+    if (dangerous) {
+      status = 'known-threat';
+      detail = `Google Web Risk reports: ${types.join(', ')}.`;
+    } else if (caution) {
+      status = 'extended-coverage-match';
+      detail = 'Google Web Risk Extended Coverage returned a potential social-engineering match. Treat this as a caution signal because this list intentionally favors broader phishing coverage.';
+    }
+
     return {
       provider: 'Google Web Risk',
       checked: true,
       dangerous,
-      status: dangerous ? 'known-threat' : 'no-known-threat',
+      caution,
+      status,
       threatTypes: types,
-      detail: dangerous ? `Google Web Risk reports: ${types.join(', ')}.` : 'No matching threat was returned by Google Web Risk.'
+      expiresAt: data?.threat?.expireTime || undefined,
+      detail
     };
   } catch (error) {
-    return { provider: 'Google Web Risk', checked: false, status: 'unavailable', detail: 'Google Web Risk could not be reached for this scan.' };
+    const detail = error?.name === 'AbortError'
+      ? 'Google Web Risk timed out for this scan.'
+      : 'Google Web Risk could not be reached for this scan.';
+    return { provider: 'Google Web Risk', checked: false, status: 'unavailable', detail };
   }
 }
 
@@ -131,6 +170,7 @@ module.exports = async function handler(req, res) {
 
     const providers = await Promise.all([checkWebRisk(url), checkPhishTank(url)]);
     const dangerousProviders = providers.filter(item => item.dangerous);
+    const cautionProviders = providers.filter(item => item.caution);
     const checkedProviders = providers.filter(item => item.checked);
     let status = 'unknown';
     let verdict = 'External reputation is currently unavailable';
@@ -138,6 +178,9 @@ module.exports = async function handler(req, res) {
     if (dangerousProviders.length) {
       status = 'known-dangerous';
       verdict = 'Known threat reported by an external reputation source';
+    } else if (cautionProviders.length) {
+      status = 'caution';
+      verdict = 'Potential phishing signal reported by an extended-coverage reputation source';
     } else if (checkedProviders.length) {
       status = 'no-known-threat';
       verdict = 'No known threat found by the available reputation sources';
