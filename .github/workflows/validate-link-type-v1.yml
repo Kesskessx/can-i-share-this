@@ -17,7 +17,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate patch syntax
-        run: python3 -m py_compile scripts/apply_link_type_v1.py
+        run: |
+          python3 -m py_compile scripts/apply_link_type_v1.py
+          python3 -m py_compile scripts/apply_sensitive_category_v11.py
 
       - name: Build site
         run: bash build.sh
@@ -52,10 +54,26 @@ jobs:
           grep -q "platform:'Google Drive'" dist/index.html
           grep -q "platform:'Dropbox'" dist/index.html
 
+      - name: Validate sensitive category V1.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'id="content-warning"' dist/index.html
+          grep -q 'Content category' dist/index.html
+          grep -q "'gamdom.com'" dist/index.html
+          grep -q "typeLabel:'Gambling / betting website'" dist/index.html
+          grep -q "typeLabel:'Adult-content website'" dist/index.html
+          grep -q "typeLabel:'Torrent / file-sharing website'" dist/index.html
+          grep -q "typeLabel:'Crypto / financial website'" dist/index.html
+          grep -q "typeLabel:'Weapons-related website'" dist/index.html
+          grep -q "typeLabel:'Drug-related website'" dist/index.html
+          grep -q 'No known malware or phishing threat' dist/index.html
+          grep -q 'renderLinkType(data);renderSensitiveCategory(data);' dist/index.html
+
       - name: Validate conservative fallback
         shell: bash
         run: |
           set -euo pipefail
           grep -q "label:'Website',detail:'A regular web page'" dist/index.html
-          grep -q 'renderQuick(data){renderLinkType(data);' dist/index.html
+          grep -q 'renderQuick(data){renderLinkType(data);renderSensitiveCategory(data);' dist/index.html
           ! grep -q '100% safe' dist/index.html
