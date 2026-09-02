@@ -16,11 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate API syntax
+      - name: Validate API and generator syntax
         run: |
           node --check api/check.js
           node --check api/deep-check.js
           node --check api/event.js
+          python3 -m py_compile scripts/generate_scam_safety_cluster.py
 
       - name: Build site
         run: bash build.sh
@@ -29,11 +30,65 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for page in safe-link-checker scam-link-checker phishing-link-checker qr-code-link-checker; do
+          for page in safe-link-checker scam-link-checker phishing-link-checker qr-code-link-checker \
+            malware-link-checker short-link-checker how-to-check-if-a-link-is-safe \
+            can-a-link-give-you-a-virus how-to-tell-if-a-link-is-phishing \
+            how-to-check-a-link-without-clicking-it is-a-bitly-link-safe \
+            suspicious-text-message-link fake-package-delivery-link \
+            how-to-check-a-qr-code-before-opening; do
             test -f "dist/$page.html"
             grep -q '<meta name="robots" content="index,follow">' "dist/$page.html"
             grep -q "https://canisharethis.com/$page" dist/sitemap.xml
           done
+
+      - name: Validate 10-page anti-scam cluster
+        shell: bash
+        run: |
+          set -euo pipefail
+          pages=(
+            malware-link-checker
+            short-link-checker
+            how-to-check-if-a-link-is-safe
+            can-a-link-give-you-a-virus
+            how-to-tell-if-a-link-is-phishing
+            how-to-check-a-link-without-clicking-it
+            is-a-bitly-link-safe
+            suspicious-text-message-link
+            fake-package-delivery-link
+            how-to-check-a-qr-code-before-opening
+          )
+          test "${#pages[@]}" -eq 10
+          for page in "${pages[@]}"; do
+            file="dist/$page.html"
+            grep -q '<meta name="description"' "$file"
+            grep -q '<h1>' "$file"
+            grep -q 'Quick answer' "$file"
+            grep -q 'Frequently asked questions' "$file"
+            grep -q 'Analyze the link' "$file"
+            grep -q 'href="/safe-link-checker"' "$file"
+          done
+          grep -q 'id="safety-guides-cluster"' dist/safe-link-checker.html
+          for page in "${pages[@]}"; do
+            grep -q "href=\"/$page\"" dist/safe-link-checker.html
+          done
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          pages = [
+              'malware-link-checker','short-link-checker','how-to-check-if-a-link-is-safe',
+              'can-a-link-give-you-a-virus','how-to-tell-if-a-link-is-phishing',
+              'how-to-check-a-link-without-clicking-it','is-a-bitly-link-safe',
+              'suspicious-text-message-link','fake-package-delivery-link',
+              'how-to-check-a-qr-code-before-opening'
+          ]
+          titles=[]; descriptions=[]
+          for p in pages:
+              text=Path(f'dist/{p}.html').read_text(encoding='utf-8')
+              titles.append(re.search(r'<title>(.*?)</title>', text, re.S).group(1))
+              descriptions.append(re.search(r'<meta name="description" content="(.*?)">', text, re.S).group(1))
+          assert len(set(titles)) == 10, 'duplicate cluster title'
+          assert len(set(descriptions)) == 10, 'duplicate cluster description'
+          PY
 
       - name: Validate simple V6.3 homepage
         shell: bash
