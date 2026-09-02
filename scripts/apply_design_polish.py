@@ -13,12 +13,15 @@ body{background:radial-gradient(ellipse 560px 310px at 50% 132px,var(--cist-hero
 .scan-form{transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
 .scan-form.is-scanning{border-color:var(--green);animation:cistScanPulse 1.15s ease-in-out infinite}
 @keyframes cistScanPulse{0%,100%{box-shadow:var(--shadow),0 0 0 0 var(--cist-scan-glow)}50%{box-shadow:var(--shadow),0 0 0 5px var(--cist-scan-glow)}}
-.risk-meter{margin:18px 0 0;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}
+.check-strip{display:flex;justify-content:center;align-items:center;gap:6px 9px;flex-wrap:wrap;margin-top:11px;color:var(--muted);font-size:12px}.check-strip .check-label{font-weight:800;color:var(--text)}.check-strip i{font-style:normal;opacity:.55}
+.destination-box{margin:17px 0 0;padding:14px 15px;border:1px solid var(--line);border-radius:13px;background:var(--soft);text-align:left}.destination-label{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}.destination-host{display:block;margin-top:3px;font-size:16px;line-height:1.3;word-break:break-word}.destination-note{margin-top:5px;color:var(--muted);font-size:12px;word-break:break-word}.destination-note.warn{color:var(--amber);font-weight:750}
+.risk-meter{margin:12px 0 0;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}
 .risk-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px;font-size:13px}
 .risk-head span{color:var(--muted);font-weight:750}.risk-head strong{font-size:13px}
 .risk-track{height:7px;overflow:hidden;border-radius:999px;background:var(--line)}
 .risk-fill{display:block;width:0;height:100%;border-radius:inherit;background:var(--muted);transition:width .4s ease,background-color .2s ease}
 .status-low .risk-fill{background:var(--green)}.status-caution .risk-fill{background:var(--amber)}.status-high .risk-fill{background:var(--red)}
+@media(max-width:600px){.check-strip{gap:5px 7px}.check-strip i{display:none}.destination-box{padding:12px 13px}}
 @media(prefers-reduced-motion:reduce){.scan-form{transition:none}.scan-form.is-scanning{animation:none;box-shadow:var(--shadow),0 0 0 3px var(--cist-scan-glow)}.risk-fill{transition:none}}
 </style>
 '''
@@ -52,25 +55,29 @@ def polish_homepage() -> None:
     if 'id="cist-design-polish"' not in source:
         source = source.replace('</head>', STYLE + '\n</head>', 1)
 
+    under_anchor = '<div class="under-form"><span>🔒 Links aren’t stored</span><a href="/qr-code-link-checker">Scan a QR code instead</a></div>'
+    under_block = '<div class="check-strip" aria-label="What we check"><span class="check-label">What we check:</span><span>Phishing</span><i>·</i><span>Malware signals</span><i>·</i><span>Redirects</span><i>·</i><span>Lookalike domains</span></div>\n    <div class="under-form"><span>🔒 Links aren’t stored</span><a href="/qr-code-link-checker">Scan a QR code instead</a><a href="/methodology">How it works</a></div>'
+    source = replace_once(source, under_anchor, under_block, 'what we check strip')
+
     meter_anchor = '<div class="result-top"><div id="status-icon" class="status-icon">…</div><div class="result-main"><h2 id="verdict">Analyzing…</h2><p id="summary" class="result-summary">Checking the URL and destination.</p></div></div>\n      <ul id="signals" class="signals hidden"></ul>'
-    meter_block = '<div class="result-top"><div id="status-icon" class="status-icon">…</div><div class="result-main"><h2 id="verdict">Analyzing…</h2><p id="summary" class="result-summary">Checking the URL and destination.</p></div></div>\n      <div id="risk-meter" class="risk-meter hidden" role="progressbar" aria-label="Risk score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="risk-head"><span>Risk score</span><strong id="risk-value">0/100</strong></div><div class="risk-track"><span id="risk-fill" class="risk-fill"></span></div></div>\n      <ul id="signals" class="signals hidden"></ul>'
-    source = replace_once(source, meter_anchor, meter_block, 'risk meter')
+    meter_block = '<div class="result-top"><div id="status-icon" class="status-icon">…</div><div class="result-main"><h2 id="verdict">Analyzing…</h2><p id="summary" class="result-summary">Checking the URL and destination.</p></div></div>\n      <div id="destination" class="destination-box hidden"><div class="destination-label">Final destination</div><strong id="destination-host" class="destination-host">Unknown</strong><div id="destination-note" class="destination-note hidden"></div></div>\n      <div id="risk-meter" class="risk-meter hidden" role="progressbar" aria-label="Risk score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="risk-head"><span>Risk score</span><strong id="risk-value">0/100</strong></div><div class="risk-track"><span id="risk-fill" class="risk-fill"></span></div></div>\n      <ul id="signals" class="signals hidden"></ul>'
+    source = replace_once(source, meter_anchor, meter_block, 'destination and risk meter')
 
     state_anchor = "  var currentUrl='',lastStatus='unknown',lastVerdict='';"
-    state_block = "  var currentUrl='',lastStatus='unknown',lastVerdict='';\n  var riskMeter=document.getElementById('risk-meter'),riskValue=document.getElementById('risk-value'),riskFill=document.getElementById('risk-fill');"
-    source = replace_once(source, state_anchor, state_block, 'risk meter JS references')
+    state_block = "  var currentUrl='',lastStatus='unknown',lastVerdict='';\n  var destination=document.getElementById('destination'),destinationHost=document.getElementById('destination-host'),destinationNote=document.getElementById('destination-note');\n  var riskMeter=document.getElementById('risk-meter'),riskValue=document.getElementById('risk-value'),riskFill=document.getElementById('risk-fill');"
+    source = replace_once(source, state_anchor, state_block, 'result JS references')
 
     busy_anchor = "  function busy(on){analyze.disabled=on;analyze.textContent=on?'Analyzing…':'Analyze'}"
     busy_block = "  function busy(on){analyze.disabled=on;analyze.textContent=on?'Analyzing…':'Analyze';form.classList.toggle('is-scanning',!!on)}"
     source = replace_once(source, busy_anchor, busy_block, 'scan animation state')
 
     loading_anchor = "  function loading(){clearExtra();result.classList.remove('hidden');card.className='result-card';icon.textContent='…';verdict.textContent='Analyzing…';summary.textContent='Checking the URL and destination.'}"
-    loading_block = "  function loading(){clearExtra();riskMeter.classList.add('hidden');riskFill.style.width='0%';riskMeter.setAttribute('aria-valuenow','0');result.classList.remove('hidden');card.className='result-card';icon.textContent='…';verdict.textContent='Analyzing…';summary.textContent='Checking the URL and destination.'}"
-    source = replace_once(source, loading_anchor, loading_block, 'loading risk reset')
+    loading_block = "  function loading(){clearExtra();destination.classList.add('hidden');destinationNote.className='destination-note hidden';destinationNote.textContent='';riskMeter.classList.add('hidden');riskFill.style.width='0%';riskMeter.setAttribute('aria-valuenow','0');result.classList.remove('hidden');card.className='result-card';icon.textContent='…';verdict.textContent='Analyzing…';summary.textContent='Checking the URL and destination.'}"
+    source = replace_once(source, loading_anchor, loading_block, 'loading result reset')
 
     score_anchor = "    var host=data.finalHost||'';var score=Number.isFinite(s.riskScore)?s.riskScore:0;techGrid.innerHTML='<div class=\"tech\"><span>Final host</span><strong>'+esc(host||'Unknown')+'</strong></div><div class=\"tech\"><span>Risk score</span><strong>'+esc(score)+'/100</strong></div><div class=\"tech\"><span>HTTP status</span><strong>'+esc(data.status||'Unknown')+'</strong></div><div class=\"tech\"><span>Redirects</span><strong>'+esc(Array.isArray(data.redirects)?data.redirects.length:0)+'</strong></div>';"
-    score_block = "    var host=data.finalHost||'';var rawScore=s.riskScore;var hasScore=Number.isFinite(rawScore)&&status!=='unknown';var score=hasScore?Math.max(0,Math.min(100,Math.round(rawScore))):0;if(hasScore){riskValue.textContent=score+'/100';riskFill.style.width=score+'%';riskMeter.setAttribute('aria-valuenow',String(score));riskMeter.classList.remove('hidden')}else{riskMeter.classList.add('hidden')}techGrid.innerHTML='<div class=\"tech\"><span>Final host</span><strong>'+esc(host||'Unknown')+'</strong></div><div class=\"tech\"><span>Risk score</span><strong>'+(hasScore?esc(score)+'/100':'Unavailable')+'</strong></div><div class=\"tech\"><span>HTTP status</span><strong>'+esc(data.status||'Unknown')+'</strong></div><div class=\"tech\"><span>Redirects</span><strong>'+esc(Array.isArray(data.redirects)?data.redirects.length:0)+'</strong></div>';"
-    source = replace_once(source, score_anchor, score_block, 'risk score renderer')
+    score_block = "    var host=data.finalHost||'';var redirects=Array.isArray(data.redirects)?data.redirects:[];var originalHost='';try{originalHost=new URL(currentUrl).hostname.toLowerCase()}catch(e){}if(host){var finalHost=String(host).toLowerCase();destinationHost.textContent=host;destination.classList.remove('hidden');if(originalHost&&finalHost!==originalHost){destinationNote.textContent=(status==='caution'||status==='high'?'⚠ Destination changed: ':'Redirected: ')+originalHost+' → '+host;destinationNote.className='destination-note'+((status==='caution'||status==='high')?' warn':'')}else if(redirects.length){destinationNote.textContent='Followed '+redirects.length+' redirect'+(redirects.length===1?'':'s')+' to this destination.';destinationNote.className='destination-note'}else{destinationNote.className='destination-note hidden'}}else{destination.classList.add('hidden')}var rawScore=s.riskScore;var hasScore=Number.isFinite(rawScore)&&status!=='unknown';var score=hasScore?Math.max(0,Math.min(100,Math.round(rawScore))):0;if(hasScore){riskValue.textContent=score+'/100';riskFill.style.width=score+'%';riskMeter.setAttribute('aria-valuenow',String(score));riskMeter.classList.remove('hidden')}else{riskMeter.classList.add('hidden')}techGrid.innerHTML='<div class=\"tech\"><span>Final host</span><strong>'+esc(host||'Unknown')+'</strong></div><div class=\"tech\"><span>Risk score</span><strong>'+(hasScore?esc(score)+'/100':'Unavailable')+'</strong></div><div class=\"tech\"><span>HTTP status</span><strong>'+esc(data.status||'Unknown')+'</strong></div><div class=\"tech\"><span>Redirects</span><strong>'+esc(redirects.length)+'</strong></div>';"
+    source = replace_once(source, score_anchor, score_block, 'destination and risk score renderer')
 
     HOME.write_text(source, encoding='utf-8')
 
@@ -80,7 +87,7 @@ def main() -> None:
         raise RuntimeError('Homepage not found')
     add_favicon_to_pages()
     polish_homepage()
-    print('Applied homepage design polish and premium favicon')
+    print('Applied homepage design polish, trust cues and clearer destination results')
 
 
 if __name__ == '__main__':
