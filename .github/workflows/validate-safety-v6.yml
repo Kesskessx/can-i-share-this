@@ -156,7 +156,7 @@ jobs:
             grep -q '<meta name="robots" content="index,follow">' "$file"
             grep -q "<link rel=\"canonical\" href=\"https://canisharethis.com/$page\">" "$file"
             grep -q '"@type":"Article"' "$file"
-            grep -q 'Quick answer' "$file"
+            grep -q 'At a glance' "$file"
             grep -q 'Primary references' "$file"
             grep -q 'Last reviewed: September 2, 2026.' "$file"
             grep -q 'href="/favicon.svg"' "$file"
@@ -183,7 +183,10 @@ jobs:
           set -euo pipefail
           grep -q 'GOOGLE_WEB_RISK_API_KEY' api/deep-check.js
           grep -q 'webrisk.googleapis.com/v1/uris:search' api/deep-check.js
-          grep -q "threatTypes', 'MALWARE'" api/deep-check.js
+          grep -q "'MALWARE'" api/deep-check.js
+          grep -q "'SOCIAL_ENGINEERING'" api/deep-check.js
+          grep -q "'UNWANTED_SOFTWARE'" api/deep-check.js
+          ! grep -q 'SOCIAL_ENGINEERING_EXTENDED_COVERAGE' api/deep-check.js
           grep -q 'body.consent !== true' api/deep-check.js
           grep -q 'privacyBlocked' api/deep-check.js
           grep -q 'sensitiveParameters' api/deep-check.js
