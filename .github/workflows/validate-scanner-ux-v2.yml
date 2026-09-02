@@ -21,6 +21,7 @@ jobs:
           python3 -m py_compile scripts/apply_scanner_ux_v2.py
           python3 -m py_compile scripts/apply_reputation_visibility.py
           python3 -m py_compile scripts/apply_plain_language.py
+          python3 -m py_compile scripts/apply_one_click_scan.py
 
       - name: Build site
         run: bash build.sh
@@ -63,11 +64,24 @@ jobs:
           grep -q 'Nothing you paste is saved' dist/index.html
           grep -q 'No account needed' dist/index.html
           grep -q 'Warning-sign score' dist/index.html
-          grep -q 'One more check recommended' dist/index.html
-          grep -q 'Run extra safety check' dist/index.html
           grep -q 'Dangerous link — do not open' dist/index.html
-          grep -q 'No known danger found in security lists' dist/index.html
           grep -q "riskMeter.classList.add('hidden')" dist/index.html
+
+      - name: Validate one-click full scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'id="cist-one-click-scan"' dist/index.html
+          grep -q 'Paste &amp; check' dist/index.html
+          grep -q '>Check link</button>' dist/index.html
+          grep -q 'One click runs the full check.' dist/index.html
+          grep -q 'Public links may be compared with online safety lists.' dist/index.html
+          grep -q 'deepConfirm.click()' dist/index.html
+          grep -q 'Running the full safety check' dist/index.html
+          grep -q 'No known danger reported' dist/index.html
+          grep -q 'Dangerous warning signs found' dist/index.html
+          grep -q 'Extra check skipped to protect your privacy' dist/index.html
+          grep -q '#deep,#consent{display:none!important}' dist/index.html
 
       - name: Validate contextual guide destinations
         shell: bash
