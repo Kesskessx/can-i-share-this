@@ -1,0 +1,51 @@
+name: Validate Header Navigation
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  header-navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate header patch syntax
+        run: python3 -m py_compile scripts/apply_header_navigation.py
+
+      - name: Build site
+        run: bash build.sh
+
+      - name: Validate homepage header
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'class="site-header"' dist/index.html
+          grep -q 'class="header-desktop-nav"' dist/index.html
+          grep -q 'class="header-mobile-menu"' dist/index.html
+          grep -q '<summary>Check</summary>' dist/index.html
+          grep -q '<summary>Prevention</summary>' dist/index.html
+          grep -q '<summary>About</summary>' dist/index.html
+          grep -q '<summary>Menu</summary>' dist/index.html
+          grep -q 'href="/email-safety-checker">Email checker<' dist/index.html
+          grep -q 'href="/qr-code-link-checker">QR code checker<' dist/index.html
+          grep -q 'href="/scam-prevention">Scam Prevention<' dist/index.html
+          grep -q 'href="/scam-warning-signs">Scam warnings<' dist/index.html
+          grep -q 'href="/phishing-link-checker">Phishing<' dist/index.html
+          grep -q 'href="/how-link-scanning-works">How it works<' dist/index.html
+          grep -q 'href="/methodology">Methodology<' dist/index.html
+          grep -q 'cist-header-navigation-style' dist/index.html
+
+      - name: Validate linked destinations exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          for slug in email-safety-checker qr-code-link-checker scam-prevention scam-warning-signs phishing-link-checker how-link-scanning-works methodology; do
+            test -s "dist/${slug}.html"
+          done
