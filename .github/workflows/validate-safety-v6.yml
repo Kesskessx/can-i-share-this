@@ -25,6 +25,8 @@ jobs:
           python3 -m py_compile scripts/generate_methodology_page.py
           python3 -m py_compile scripts/generate_authority_pages.py
           python3 -m py_compile scripts/apply_design_polish.py
+          python3 -m py_compile scripts/apply_reputation_visibility.py
+          python3 -m py_compile scripts/apply_plain_language.py
 
       - name: Build site
         run: bash build.sh
@@ -65,7 +67,7 @@ jobs:
             file="dist/$page.html"
             grep -q '<meta name="description"' "$file"
             grep -q '<h1>' "$file"
-            grep -q 'Quick answer' "$file"
+            grep -q 'At a glance' "$file"
             grep -q 'Frequently asked questions' "$file"
             grep -q 'Analyze the link' "$file"
             grep -q 'href="/safe-link-checker"' "$file"
@@ -101,7 +103,7 @@ jobs:
           grep -q 'id="paste"' dist/index.html
           grep -q '>Analyze</button>' dist/index.html
           grep -q 'What should I do?' dist/index.html
-          grep -q 'Check reputation' dist/index.html
+          grep -q 'Run extra safety check' dist/index.html
           grep -q 'Share result' dist/index.html
           grep -q 'href="/qr-code-link-checker"' dist/index.html
           grep -q '/api/event' dist/index.html
@@ -121,11 +123,11 @@ jobs:
           grep -q 'id="risk-fill"' dist/index.html
           grep -q "riskFill.style.width=score+'%'" dist/index.html
           grep -q 'radial-gradient' dist/index.html
-          grep -q 'What we check:' dist/index.html
-          grep -q 'Malware signals' dist/index.html
-          grep -q 'Lookalike domains' dist/index.html
+          grep -q '>What we check<' dist/index.html
+          grep -q 'Harmful files' dist/index.html
+          grep -q 'Copycat sites' dist/index.html
           grep -q 'id="destination"' dist/index.html
-          grep -q 'Final destination' dist/index.html
+          grep -q 'Where this link goes' dist/index.html
           grep -q 'Destination changed:' dist/index.html
           grep -q 'href="/methodology"' dist/index.html
           grep -q 'href="/favicon.svg"' dist/safe-link-checker.html
