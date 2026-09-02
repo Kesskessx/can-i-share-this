@@ -19,6 +19,7 @@ python3 scripts/generate_authority_pages.py
 python3 scripts/generate_email_seo_pages.py
 python3 scripts/align_email_dmarc_rfc9989.py
 python3 scripts/generate_scam_prevention_pages.py
+python3 scripts/generate_missing_route_pages.py
 python3 scripts/apply_scam_icons.py
 python3 scripts/apply_scam_trust_tests.py
 python3 scripts/apply_design_polish.py
