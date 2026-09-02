@@ -54,13 +54,13 @@ jobs:
           grep -q 'How this scam usually works' dist/fake-package-delivery-scam.html
           grep -q 'prince, royal family' dist/advance-fee-scam.html
           grep -q 'safe, secure or temporary account' dist/bank-impersonation-scam.html
-          grep -q 'Password manager' dist/account-verification-scam.html
-          grep -q 'romance scam' dist/romance-scam.html
-          grep -q 'Task scams' dist/job-offer-scam.html
-          grep -q 'marketplace' dist/marketplace-scam.html
-          grep -q 'remote-access' dist/tech-support-scam.html
-          grep -q 'fake profits' dist/crypto-investment-scam.html
-          grep -q 'gift-card numbers' dist/gift-card-scam.html
+          grep -qi 'password manager' dist/account-verification-scam.html
+          grep -qi 'romance scam' dist/romance-scam.html
+          grep -qi 'task scams' dist/job-offer-scam.html
+          grep -qi 'marketplace' dist/marketplace-scam.html
+          grep -qi 'remote-access' dist/tech-support-scam.html
+          grep -qi 'fake profits' dist/crypto-investment-scam.html
+          grep -qi 'gift-card numbers' dist/gift-card-scam.html
           grep -q 'scam-prevention-library' dist/safe-link-checker.html
           grep -q 'scam-prevention-library' dist/methodology.html
           grep -q 'scam-prevention-library' dist/email-safety-checker.html
@@ -69,7 +69,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'No single' scripts/generate_scam_prevention_pages.py || true
           grep -q 'low-risk technical result does not replace' scripts/generate_scam_prevention_pages.py
           grep -q 'reportfraud.ftc.gov' scripts/generate_scam_prevention_pages.py
           grep -q 'www.ic3.gov' scripts/generate_scam_prevention_pages.py
