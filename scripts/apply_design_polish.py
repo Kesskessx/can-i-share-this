@@ -10,6 +10,7 @@ STYLE = r'''
 :root{--cist-scan-glow:rgba(19,115,51,.16);--cist-hero-glow:rgba(19,115,51,.075)}
 @media(prefers-color-scheme:dark){:root{--cist-scan-glow:rgba(117,209,139,.18);--cist-hero-glow:rgba(117,209,139,.07)}}
 body{background:radial-gradient(ellipse 560px 310px at 50% 132px,var(--cist-hero-glow),transparent 72%),var(--bg)}
+.brand-wrap{display:flex;align-items:baseline;gap:10px;min-width:0}.brand-tagline{color:var(--muted);font-size:11px;font-weight:650;white-space:nowrap}
 .scan-form{transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
 .scan-form.is-scanning{border-color:var(--green);animation:cistScanPulse 1.15s ease-in-out infinite}
 @keyframes cistScanPulse{0%,100%{box-shadow:var(--shadow),0 0 0 0 var(--cist-scan-glow)}50%{box-shadow:var(--shadow),0 0 0 5px var(--cist-scan-glow)}}
@@ -21,7 +22,7 @@ body{background:radial-gradient(ellipse 560px 310px at 50% 132px,var(--cist-hero
 .risk-track{height:7px;overflow:hidden;border-radius:999px;background:var(--line)}
 .risk-fill{display:block;width:0;height:100%;border-radius:inherit;background:var(--muted);transition:width .4s ease,background-color .2s ease}
 .status-low .risk-fill{background:var(--green)}.status-caution .risk-fill{background:var(--amber)}.status-high .risk-fill{background:var(--red)}
-@media(max-width:600px){.check-strip{gap:5px 7px}.check-strip i{display:none}.destination-box{padding:12px 13px}}
+@media(max-width:600px){header{height:66px}.top{align-items:center}.brand-wrap{display:block}.brand-tagline{display:block;margin-top:1px;font-size:10px}.check-strip{gap:5px 7px}.check-strip i{display:none}.destination-box{padding:12px 13px}}
 @media(prefers-reduced-motion:reduce){.scan-form{transition:none}.scan-form.is-scanning{animation:none;box-shadow:var(--shadow),0 0 0 3px var(--cist-scan-glow)}.risk-fill{transition:none}}
 </style>
 '''
@@ -55,9 +56,17 @@ def polish_homepage() -> None:
     if 'id="cist-design-polish"' not in source:
         source = source.replace('</head>', STYLE + '\n</head>', 1)
 
+    header_anchor = '<header><div class="top"><a class="brand" href="/">↗ Can I Share This?</a><a class="qr-top" href="/qr-code-link-checker">Scan QR</a></div></header>'
+    header_block = '<header><div class="top"><div class="brand-wrap"><a class="brand" href="/">↗ Can I Share This?</a><span class="brand-tagline">Free Link Safety Checker</span></div><a class="qr-top" href="/qr-code-link-checker">Scan QR</a></div></header>'
+    source = replace_once(source, header_anchor, header_block, 'brand descriptor')
+
     under_anchor = '<div class="under-form"><span>🔒 Links aren’t stored</span><a href="/qr-code-link-checker">Scan a QR code instead</a></div>'
-    under_block = '<div class="check-strip" aria-label="What we check"><span class="check-label">What we check:</span><span>Phishing</span><i>·</i><span>Malware signals</span><i>·</i><span>Redirects</span><i>·</i><span>Lookalike domains</span></div>\n    <div class="under-form"><span>🔒 Links aren’t stored</span><a href="/qr-code-link-checker">Scan a QR code instead</a><a href="/methodology">How it works</a></div>'
-    source = replace_once(source, under_anchor, under_block, 'what we check strip')
+    under_block = '<div class="check-strip" aria-label="What we check"><span class="check-label">Checks:</span><span>Phishing patterns</span><i>·</i><span>Malware signals</span><i>·</i><span>Redirects</span><i>·</i><span>Lookalike domains</span></div>\n    <div class="under-form"><span>🔒 Links aren’t stored</span><span>No signup</span><a href="/qr-code-link-checker">Scan a QR code</a></div>'
+    source = replace_once(source, under_anchor, under_block, 'trust and check strip')
+
+    footer_anchor = '<footer><div class="footer-line">Can I Share This? checks warning signs before you click. No scanner can guarantee a link is safe.</div><details><summary>Specialized checks</summary><nav><a href="/safe-link-checker">Safe link</a><a href="/scam-link-checker">Scam</a><a href="/phishing-link-checker">Phishing</a><a href="/qr-code-link-checker">QR code</a><a href="/google-drive-link-checker">Google Drive</a><a href="/dropbox-link-checker">Dropbox</a></nav></details>'
+    footer_block = '<footer><div class="footer-line">Can I Share This? checks warning signs before you click. No scanner can guarantee a link is safe.</div><details><summary>More link checks</summary><nav><a href="/methodology">How it works</a><a href="/safe-link-checker">Safe link</a><a href="/scam-link-checker">Scam</a><a href="/phishing-link-checker">Phishing</a><a href="/qr-code-link-checker">QR code</a><a href="/google-drive-link-checker">Google Drive</a><a href="/dropbox-link-checker">Dropbox</a></nav></details>'
+    source = replace_once(source, footer_anchor, footer_block, 'footer navigation')
 
     meter_anchor = '<div class="result-top"><div id="status-icon" class="status-icon">…</div><div class="result-main"><h2 id="verdict">Analyzing…</h2><p id="summary" class="result-summary">Checking the URL and destination.</p></div></div>\n      <ul id="signals" class="signals hidden"></ul>'
     meter_block = '<div class="result-top"><div id="status-icon" class="status-icon">…</div><div class="result-main"><h2 id="verdict">Analyzing…</h2><p id="summary" class="result-summary">Checking the URL and destination.</p></div></div>\n      <div id="destination" class="destination-box hidden"><div class="destination-label">Final destination</div><strong id="destination-host" class="destination-host">Unknown</strong><div id="destination-note" class="destination-note hidden"></div></div>\n      <div id="risk-meter" class="risk-meter hidden" role="progressbar" aria-label="Risk score" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="risk-head"><span>Risk score</span><strong id="risk-value">0/100</strong></div><div class="risk-track"><span id="risk-fill" class="risk-fill"></span></div></div>\n      <ul id="signals" class="signals hidden"></ul>'
