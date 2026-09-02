@@ -35,6 +35,7 @@ python3 scripts/apply_reputation_visibility.py
 python3 scripts/apply_plain_language.py
 python3 scripts/apply_one_click_scan.py
 python3 scripts/apply_link_type_v1.py
+python3 scripts/apply_sensitive_category_v11.py
 python3 scripts/apply_readability_v1.py
 python3 scripts/apply_wordmark_logo.py
 python3 scripts/apply_homepage_brand_accent.py
