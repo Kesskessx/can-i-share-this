@@ -1,0 +1,66 @@
+name: Test Google Web Risk runtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/test-webrisk-runtime.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test-webrisk-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Wait for production to use current Vercel environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 24); do
+            BODY="$(curl -sS --max-time 20 -X POST 'https://canisharethis.com/api/deep-check' \
+              -H 'content-type: application/json' \
+              --data '{"url":"https://www.google.com/","consent":true}' || true)"
+            echo "Attempt $attempt/24"
+            RESULT="$(printf '%s' "$BODY" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=next((x for x in d.get("providers",[]) if x.get("provider")=="Google Web Risk"),{}); print(json.dumps({"deepStatus":d.get("status"),"checked":p.get("checked"),"providerStatus":p.get("status"),"httpStatus":p.get("httpStatus"),"detail":p.get("detail")}, ensure_ascii=False))' 2>/dev/null || true)"
+            echo "$RESULT"
+            if printf '%s' "$BODY" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=next((x for x in d.get("providers",[]) if x.get("provider")=="Google Web Risk"),{}); raise SystemExit(0 if p.get("checked") is True and p.get("status")=="no-known-threat" else 1)' 2>/dev/null; then
+              echo 'Google Web Risk is active in production.'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Google Web Risk did not become active in production.' >&2
+          exit 1
+
+      - name: Verify official malware test URL is detected
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(curl -sS --max-time 25 -X POST 'https://canisharethis.com/api/deep-check' \
+            -H 'content-type: application/json' \
+            --data '{"url":"http://testsafebrowsing.appspot.com/s/malware.html","consent":true}')"
+          printf '%s\n' "$BODY" | python3 -m json.tool
+          printf '%s' "$BODY" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=next((x for x in d.get("providers",[]) if x.get("provider")=="Google Web Risk"),{}); ok=p.get("checked") is True and p.get("status")=="known-threat" and "MALWARE" in p.get("threatTypes",[]); raise SystemExit(0 if ok else 1)'
+
+      - name: Verify Extended Coverage test URL returns caution
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(curl -sS --max-time 25 -X POST 'https://canisharethis.com/api/deep-check' \
+            -H 'content-type: application/json' \
+            --data '{"url":"http://testsafebrowsing.appspot.com/s/social_engineering_extended_coverage.html","consent":true}')"
+          printf '%s\n' "$BODY" | python3 -m json.tool
+          printf '%s' "$BODY" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=next((x for x in d.get("providers",[]) if x.get("provider")=="Google Web Risk"),{}); ok=p.get("checked") is True and p.get("caution") is True and p.get("status")=="extended-coverage-match"; raise SystemExit(0 if ok else 1)'
+
+      - name: Verify safe reference URL has no Google threat match
+        shell: bash
+        run: |
+          set -euo pipefail
+          BODY="$(curl -sS --max-time 25 -X POST 'https://canisharethis.com/api/deep-check' \
+            -H 'content-type: application/json' \
+            --data '{"url":"https://www.google.com/","consent":true}')"
+          printf '%s\n' "$BODY" | python3 -m json.tool
+          printf '%s' "$BODY" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=next((x for x in d.get("providers",[]) if x.get("provider")=="Google Web Risk"),{}); ok=p.get("checked") is True and p.get("status")=="no-known-threat"; raise SystemExit(0 if ok else 1)'
