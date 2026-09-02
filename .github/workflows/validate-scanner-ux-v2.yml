@@ -61,5 +61,6 @@ jobs:
         run: |
           set -euo pipefail
           grep -q "if(currentInputType==='url')trackScanSummary(d)" dist/index.html
-          grep -q 'Technical details (advanced)' dist/index.html
+          grep -q 'Technical details <span class="advanced-label">(advanced)</span>' dist/index.html
+          grep -q 'For advanced users. These technical signals help explain the result' dist/index.html
           ! grep -qi '100% safe' dist/index.html
