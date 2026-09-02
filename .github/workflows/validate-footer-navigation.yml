@@ -1,0 +1,52 @@
+name: Validate Footer Navigation
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  footer-navigation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate footer patch syntax
+        run: python3 -m py_compile scripts/apply_footer_navigation.py
+
+      - name: Build site
+        run: bash build.sh
+
+      - name: Validate homepage footer
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'class="site-footer"' dist/index.html
+          grep -q 'Check suspicious links and email addresses before you trust them.' dist/index.html
+          grep -q '>Link checker<' dist/index.html
+          grep -q 'href="/email-safety-checker">Email checker<' dist/index.html
+          grep -q 'href="/qr-code-link-checker">QR code checker<' dist/index.html
+          grep -q 'href="/scam-prevention">Scam Prevention<' dist/index.html
+          grep -q 'href="/phishing-link-checker">Phishing<' dist/index.html
+          grep -q 'href="/fake-package-delivery-scam">Fake package scams<' dist/index.html
+          grep -q 'href="/scam-warning-signs">Scam warning signs<' dist/index.html
+          grep -q 'href="/how-link-scanning-works">How it works<' dist/index.html
+          grep -q 'href="/methodology">Methodology<' dist/index.html
+          grep -q 'No scanner can guarantee that a link or sender is safe.' dist/index.html
+          grep -q 'Privacy-first · No signup' dist/index.html
+          grep -q '@CanIShareLink' dist/index.html
+          grep -q 'cist-footer-navigation-style' dist/index.html
+          grep -q 'cist-footer-navigation-script' dist/index.html
+
+      - name: Validate linked destinations exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          for slug in email-safety-checker qr-code-link-checker scam-prevention phishing-link-checker fake-package-delivery-scam scam-warning-signs how-link-scanning-works methodology; do
+            test -s "dist/${slug}.html"
+          done
