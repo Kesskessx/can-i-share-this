@@ -61,7 +61,7 @@ def polish_homepage() -> None:
     source = replace_once(source, header_anchor, header_block, 'brand descriptor')
 
     under_anchor = '<div class="under-form"><span>🔒 Links aren’t stored</span><a href="/qr-code-link-checker">Scan a QR code instead</a></div>'
-    under_block = '<div class="check-strip" aria-label="What we check"><span class="check-label">Checks:</span><span>Phishing patterns</span><i>·</i><span>Malware signals</span><i>·</i><span>Redirects</span><i>·</i><span>Lookalike domains</span></div>\n    <div class="under-form"><span>🔒 Links aren’t stored</span><span>No signup</span><a href="/qr-code-link-checker">Scan a QR code</a></div>'
+    under_block = '<div class="check-strip" aria-label="What we check"><span class="check-label">What we check:</span><span>Phishing patterns</span><i>·</i><span>Malware signals</span><i>·</i><span>Redirects</span><i>·</i><span>Lookalike domains</span></div>\n    <div class="under-form"><span>🔒 Links aren’t stored</span><span>No signup</span><a href="/qr-code-link-checker">Scan a QR code</a></div>'
     source = replace_once(source, under_anchor, under_block, 'trust and check strip')
 
     footer_anchor = '<footer><div class="footer-line">Can I Share This? checks warning signs before you click. No scanner can guarantee a link is safe.</div><details><summary>Specialized checks</summary><nav><a href="/safe-link-checker">Safe link</a><a href="/scam-link-checker">Scam</a><a href="/phishing-link-checker">Phishing</a><a href="/qr-code-link-checker">QR code</a><a href="/google-drive-link-checker">Google Drive</a><a href="/dropbox-link-checker">Dropbox</a></nav></details>'
