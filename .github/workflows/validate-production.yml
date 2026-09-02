@@ -55,7 +55,8 @@ jobs:
             safe-link-checker \
             scam-link-checker \
             phishing-link-checker \
-            qr-code-link-checker; do
+            qr-code-link-checker \
+            methodology; do
             test -f "dist/$page.html"
             grep -q "https://canisharethis.com/$page" dist/sitemap.xml
             grep -q '<meta name="robots" content="index,follow">' "dist/$page.html"
@@ -69,6 +70,7 @@ jobs:
           grep -q 'href="/dropbox-link-checker"' dist/index.html
           grep -q 'href="/safe-link-checker"' dist/index.html
           grep -q 'href="/qr-code-link-checker"' dist/index.html
+          grep -q 'href="/methodology"' dist/index.html
           grep -q 'href="/google-drive-permission-checker"' dist/google-drive-link-checker.html
           grep -q 'href="/google-drive-link-checker"' dist/google-drive-permission-checker.html
           grep -q 'href="/dropbox-permission-checker"' dist/dropbox-link-checker.html
