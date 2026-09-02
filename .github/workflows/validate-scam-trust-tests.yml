@@ -1,0 +1,51 @@
+name: Validate Scam Trust Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build site
+        run: bash build.sh
+      - name: Validate trust tests
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          pages = [
+              'fake-package-delivery-scam.html',
+              'advance-fee-scam.html',
+              'bank-impersonation-scam.html',
+              'account-verification-scam.html',
+              'romance-scam.html',
+              'job-offer-scam.html',
+              'marketplace-scam.html',
+              'tech-support-scam.html',
+              'crypto-investment-scam.html',
+              'gift-card-scam.html',
+          ]
+
+          for name in pages:
+              text = (Path('dist') / name).read_text(encoding='utf-8')
+              required = [
+                  'Would you trust this?',
+                  'Looks legitimate',
+                  'Suspicious',
+                  'data-trust-choice="legitimate"',
+                  'data-trust-choice="suspicious"',
+                  'data-trust-feedback="legitimate"',
+                  'data-trust-feedback="suspicious"',
+                  'id="cist-trust-test-style"',
+                  'id="cist-trust-test-script"',
+                  'Check the link or sender',
+              ]
+              missing = [token for token in required if token not in text]
+              if missing:
+                  raise SystemExit(f'{name}: missing {missing}')
+
+          print(f'Validated interactive trust tests on {len(pages)} scam pages')
+          PY
