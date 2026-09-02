@@ -1,0 +1,45 @@
+name: Validate Anonymous Scan Stats
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  anonymous-stats:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate syntax
+        run: |
+          node --check api/event.js
+          python3 -m py_compile scripts/apply_anonymous_scan_stats.py
+
+      - name: Build site
+        run: bash build.sh
+
+      - name: Validate anonymous result telemetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "scan_result" api/event.js
+          grep -q "cist-scan-aggregate" api/event.js
+          grep -q "trackScanSummary" dist/index.html
+          grep -q "risky_download" dist/index.html
+          grep -q "domain_changed" dist/index.html
+          grep -q "shortened" dist/index.html
+          grep -q "lookalike" dist/index.html
+          grep -q "phishing" dist/index.html
+          ! grep -q "track('scan_result',{[^}]*currentUrl" dist/index.html
+          ! grep -q "track('scan_result',{[^}]*finalHost" dist/index.html
+          ! grep -q "track('scan_result',{[^}]*hostname" dist/index.html
+          ! grep -q "track('scan_result',{[^}]*finalUrl" dist/index.html
+          grep -q "never log the scanned URL" api/event.js
+          grep -q "IP address" api/event.js
+          grep -q "user agent" api/event.js
