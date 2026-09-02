@@ -20,6 +20,7 @@ jobs:
         run: |
           python3 -m py_compile scripts/apply_scanner_ux_v2.py
           python3 -m py_compile scripts/apply_reputation_visibility.py
+          python3 -m py_compile scripts/apply_plain_language.py
 
       - name: Build site
         run: bash build.sh
@@ -30,17 +31,17 @@ jobs:
           set -euo pipefail
           grep -q 'id="input-kind"' dist/index.html
           grep -q 'id="scan-progress"' dist/index.html
-          grep -q 'Checking link signals…' dist/index.html
-          grep -q 'Checking email signals…' dist/index.html
-          grep -q 'Domain · Redirects · Phishing signals · Downloads' dist/index.html
-          grep -q 'Address · Mail setup · Impersonation · Domain age' dist/index.html
+          grep -q 'Checking the link…' dist/index.html
+          grep -q 'Checking the email address…' dist/index.html
+          grep -q 'Website address · Where it goes · Fake-site signs · Downloads' dist/index.html
+          grep -q 'Address · Mail setup · Copycat signs · Website age' dist/index.html
           grep -q 'id="why-verdict"' dist/index.html
-          grep -q 'Why this verdict?' dist/index.html
+          grep -q 'Why am I seeing this result?' dist/index.html
           grep -q 'id="contextual-prevention"' dist/index.html
           grep -q 'renderScannerUx(d)' dist/index.html
-          grep -q "lastVerdict=status==='low'?'No obvious local warning signs'" dist/index.html
+          grep -q "lastVerdict=status==='low'?'No obvious warning signs yet'" dist/index.html
           grep -q "status==='high'?'High-risk email'" dist/index.html
-          grep -q "status==='high'?'High-risk link'" dist/index.html
+          grep -q "status==='high'?'Dangerous link signs'" dist/index.html
           grep -q 'input.addEventListener('"'"'input'"'"',updateInputKind)' dist/index.html
           grep -q 'setScanProgress(!!on)' dist/index.html
           grep -q 'href="/scam-prevention"' dist/index.html
@@ -50,19 +51,22 @@ jobs:
           grep -q '/redirect-risk-explained' dist/index.html
           grep -qi '#8ea2ff' dist/index.html
 
-      - name: Validate visibility and reputation hierarchy
+      - name: Validate plain-language safety hierarchy
         shell: bash
         run: |
           set -euo pipefail
           grep -q 'class="check-grid"' dist/index.html
-          grep -q '<strong>Phishing</strong>' dist/index.html
-          grep -q '<strong>Malware</strong>' dist/index.html
-          grep -q '<strong>Redirects</strong>' dist/index.html
-          grep -q '<strong>Lookalikes</strong>' dist/index.html
-          grep -q 'Local signal score' dist/index.html
-          grep -q 'Reputation not checked yet' dist/index.html
-          grep -q 'Known threat reported — do not open' dist/index.html
-          grep -q 'This reputation match overrides the local heuristic score.' dist/index.html
+          grep -q '<strong>Fake websites</strong>' dist/index.html
+          grep -q '<strong>Harmful files</strong>' dist/index.html
+          grep -q '<strong>Link destination</strong>' dist/index.html
+          grep -q '<strong>Copycat sites</strong>' dist/index.html
+          grep -q 'Nothing you paste is saved' dist/index.html
+          grep -q 'No account needed' dist/index.html
+          grep -q 'Warning-sign score' dist/index.html
+          grep -q 'One more check recommended' dist/index.html
+          grep -q 'Run extra safety check' dist/index.html
+          grep -q 'Dangerous link — do not open' dist/index.html
+          grep -q 'No known danger found in security lists' dist/index.html
           grep -q "riskMeter.classList.add('hidden')" dist/index.html
 
       - name: Validate contextual guide destinations
