@@ -5,6 +5,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'api/deep-check.js'
       - '.github/workflows/test-webrisk-runtime.yml'
 
 permissions:
@@ -45,15 +46,15 @@ jobs:
           printf '%s\n' "$BODY" | python3 -m json.tool
           printf '%s' "$BODY" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=next((x for x in d.get("providers",[]) if x.get("provider")=="Google Web Risk"),{}); ok=p.get("checked") is True and p.get("status")=="known-threat" and "MALWARE" in p.get("threatTypes",[]); raise SystemExit(0 if ok else 1)'
 
-      - name: Verify Extended Coverage test URL returns caution
+      - name: Verify official phishing test URL is detected
         shell: bash
         run: |
           set -euo pipefail
           BODY="$(curl -sS --max-time 25 -X POST 'https://canisharethis.com/api/deep-check' \
             -H 'content-type: application/json' \
-            --data '{"url":"http://testsafebrowsing.appspot.com/s/social_engineering_extended_coverage.html","consent":true}')"
+            --data '{"url":"http://testsafebrowsing.appspot.com/s/phishing.html","consent":true}')"
           printf '%s\n' "$BODY" | python3 -m json.tool
-          printf '%s' "$BODY" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=next((x for x in d.get("providers",[]) if x.get("provider")=="Google Web Risk"),{}); ok=p.get("checked") is True and p.get("caution") is True and p.get("status")=="extended-coverage-match"; raise SystemExit(0 if ok else 1)'
+          printf '%s' "$BODY" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=next((x for x in d.get("providers",[]) if x.get("provider")=="Google Web Risk"),{}); ok=p.get("checked") is True and p.get("status")=="known-threat" and "SOCIAL_ENGINEERING" in p.get("threatTypes",[]); raise SystemExit(0 if ok else 1)'
 
       - name: Verify safe reference URL has no Google threat match
         shell: bash
