@@ -7,14 +7,14 @@ INDEX = ROOT / "dist" / "index.html"
 X_URL = "https://x.com/CanIShareLink"
 STYLE = r'''
 <style id="cist-x-footer-style">
-.x-follow{margin:14px auto 0;display:flex;justify-content:center}
-.x-follow a{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--text);background:var(--card);font-weight:750;font-size:13px;transition:transform .15s ease,border-color .15s ease}
-.x-follow a:hover{transform:translateY(-1px);border-color:var(--muted)}
-.x-follow-logo{font-size:16px;line-height:1;font-weight:900}
-@media(prefers-reduced-motion:reduce){.x-follow a{transition:none}.x-follow a:hover{transform:none}}
+.x-follow{margin:10px auto 0;display:flex;justify-content:center}
+.x-follow a{display:inline-flex;align-items:center;gap:6px;padding:2px 0;border:0;text-decoration:none;color:var(--muted);background:transparent;font-weight:650;font-size:12px;transition:color .15s ease}
+.x-follow a:hover{color:var(--text)}
+.x-follow-logo{font-size:13px;line-height:1;font-weight:900}
+@media(prefers-reduced-motion:reduce){.x-follow a{transition:none}}
 </style>
 '''
-BLOCK = f'''<div class="x-follow"><a href="{X_URL}" target="_blank" rel="noopener noreferrer" aria-label="Follow Can I Share This on X"><span class="x-follow-logo" aria-hidden="true">𝕏</span><span>Follow @CanIShareLink</span></a></div>'''
+BLOCK = f'''<div class="x-follow"><a href="{X_URL}" target="_blank" rel="noopener noreferrer" aria-label="Can I Share This on X"><span class="x-follow-logo" aria-hidden="true">𝕏</span><span>@CanIShareLink</span></a></div>'''
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     if 'class="x-follow"' not in source:
         source = source.replace("</footer>", BLOCK + "</footer>", 1)
     INDEX.write_text(source, encoding="utf-8")
-    print("Added X profile link to homepage footer")
+    print("Added compact X profile link to homepage footer")
 
 
 if __name__ == "__main__":
