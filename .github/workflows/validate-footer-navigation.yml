@@ -27,26 +27,30 @@ jobs:
         run: |
           set -euo pipefail
           grep -q 'class="site-footer"' dist/index.html
+          grep -q 'class="footer-grid"' dist/index.html
           grep -q 'Check suspicious links and email addresses before you trust them.' dist/index.html
           grep -q '>Link checker<' dist/index.html
           grep -q 'href="/email-safety-checker">Email checker<' dist/index.html
           grep -q 'href="/qr-code-link-checker">QR code checker<' dist/index.html
           grep -q 'href="/scam-prevention">Scam Prevention<' dist/index.html
+          grep -q 'href="/scam-warning-signs">Scam warnings<' dist/index.html
           grep -q 'href="/phishing-link-checker">Phishing<' dist/index.html
-          grep -q 'href="/fake-package-delivery-scam">Fake package scams<' dist/index.html
-          grep -q 'href="/scam-warning-signs">Scam warning signs<' dist/index.html
           grep -q 'href="/how-link-scanning-works">How it works<' dist/index.html
           grep -q 'href="/methodology">Methodology<' dist/index.html
+          grep -q 'href="/safe-link-checker">Safe link<' dist/index.html
+          grep -q 'href="/google-drive-link-checker">Google Drive<' dist/index.html
+          grep -q 'href="/dropbox-link-checker">Dropbox<' dist/index.html
           grep -q 'No scanner can guarantee that a link or sender is safe.' dist/index.html
           grep -q 'Privacy-first · No signup' dist/index.html
           grep -q '@CanIShareLink' dist/index.html
           grep -q 'cist-footer-navigation-style' dist/index.html
-          grep -q 'cist-footer-navigation-script' dist/index.html
+          ! grep -q 'cist-footer-navigation-script' dist/index.html
+          ! grep -q '<details class="footer-group"' dist/index.html
 
       - name: Validate linked destinations exist
         shell: bash
         run: |
           set -euo pipefail
-          for slug in email-safety-checker qr-code-link-checker scam-prevention phishing-link-checker fake-package-delivery-scam scam-warning-signs how-link-scanning-works methodology; do
+          for slug in email-safety-checker qr-code-link-checker scam-prevention scam-warning-signs phishing-link-checker how-link-scanning-works methodology safe-link-checker google-drive-link-checker dropbox-link-checker; do
             test -s "dist/${slug}.html"
           done
