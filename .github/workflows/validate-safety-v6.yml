@@ -27,6 +27,10 @@ jobs:
           python3 -m py_compile scripts/apply_design_polish.py
           python3 -m py_compile scripts/apply_reputation_visibility.py
           python3 -m py_compile scripts/apply_plain_language.py
+          python3 -m py_compile scripts/apply_one_click_scan.py
+          python3 -m py_compile scripts/apply_link_type_v1.py
+          python3 -m py_compile scripts/apply_sensitive_category_v11.py
+          python3 -m py_compile scripts/apply_universal_result_v12.py
 
       - name: Build site
         run: bash build.sh
@@ -94,17 +98,21 @@ jobs:
           assert len(set(descriptions)) == 10, 'duplicate cluster description'
           PY
 
-      - name: Validate simple V6.3 homepage
+      - name: Validate simple one-click homepage
         shell: bash
         run: |
           set -euo pipefail
           grep -q '<h1 id="page-title">Is this link <span class="hero-safe">safe?</span></h1>' dist/index.html
           grep -q 'id="cist-homepage-brand-accent"' dist/index.html
           grep -q 'id="paste"' dist/index.html
-          grep -q '>Analyze</button>' dist/index.html
+          grep -q 'Paste &amp; check' dist/index.html
+          grep -q '>Check link</button>' dist/index.html
+          grep -q 'One click runs the full check.' dist/index.html
+          grep -q 'deepConfirm.click()' dist/index.html
           grep -q 'What should I do?' dist/index.html
-          grep -q 'Run extra safety check' dist/index.html
           grep -q 'Share result' dist/index.html
+          grep -q 'id="universal-summary"' dist/index.html
+          grep -q 'No known malware or phishing' dist/index.html
           grep -q 'href="/qr-code-link-checker"' dist/index.html
           grep -q '/api/event' dist/index.html
           ! grep -q 'Recognizes 91+' dist/index.html
