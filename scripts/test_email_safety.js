@@ -31,7 +31,8 @@ function dns(overrides = {}) {
       recordCount: 1,
       policy: 'reject',
       subdomainPolicy: null,
-      pct: 100
+      testing: false,
+      legacyPct: null
     },
     dnssecKnown: true,
     hasDnssec: true,
@@ -84,21 +85,25 @@ const overloadedSpf = analyzeSpfRecord([
 ]);
 assert.equal(overloadedSpf.potentialLookupOverflow, true);
 
-const dmarcReject = analyzeDmarcRecord(['v=DMARC1; p=reject; sp=quarantine; pct=100']);
+const dmarcReject = analyzeDmarcRecord(['v=DMARC1; p=reject; sp=quarantine; t=n']);
 assert.equal(dmarcReject.policy, 'reject');
 assert.equal(dmarcReject.subdomainPolicy, 'quarantine');
-assert.equal(dmarcReject.pct, 100);
+assert.equal(dmarcReject.testing, false);
 
-const dmarcMonitor = analyzeDmarcRecord(['v=DMARC1; p=none; pct=25']);
+const dmarcMonitor = analyzeDmarcRecord(['v=DMARC1; p=none; t=y']);
 assert.equal(dmarcMonitor.policy, 'none');
-assert.equal(dmarcMonitor.pct, 25);
+assert.equal(dmarcMonitor.testing, true);
 result = assessEmail({
   ...parseEmailAddress('hello@example.com'),
   dnsInfo: dns({ dmarc: dmarcMonitor }),
   rdapInfo: { known: true, ageDays: 3000 }
 });
 assert.ok(result.signals.some(signal => signal.code === 'email-dmarc-monitoring'));
-assert.ok(result.signals.some(signal => signal.code === 'email-dmarc-partial'));
+assert.ok(result.signals.some(signal => signal.code === 'email-dmarc-testing'));
+
+const legacyDmarc = analyzeDmarcRecord(['v=DMARC1; p=quarantine; pct=25']);
+assert.equal(legacyDmarc.legacyPct, 25);
+assert.equal(legacyDmarc.testing, null);
 
 assert.equal(registrableDomain('mail.example.co.uk'), 'example.co.uk');
 assert.equal(registrableDomain('sub.example.com'), 'example.com');
