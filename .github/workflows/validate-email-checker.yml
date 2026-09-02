@@ -63,4 +63,12 @@ jobs:
           grep -q "currentInputType==='email'?'/api/email-check':'/api/check'" dist/index.html
           grep -q "currentInputType==='email'?{input:currentUrl}:{url:currentUrl}" dist/index.html
           grep -q "if(currentInputType==='email')return" dist/index.html
-          ! grep -q "trackScanSummary(d).*currentInputType==='email'" dist/index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          text = Path('dist/index.html').read_text(encoding='utf-8')
+          start = text.index('async function runScan')
+          end = text.index("form.addEventListener", start)
+          run_scan = text[start:end]
+          assert "if(currentInputType==='url')trackScanSummary(d)" in run_scan
+          assert "if(currentInputType==='email')trackScanSummary(d)" not in run_scan
+          PY
