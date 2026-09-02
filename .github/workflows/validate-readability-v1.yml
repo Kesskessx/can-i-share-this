@@ -1,0 +1,37 @@
+name: Validate Readability V1
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate-readability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production site
+        run: bash build.sh
+      - name: Check scam guide readability
+        run: |
+          grep -q 'id="cist-readability-v1"' dist/fake-package-delivery-scam.html
+          grep -q 'class="process-flow"' dist/fake-package-delivery-scam.html
+          grep -q 'class="more-detail"' dist/fake-package-delivery-scam.html
+          grep -q 'class="reading-meta"' dist/fake-package-delivery-scam.html
+      - name: Check authority and email references
+        run: |
+          grep -q 'class="more-detail"' dist/how-link-scanning-works.html
+          grep -q 'class="reading-meta"' dist/how-link-scanning-works.html
+          grep -q 'class="more-detail"' dist/fake-email-address-signs.html
+          grep -q 'At a glance' dist/fake-email-address-signs.html
+      - name: Check priority page FAQ treatment
+        run: |
+          grep -q 'id="cist-readability-v1"' dist/google-drive-link-checker.html
+          grep -q 'class="reading-meta"' dist/google-drive-link-checker.html
+          grep -q '<details class="faq-card">' dist/google-drive-link-checker.html
+      - name: Keep homepage focused
+        run: |
+          if grep -q 'id="cist-readability-v1"' dist/index.html; then
+            echo 'Readability article layer must not be injected into the homepage' >&2
+            exit 1
+          fi
