@@ -26,18 +26,19 @@ STYLE = r'''
 .footer-trust span:first-child{color:var(--text);font-weight:700}
 .footer-social a{display:inline-flex;align-items:center;gap:5px;font-weight:650}
 @media(max-width:600px){
-  .site-footer{width:min(720px,calc(100% - 28px));margin-bottom:26px}
-  .footer-shell{padding-top:22px}
-  .footer-brand{margin-bottom:20px}
-  .footer-grid{grid-template-columns:1fr;gap:19px}
-  .footer-label{margin-bottom:8px}
-  .footer-links{display:flex;gap:6px 14px;flex-wrap:wrap}
-  .footer-links a{font-size:12px}
-  .footer-secondary{gap:6px 10px;margin-top:19px;padding-top:15px}
-  .footer-bottom{display:block;margin-top:14px}
-  .footer-trust{display:block;line-height:1.6}
+  .site-footer{width:min(720px,calc(100% - 28px));margin-bottom:18px;font-size:11px}
+  .footer-shell{padding-top:17px}
+  .footer-brand{display:none}
+  .footer-grid{grid-template-columns:1fr;gap:12px}
+  .footer-label{margin-bottom:5px;font-size:9px}
+  .footer-links{display:flex;gap:4px 12px;flex-wrap:wrap}
+  .footer-links a{font-size:11.5px;line-height:1.35}
+  .footer-secondary{gap:4px 8px;margin-top:13px;padding-top:11px;font-size:10.5px}
+  .footer-bottom{display:block;margin-top:10px;text-align:center}
+  .footer-trust{display:block;line-height:1.45;font-size:10.5px}
   .footer-trust span{display:block}
-  .footer-social{margin-top:8px}
+  .footer-trust span+span{margin-top:2px}
+  .footer-social{margin-top:5px;font-size:10.5px}
 }
 </style>
 '''
@@ -131,7 +132,7 @@ def main() -> None:
             raise RuntimeError(f'Footer guard failed: missing {token}')
 
     HOME.write_text(source, encoding='utf-8')
-    print('Applied flat minimal homepage footer navigation')
+    print('Applied compact mobile homepage footer navigation')
 
 
 if __name__ == '__main__':
