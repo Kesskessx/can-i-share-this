@@ -20,6 +20,7 @@ python3 scripts/generate_email_seo_pages.py
 python3 scripts/align_email_dmarc_rfc9989.py
 python3 scripts/generate_scam_prevention_pages.py
 python3 scripts/apply_scam_icons.py
+python3 scripts/apply_scam_trust_tests.py
 python3 scripts/apply_design_polish.py
 python3 scripts/apply_anonymous_scan_stats.py
 python3 scripts/apply_email_input.py
