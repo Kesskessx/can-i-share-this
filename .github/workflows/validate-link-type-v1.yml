@@ -22,7 +22,9 @@ jobs:
           python3 -m py_compile scripts/apply_sensitive_category_v11.py
           python3 -m py_compile scripts/apply_universal_result_v12.py
           python3 -m py_compile scripts/apply_recommended_action_v13.py
+          python3 -m py_compile scripts/apply_benchmark_upgrades_v16.py
           node --check api/check.js
+          node --check api/domain-age.js
 
       - name: Build site
         run: bash build.sh
@@ -64,7 +66,7 @@ jobs:
           set -euo pipefail
           grep -q 'id="risk-breakdown"' dist/index.html
           grep -q 'Risk breakdown' dist/index.html
-          grep -q 'Independent signals — not a safety guarantee.' dist/index.html
+          grep -q 'Four independent signal groups — not a safety guarantee.' dist/index.html
           grep -q '>Reputation<' dist/index.html
           grep -q '>URL signals<' dist/index.html
           grep -q '>Destination<' dist/index.html
@@ -73,12 +75,60 @@ jobs:
           grep -q "'Mail delivery'" dist/index.html
           grep -q "'Authentication'" dist/index.html
           grep -q "'Domain age'" dist/index.html
-          grep -q "'Known threat reported'" dist/index.html
-          grep -q "'No known threat reported'" dist/index.html
-          grep -q "'Redirects to another website'" dist/index.html
-          grep -q "'Very new domain'" dist/index.html
-          grep -q "el.closest('#recommended-action')||el.closest('#risk-breakdown')||el.closest('#universal-summary')" dist/index.html
+          grep -q 'risk-factor-symbol' dist/index.html
+          grep -q 'risk-factor-state' dist/index.html
+          grep -q "'High risk'" dist/index.html
+          grep -q "'Review'" dist/index.html
+          grep -q "'No known issue'" dist/index.html
           ! grep -q '100% safe' dist/index.html
+
+      - name: Validate benchmark UX and credibility V1.6
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'id="how-it-works"' dist/index.html
+          grep -q 'Three steps. One clear answer.' dist/index.html
+          grep -q '>Paste<' dist/index.html
+          grep -q '>We check<' dist/index.html
+          grep -q '>Decide<' dist/index.html
+          grep -q 'id="scanner-proof"' dist/index.html
+          grep -q 'Google Web Risk' dist/index.html
+          grep -q 'Redirect analysis' dist/index.html
+          grep -q 'File type detection' dist/index.html
+          grep -q 'Domain age via RDAP' dist/index.html
+          grep -q 'We do not show an accuracy percentage unless it has been independently validated.' dist/index.html
+
+      - name: Validate use-case SEO cluster V1.6
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '/suspicious-text-message-link' dist/index.html
+          grep -q '/whatsapp-link-checker' dist/index.html
+          grep -q '/email-safety-checker' dist/index.html
+          grep -q '/qr-code-link-checker' dist/index.html
+          grep -q '/download-link-checker' dist/index.html
+          for slug in whatsapp-link-checker download-link-checker; do
+            test -s "dist/${slug}.html"
+            grep -q '<meta name="robots" content="index,follow">' "dist/${slug}.html"
+            grep -q "https://canisharethis.com/${slug}" "dist/${slug}.html"
+            grep -q 'FAQPage' "dist/${slug}.html"
+            grep -q "https://canisharethis.com/${slug}" dist/sitemap.xml
+          done
+          grep -q 'Does this checker read my WhatsApp messages?' dist/whatsapp-link-checker.html
+          grep -q 'Does the checker run or install the file?' dist/download-link-checker.html
+
+      - name: Validate URL domain age V1.6
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'RDAP_TIMEOUT_MS = 2500' api/domain-age.js
+          grep -q 'https://rdap.org/domain/' api/domain-age.js
+          grep -q 'Only the registered domain is queried. The full URL is not sent for this lookup.' api/domain-age.js
+          grep -q 'id="url-domain-age"' dist/index.html
+          grep -q "fetch('/api/domain-age'" dist/index.html
+          grep -q 'Very new domain — verify it carefully.' dist/index.html
+          grep -q 'Older domains can still be compromised' dist/index.html
+          grep -q 'data-url-domain-age-tech' dist/index.html
 
       - name: Validate lightweight classification coverage
         shell: bash
