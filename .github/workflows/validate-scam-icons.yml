@@ -1,0 +1,42 @@
+name: Validate Scam Card Icons
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scam-icons:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate patch syntax
+        run: python3 -m py_compile scripts/apply_scam_icons.py
+
+      - name: Build site
+        run: bash build.sh
+
+      - name: Validate common scam icons
+        shell: bash
+        run: |
+          set -euo pipefail
+          page=dist/scam-prevention.html
+          test -s "$page"
+          grep -q 'id="scam-icon-style"' "$page"
+          grep -q '📦</span>Fake package delivery scams' "$page"
+          grep -q '💸</span>Advance-fee scams' "$page"
+          grep -q '🏦</span>Bank impersonation scams' "$page"
+          grep -q '🔐</span>Account verification scams' "$page"
+          grep -q '❤️</span>Romance scams' "$page"
+          grep -q '💼</span>Job offer scams' "$page"
+          grep -q '🛒</span>Marketplace scams' "$page"
+          grep -q '🖥️</span>Tech support scams' "$page"
+          grep -q '₿</span>Crypto investment scams' "$page"
+          grep -q '🎁</span>Gift card scams' "$page"
+          test "$(grep -o 'class="scam-icon"' "$page" | wc -l)" -eq 10
