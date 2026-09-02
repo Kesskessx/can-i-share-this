@@ -50,6 +50,9 @@ FOOTER = r'''<footer class="site-footer">
         <a href="/">Link checker</a>
         <a href="/email-safety-checker">Email checker</a>
         <a href="/qr-code-link-checker">QR code checker</a>
+        <a href="/safe-link-checker">Safe link checker</a>
+        <a href="/google-drive-link-checker">Google Drive checker</a>
+        <a href="/dropbox-link-checker">Dropbox checker</a>
       </div>
     </details>
     <details class="footer-group" open>
@@ -110,6 +113,9 @@ def main() -> None:
         'class="site-footer"',
         'Link checker',
         'Email checker',
+        'Safe link checker',
+        'Google Drive checker',
+        'Dropbox checker',
         'Scam Prevention',
         'Fake package scams',
         'Scam warning signs',
