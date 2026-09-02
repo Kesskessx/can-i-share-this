@@ -1,0 +1,76 @@
+name: Validate Scam Prevention Library
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scam-prevention:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate generator syntax
+        run: python3 -m py_compile scripts/generate_scam_prevention_pages.py
+
+      - name: Build site
+        run: bash build.sh
+
+      - name: Validate prevention pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          pages=(
+            scam-prevention
+            fake-package-delivery-scam
+            advance-fee-scam
+            bank-impersonation-scam
+            account-verification-scam
+            romance-scam
+            job-offer-scam
+            marketplace-scam
+            tech-support-scam
+            crypto-investment-scam
+            gift-card-scam
+            what-to-do-after-clicking-a-phishing-link
+            what-to-do-if-you-gave-a-scammer-your-password
+            how-to-report-a-scam
+            scam-warning-signs
+          )
+          for slug in "${pages[@]}"; do
+            test -s "dist/${slug}.html"
+            grep -q '<meta name="robots" content="index,follow">' "dist/${slug}.html"
+            grep -q 'rel="canonical"' "dist/${slug}.html"
+            grep -q 'application/ld+json' "dist/${slug}.html"
+            grep -q "https://canisharethis.com/${slug}" dist/sitemap.xml
+          done
+          grep -q 'Scam prevention center' dist/scam-prevention.html
+          grep -q 'How this scam usually works' dist/fake-package-delivery-scam.html
+          grep -q 'prince, royal family' dist/advance-fee-scam.html
+          grep -q 'safe, secure or temporary account' dist/bank-impersonation-scam.html
+          grep -q 'Password manager' dist/account-verification-scam.html
+          grep -q 'romance scam' dist/romance-scam.html
+          grep -q 'Task scams' dist/job-offer-scam.html
+          grep -q 'marketplace' dist/marketplace-scam.html
+          grep -q 'remote-access' dist/tech-support-scam.html
+          grep -q 'fake profits' dist/crypto-investment-scam.html
+          grep -q 'gift-card numbers' dist/gift-card-scam.html
+          grep -q 'scam-prevention-library' dist/safe-link-checker.html
+          grep -q 'scam-prevention-library' dist/methodology.html
+          grep -q 'scam-prevention-library' dist/email-safety-checker.html
+
+      - name: Validate prevention positioning
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'No single' scripts/generate_scam_prevention_pages.py || true
+          grep -q 'low-risk technical result does not replace' scripts/generate_scam_prevention_pages.py
+          grep -q 'reportfraud.ftc.gov' scripts/generate_scam_prevention_pages.py
+          grep -q 'www.ic3.gov' scripts/generate_scam_prevention_pages.py
+          ! grep -qi 'guaranteed safe' scripts/generate_scam_prevention_pages.py
