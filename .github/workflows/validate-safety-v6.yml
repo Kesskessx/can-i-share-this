@@ -22,6 +22,7 @@ jobs:
           node --check api/deep-check.js
           node --check api/event.js
           python3 -m py_compile scripts/generate_scam_safety_cluster.py
+          python3 -m py_compile scripts/generate_methodology_page.py
           python3 -m py_compile scripts/apply_design_polish.py
 
       - name: Build site
@@ -107,7 +108,7 @@ jobs:
           ! grep -q 'Three steps before you hit Send' dist/index.html
           ! grep -q 'RECIPIENT PREVIEW' dist/index.html
 
-      - name: Validate homepage design polish
+      - name: Validate homepage design polish and trust cues
         shell: bash
         run: |
           set -euo pipefail
@@ -119,7 +120,28 @@ jobs:
           grep -q 'id="risk-fill"' dist/index.html
           grep -q "riskFill.style.width=score+'%'" dist/index.html
           grep -q 'radial-gradient' dist/index.html
+          grep -q 'What we check:' dist/index.html
+          grep -q 'Malware signals' dist/index.html
+          grep -q 'Lookalike domains' dist/index.html
+          grep -q 'id="destination"' dist/index.html
+          grep -q 'Final destination' dist/index.html
+          grep -q 'Destination changed:' dist/index.html
+          grep -q 'href="/methodology"' dist/index.html
           grep -q 'href="/favicon.svg"' dist/safe-link-checker.html
+
+      - name: Validate transparent methodology page
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/methodology.html
+          grep -q '<meta name="robots" content="index,follow">' dist/methodology.html
+          grep -q '<link rel="canonical" href="https://canisharethis.com/methodology">' dist/methodology.html
+          grep -q 'How the link safety check works' dist/methodology.html
+          grep -q 'What the quick scan checks' dist/methodology.html
+          grep -q 'Optional reputation checks' dist/methodology.html
+          grep -q 'What the scanner cannot guarantee' dist/methodology.html
+          grep -q 'https://canisharethis.com/methodology' dist/sitemap.xml
+          grep -q 'href="/favicon.svg"' dist/methodology.html
 
       - name: Validate Web Risk and privacy contracts
         shell: bash
