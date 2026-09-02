@@ -24,6 +24,7 @@ python3 scripts/apply_anonymous_scan_stats.py
 python3 scripts/apply_email_input.py
 python3 scripts/apply_email_v11_ui.py
 python3 scripts/apply_technical_details_copy.py
+python3 scripts/apply_footer_navigation.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
 if [[ ! "$INDEXNOW_KEY" =~ ^[A-Za-z0-9-]{8,128}$ ]]; then
   echo "Invalid IndexNow key format" >&2
