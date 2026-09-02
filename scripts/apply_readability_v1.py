@@ -43,13 +43,24 @@ EMAIL_FILES = {
     'fake-email-address-signs.html',
     'spf-dmarc-email-security.html',
 }
+LINK_GUIDE_FILES = {
+    'malware-link-checker.html',
+    'short-link-checker.html',
+    'how-to-check-if-a-link-is-safe.html',
+    'can-a-link-give-you-a-virus.html',
+    'how-to-tell-if-a-link-is-phishing.html',
+    'how-to-check-a-link-without-clicking-it.html',
+    'is-a-bitly-link-safe.html',
+    'suspicious-text-message-link.html',
+    'fake-package-delivery-link.html',
+    'how-to-check-a-qr-code-before-opening.html',
+}
 EXTRA_FILES = {
     'methodology.html',
     'safe-link-checker.html',
     'phishing-link-checker.html',
-    'short-link-checker.html',
     'scam-prevention.html',
-}
+} | LINK_GUIDE_FILES
 
 STYLE = r'''
 <style id="cist-readability-v1">
@@ -99,6 +110,8 @@ def guide_label(filename: str) -> str:
         return 'Email safety reference'
     if filename in AUTHORITY_FILES:
         return 'Link safety reference'
+    if filename in LINK_GUIDE_FILES:
+        return 'Link safety guide'
     return 'Practical guide'
 
 
@@ -182,25 +195,21 @@ def apply_to_file(path: Path) -> bool:
 def main() -> None:
     if not DIST.is_dir():
         raise RuntimeError('dist/ does not exist')
-
     targets = SCAM_FILES | SAFETY_FILES | AUTHORITY_FILES | EMAIL_FILES | EXTRA_FILES | priority_files()
     updated = 0
     missing: list[str] = []
     for filename in sorted(targets):
         path = DIST / filename
         if not path.is_file():
-            # Some optional legacy routes may not exist in every build.
-            if filename in {'phishing-link-checker.html', 'short-link-checker.html'}:
+            if filename in {'phishing-link-checker.html'}:
                 continue
             missing.append(filename)
             continue
         if apply_to_file(path):
             updated += 1
-
-    required_missing = [x for x in missing if x in SCAM_FILES | SAFETY_FILES | AUTHORITY_FILES | EMAIL_FILES]
+    required_missing = [x for x in missing if x in SCAM_FILES | SAFETY_FILES | AUTHORITY_FILES | EMAIL_FILES | LINK_GUIDE_FILES]
     if required_missing:
         raise RuntimeError('Missing required readability targets: ' + ', '.join(required_missing))
-
     print(f'Applied concise readability layout to {updated} content pages')
 
 
