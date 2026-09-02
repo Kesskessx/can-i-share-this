@@ -1,0 +1,61 @@
+name: Validate Link Type V1
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  link-type-v1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate patch syntax
+        run: python3 -m py_compile scripts/apply_link_type_v1.py
+
+      - name: Build site
+        run: bash build.sh
+
+      - name: Validate visible link type panel
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'id="link-type-card"' dist/index.html
+          grep -q 'What is this?' dist/index.html
+          grep -q 'id="link-type-title"' dist/index.html
+          grep -q 'id="link-type-detail"' dist/index.html
+          grep -q 'id="link-type-platform"' dist/index.html
+
+      - name: Validate lightweight classification coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "label:'Music or audio'" dist/index.html
+          grep -q "label:'Video'" dist/index.html
+          grep -q "label:'Image'" dist/index.html
+          grep -q "label:'PDF document'" dist/index.html
+          grep -q "label:'Document or data file'" dist/index.html
+          grep -q "label:'Compressed file'" dist/index.html
+          grep -q "label:'Software or app file'" dist/index.html
+          grep -q "label:'Cloud file or folder'" dist/index.html
+          grep -q "label:'Social media'" dist/index.html
+          grep -q "label:'Shopping link'" dist/index.html
+          grep -q "label:'Shortened link'" dist/index.html
+          grep -q "platform:'YouTube'" dist/index.html
+          grep -q "platform:'Spotify'" dist/index.html
+          grep -q "platform:'Google Drive'" dist/index.html
+          grep -q "platform:'Dropbox'" dist/index.html
+
+      - name: Validate conservative fallback
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "label:'Website',detail:'A regular web page'" dist/index.html
+          grep -q 'renderQuick(data){renderLinkType(data);' dist/index.html
+          ! grep -q '100% safe' dist/index.html
