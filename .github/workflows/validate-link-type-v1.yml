@@ -20,19 +20,22 @@ jobs:
         run: |
           python3 -m py_compile scripts/apply_link_type_v1.py
           python3 -m py_compile scripts/apply_sensitive_category_v11.py
+          python3 -m py_compile scripts/apply_universal_result_v12.py
+          node --check api/check.js
 
       - name: Build site
         run: bash build.sh
 
-      - name: Validate visible link type panel
+      - name: Validate universal summary
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'id="link-type-card"' dist/index.html
-          grep -q 'What is this?' dist/index.html
-          grep -q 'id="link-type-title"' dist/index.html
-          grep -q 'id="link-type-detail"' dist/index.html
-          grep -q 'id="link-type-platform"' dist/index.html
+          grep -q 'id="universal-summary"' dist/index.html
+          grep -q 'At a glance' dist/index.html
+          grep -q 'id="universal-safety-value"' dist/index.html
+          grep -q 'id="universal-content-value"' dist/index.html
+          grep -q 'id="universal-destination-value"' dist/index.html
+          grep -q 'id="universal-advice-value"' dist/index.html
 
       - name: Validate lightweight classification coverage
         shell: bash
@@ -54,6 +57,29 @@ jobs:
           grep -q "platform:'Google Drive'" dist/index.html
           grep -q "platform:'Dropbox'" dist/index.html
 
+      - name: Validate real response type detection
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'function cistTypeFromResponse(data)' dist/index.html
+          grep -q "mime==='application/pdf'" dist/index.html
+          grep -q "mime.indexOf('audio/')===0" dist/index.html
+          grep -q "mime.indexOf('video/')===0" dist/index.html
+          grep -q "mime.indexOf('image/')===0" dist/index.html
+          grep -q 'application/x-msdownload' dist/index.html
+          grep -q 'contentType: cleanContentType' api/check.js
+          grep -q 'fileName: fileName' api/check.js
+
+      - name: Validate redirects and plain-language advice
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'This link changes destination' dist/index.html
+          grep -q "route.hosts.join(' → ')" dist/index.html
+          grep -q 'Unexpected software can harm your device.' dist/index.html
+          grep -q 'Compressed files can hide other files inside.' dist/index.html
+          grep -q 'Short links hide the real website until they are followed.' dist/index.html
+
       - name: Validate sensitive category V1.1
         shell: bash
         run: |
@@ -68,12 +94,12 @@ jobs:
           grep -q "typeLabel:'Weapons-related website'" dist/index.html
           grep -q "typeLabel:'Drug-related website'" dist/index.html
           grep -q 'No known malware or phishing threat' dist/index.html
-          grep -q 'renderLinkType(data);renderSensitiveCategory(data);' dist/index.html
+          grep -q 'renderSensitiveCategory(data);renderUniversalResult(data);' dist/index.html
 
       - name: Validate conservative fallback
         shell: bash
         run: |
           set -euo pipefail
           grep -q "label:'Website',detail:'A regular web page'" dist/index.html
-          grep -q 'renderQuick(data){renderLinkType(data);renderSensitiveCategory(data);' dist/index.html
+          grep -q 'renderQuick(data){renderLinkType(data);renderSensitiveCategory(data);renderUniversalResult(data);' dist/index.html
           ! grep -q '100% safe' dist/index.html
