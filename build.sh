@@ -9,6 +9,7 @@ python3 scripts/enable_indexing.py
 python3 scripts/apply_seo_architecture.py
 python3 scripts/generate_safety_pages.py
 python3 scripts/apply_safety_v6.py
+python3 scripts/generate_scam_safety_cluster.py
 python3 scripts/generate_minimal_homepage.py
 python3 scripts/generate_qr_page.py
 python3 scripts/add_x_footer.py
