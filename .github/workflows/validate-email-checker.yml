@@ -1,0 +1,39 @@
+name: Validate Email Safety
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  email-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check lib/email-safety.js
+          node --check api/email-check.js
+          node --check scripts/test_email_safety.js
+
+      - name: Run deterministic email safety tests
+        run: node scripts/test_email_safety.js
+
+      - name: Validate privacy contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -q 'console.log' api/email-check.js
+          grep -q "inputType: 'email'" api/email-check.js
+          grep -q 'SPF and DMARC presence' lib/email-safety.js
+          grep -q 'Brand-lookalike patterns' lib/email-safety.js
+          grep -q 'Disposable-domain signals' lib/email-safety.js
+
+      - name: Build existing site unchanged
+        run: bash build.sh
