@@ -21,6 +21,7 @@ jobs:
           python3 -m py_compile scripts/apply_link_type_v1.py
           python3 -m py_compile scripts/apply_sensitive_category_v11.py
           python3 -m py_compile scripts/apply_universal_result_v12.py
+          python3 -m py_compile scripts/apply_recommended_action_v13.py
           node --check api/check.js
 
       - name: Build site
@@ -36,6 +37,22 @@ jobs:
           grep -q 'id="universal-content-value"' dist/index.html
           grep -q 'id="universal-destination-value"' dist/index.html
           grep -q 'id="universal-advice-value"' dist/index.html
+
+      - name: Validate recommended action V1.3
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'id="recommended-action"' dist/index.html
+          grep -q 'Recommended action' dist/index.html
+          grep -q 'Do not open this link' dist/index.html
+          grep -q 'Verify before continuing' dist/index.html
+          grep -q 'No known threat found — continue only if expected' dist/index.html
+          grep -q 'Run the full safety check first' dist/index.html
+          grep -q 'Verify the sender before replying' dist/index.html
+          grep -q 'No obvious address warning signs — stay cautious' dist/index.html
+          grep -q "card.classList.contains('reputation-checked-safe')" dist/index.html
+          grep -q 'The link redirects to a different website.' dist/index.html
+          grep -q 'No scanner can guarantee that a website is safe.' dist/index.html
 
       - name: Validate lightweight classification coverage
         shell: bash
