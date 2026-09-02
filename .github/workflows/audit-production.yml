@@ -1,0 +1,39 @@
+name: Audit production URLs
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/audit_production.py'
+      - '.github/workflows/audit-production.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit-production:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for production sitemap
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 36); do
+            BODY="$(curl -fsSL --max-time 15 https://canisharethis.com/sitemap.xml 2>/dev/null || true)"
+            COUNT="$(printf '%s' "$BODY" | grep -o '<loc>' | wc -l | tr -d ' ')"
+            if [ "${COUNT:-0}" -ge 60 ] && printf '%s' "$BODY" | grep -q 'https://canisharethis.com/privacy-link-checker'; then
+              echo "Production sitemap ready with $COUNT URLs."
+              exit 0
+            fi
+            echo "Waiting for production deployment (attempt $attempt/36, sitemap URLs=${COUNT:-0})..."
+            sleep 5
+          done
+          echo "Production sitemap did not become ready in time." >&2
+          exit 1
+
+      - name: Run production HTTP and SEO audit
+        run: python3 scripts/audit_production.py
