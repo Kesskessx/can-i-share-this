@@ -24,6 +24,7 @@ jobs:
           python3 -m py_compile scripts/apply_email_input.py
           python3 -m py_compile scripts/apply_email_v11_ui.py
           python3 -m py_compile scripts/generate_email_seo_pages.py
+          python3 -m py_compile scripts/align_email_dmarc_rfc9989.py
 
       - name: Run deterministic email safety tests
         run: node scripts/test_email_safety.js
@@ -36,13 +37,14 @@ jobs:
           grep -q "inputType: 'email'" api/email-check.js
           grep -q 'SPF and DMARC presence' lib/email-safety.js
           grep -q 'SPF policy quality' lib/email-safety.js
-          grep -q 'DMARC enforcement policy' lib/email-safety.js
+          grep -q 'DMARC enforcement and testing policy' lib/email-safety.js
           grep -q 'DNSSEC DS presence' lib/email-safety.js
           grep -q 'MTA-STS and TLS reporting presence' lib/email-safety.js
           grep -q 'Domain registration age via RDAP' lib/email-safety.js
           grep -q 'Brand-lookalike patterns' lib/email-safety.js
           grep -q 'Disposable-domain signals' lib/email-safety.js
           grep -q 'https://rdap.org/domain/' lib/email-safety.js
+          grep -q 'dmarcTesting' lib/email-safety.js
           ! grep -q 'local:' api/email-check.js
 
       - name: Build site with email integration
@@ -80,6 +82,8 @@ jobs:
             grep -q "https://canisharethis.com/${slug}" dist/sitemap.xml
           done
           grep -q 'RFC 9989' dist/spf-dmarc-email-security.html
+          grep -q 'historic pct tag' dist/spf-dmarc-email-security.html
+          grep -q 't=y' dist/spf-dmarc-email-security.html
           grep -q 'RDAP' dist/email-safety-checker.html
           grep -q 'email-safety-library' dist/methodology.html
           grep -q 'email-safety-library' dist/safe-link-checker.html
