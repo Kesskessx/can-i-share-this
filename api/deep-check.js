@@ -5,12 +5,10 @@ const SENSITIVE_QUERY_KEYS = new Set([
 ]);
 
 const WEB_RISK_KEY_RE = /^AIza[0-9A-Za-z_-]{35}$/;
-const WEB_RISK_EXTENDED = 'SOCIAL_ENGINEERING_EXTENDED_COVERAGE';
 const WEB_RISK_THREAT_TYPES = [
   'MALWARE',
   'SOCIAL_ENGINEERING',
-  'UNWANTED_SOFTWARE',
-  WEB_RISK_EXTENDED
+  'UNWANTED_SOFTWARE'
 ];
 
 function parsePublicUrl(input) {
@@ -76,30 +74,19 @@ async function checkWebRisk(url) {
 
     const data = await response.json();
     const types = Array.isArray(data?.threat?.threatTypes) ? data.threat.threatTypes : [];
-    const standardTypes = types.filter(type => type !== WEB_RISK_EXTENDED);
-    const extendedCoverage = types.includes(WEB_RISK_EXTENDED);
-    const dangerous = standardTypes.length > 0;
-    const caution = !dangerous && extendedCoverage;
-
-    let status = 'no-known-threat';
-    let detail = 'No matching threat was returned by Google Web Risk.';
-    if (dangerous) {
-      status = 'known-threat';
-      detail = `Google Web Risk reports: ${types.join(', ')}.`;
-    } else if (caution) {
-      status = 'extended-coverage-match';
-      detail = 'Google Web Risk Extended Coverage returned a potential social-engineering match. Treat this as a caution signal because this list intentionally favors broader phishing coverage.';
-    }
+    const dangerous = types.length > 0;
 
     return {
       provider: 'Google Web Risk',
       checked: true,
       dangerous,
-      caution,
-      status,
+      caution: false,
+      status: dangerous ? 'known-threat' : 'no-known-threat',
       threatTypes: types,
       expiresAt: data?.threat?.expireTime || undefined,
-      detail
+      detail: dangerous
+        ? `Google Web Risk reports: ${types.join(', ')}.`
+        : 'No matching threat was returned by Google Web Risk.'
     };
   } catch (error) {
     const detail = error?.name === 'AbortError'
@@ -170,7 +157,6 @@ module.exports = async function handler(req, res) {
 
     const providers = await Promise.all([checkWebRisk(url), checkPhishTank(url)]);
     const dangerousProviders = providers.filter(item => item.dangerous);
-    const cautionProviders = providers.filter(item => item.caution);
     const checkedProviders = providers.filter(item => item.checked);
     let status = 'unknown';
     let verdict = 'External reputation is currently unavailable';
@@ -178,9 +164,6 @@ module.exports = async function handler(req, res) {
     if (dangerousProviders.length) {
       status = 'known-dangerous';
       verdict = 'Known threat reported by an external reputation source';
-    } else if (cautionProviders.length) {
-      status = 'caution';
-      verdict = 'Potential phishing signal reported by an extended-coverage reputation source';
     } else if (checkedProviders.length) {
       status = 'no-known-threat';
       verdict = 'No known threat found by the available reputation sources';
