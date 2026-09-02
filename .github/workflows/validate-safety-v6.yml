@@ -22,6 +22,7 @@ jobs:
           node --check api/deep-check.js
           node --check api/event.js
           python3 -m py_compile scripts/generate_scam_safety_cluster.py
+          python3 -m py_compile scripts/apply_design_polish.py
 
       - name: Build site
         run: bash build.sh
@@ -105,6 +106,20 @@ jobs:
           ! grep -q 'Recognizes 91+' dist/index.html
           ! grep -q 'Three steps before you hit Send' dist/index.html
           ! grep -q 'RECIPIENT PREVIEW' dist/index.html
+
+      - name: Validate homepage design polish
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/favicon.svg
+          grep -q 'href="/favicon.svg"' dist/index.html
+          grep -q 'id="cist-design-polish"' dist/index.html
+          grep -q 'is-scanning' dist/index.html
+          grep -q 'id="risk-meter"' dist/index.html
+          grep -q 'id="risk-fill"' dist/index.html
+          grep -q "riskFill.style.width=score+'%'" dist/index.html
+          grep -q 'radial-gradient' dist/index.html
+          grep -q 'href="/favicon.svg"' dist/safe-link-checker.html
 
       - name: Validate Web Risk and privacy contracts
         shell: bash
