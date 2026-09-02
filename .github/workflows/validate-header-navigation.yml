@@ -44,8 +44,10 @@ jobs:
           grep -q 'href="/methodology">Methodology<' dist/index.html
           grep -q 'cist-header-navigation-style' dist/index.html
           grep -q 'cist-header-navigation-script' dist/index.html
-          grep -q 'header-mobile-panel{display:none;border-top' dist/index.html
-          grep -q 'header-mobile-panel{display:block;position:static' dist/index.html
+          grep -q '.site-header{display:block!important' dist/index.html
+          grep -q '.header-mobile-panel{display:none;width:100%;position:static!important' dist/index.html
+          grep -q '.header-mobile-group{display:grid;grid-template-columns:76px minmax(0,1fr)' dist/index.html
+          ! grep -q 'button.textContent' dist/index.html
           ! grep -q '<details class="header-mobile-menu"' dist/index.html
 
       - name: Validate linked destinations exist
