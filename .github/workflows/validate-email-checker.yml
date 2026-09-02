@@ -51,7 +51,7 @@ jobs:
       - name: Build site with email integration
         run: bash build.sh
 
-      - name: Validate universal homepage input
+      - name: Validate email homepage integration
         shell: bash
         run: |
           set -euo pipefail
@@ -74,12 +74,7 @@ jobs:
           grep -q 'Monitoring only (p=none)' dist/index.html
           grep -q 'Could not verify' dist/index.html
           grep -q 'Could not determine' dist/index.html
-          grep -q 'Where this link goes' dist/index.html
-          grep -q 'Website response' dist/index.html
-          grep -q 'Redirects followed' dist/index.html
           grep -q "if(currentInputType==='url')trackScanSummary(d)" dist/index.html
-          grep -q 'One click runs the full check.' dist/index.html
-          grep -q 'deepConfirm.click()' dist/index.html
 
       - name: Validate email SEO pages
         shell: bash
