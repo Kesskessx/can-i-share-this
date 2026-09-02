@@ -7,9 +7,9 @@ HOME = ROOT / 'dist' / 'index.html'
 
 STYLE = r'''
 <style id="cist-header-navigation-style">
-.site-header{height:auto;min-height:64px;position:relative;z-index:40;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:saturate(140%) blur(12px);-webkit-backdrop-filter:saturate(140%) blur(12px)}
-.site-header .top{min-height:64px;gap:18px}
-.header-brand{white-space:nowrap}
+.site-header{display:block!important;width:100%;height:auto!important;min-height:64px;position:relative;z-index:40;background:color-mix(in srgb,var(--bg) 96%,transparent);backdrop-filter:saturate(140%) blur(12px);-webkit-backdrop-filter:saturate(140%) blur(12px)}
+.site-header .top{display:flex!important;align-items:center!important;justify-content:space-between!important;width:min(920px,calc(100% - 28px));min-height:64px;margin:0 auto!important;padding:0!important;gap:14px}
+.header-brand{white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .header-desktop-nav{display:flex;align-items:center;gap:3px;margin-left:auto}
 .header-menu{position:relative}
 .header-menu>summary{list-style:none;cursor:pointer;color:var(--muted);font-size:13px;font-weight:700;padding:8px 10px;border-radius:9px;user-select:none}
@@ -18,22 +18,29 @@ STYLE = r'''
 .header-dropdown{position:absolute;top:calc(100% + 8px);right:0;min-width:190px;padding:7px;background:var(--card);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow)}
 .header-dropdown a{display:block;padding:9px 10px;border-radius:8px;color:var(--text);font-size:13px;text-decoration:none;white-space:nowrap}
 .header-dropdown a:hover{background:var(--soft)}
-.header-mobile-toggle{display:none;margin-left:auto;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--text);padding:7px 10px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
-.header-mobile-panel{display:none;border-top:1px solid var(--line);background:var(--bg)}
-.header-mobile-inner{width:min(920px,calc(100% - 28px));margin:auto;padding:13px 0 15px}
-.header-mobile-group{display:flex;align-items:baseline;gap:12px}
-.header-mobile-group+.header-mobile-group{margin-top:8px}
-.header-mobile-label{flex:0 0 76px;margin:0;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
-.header-mobile-links{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap}
-.header-mobile-links a{color:var(--text);font-size:12px;line-height:1.45;text-decoration:none}
-.header-mobile-links a:hover{text-decoration:underline;text-underline-offset:3px}
+.header-mobile-toggle{display:none;flex:0 0 auto;margin-left:auto;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);padding:7px 11px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;min-width:58px}
+.header-mobile-toggle[aria-expanded="true"]{background:var(--soft)}
+.header-mobile-panel{display:none;width:100%;position:static!important;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 98%,transparent);box-shadow:none!important}
 .header-mobile-panel[hidden]{display:none!important}
+.header-mobile-inner{display:block;width:min(920px,calc(100% - 28px));margin:0 auto;padding:11px 0 12px}
+.header-mobile-group{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:start;gap:10px}
+.header-mobile-group+.header-mobile-group{margin-top:9px;padding-top:9px;border-top:1px solid color-mix(in srgb,var(--line) 72%,transparent)}
+.header-mobile-label{margin:2px 0 0;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;line-height:1.45}
+.header-mobile-links{display:flex;align-items:center;gap:5px 13px;flex-wrap:wrap;min-width:0}
+.header-mobile-links a{color:var(--text);font-size:11.5px;line-height:1.45;text-decoration:none;white-space:nowrap}
+.header-mobile-links a:hover{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:600px){
-  .site-header{min-height:58px}
-  .site-header .top{width:min(920px,calc(100% - 28px));min-height:58px}
+  .site-header{min-height:56px}
+  .site-header .top{min-height:56px}
+  .header-brand{max-width:calc(100% - 72px);font-size:14px}
   .header-desktop-nav{display:none}
   .header-mobile-toggle{display:inline-flex;align-items:center;justify-content:center}
-  .header-mobile-panel{display:block;position:static;width:100%;box-shadow:none}
+  .header-mobile-panel{display:block}
+}
+@media(max-width:390px){
+  .header-mobile-group{grid-template-columns:68px minmax(0,1fr);gap:8px}
+  .header-mobile-links{gap:4px 10px}
+  .header-mobile-links a{font-size:11px}
 }
 </style>
 '''
@@ -109,7 +116,6 @@ SCRIPT = r'''
   function setOpen(open){
     panel.hidden=!open;
     button.setAttribute('aria-expanded',open?'true':'false');
-    button.textContent=open?'Close':'Menu';
   }
   button.addEventListener('click',function(){setOpen(panel.hidden)});
   panel.addEventListener('click',function(event){if(event.target&&event.target.closest('a'))setOpen(false)});
@@ -167,16 +173,18 @@ def main() -> None:
         '/how-link-scanning-works',
         '/methodology',
         'cist-header-navigation-script',
+        'display:block!important',
+        'position:static!important',
     ]
     for token in required:
         if token not in source:
             raise RuntimeError(f'Header guard failed: missing {token}')
 
-    if 'header-mobile-panel{position:absolute' in source:
-        raise RuntimeError('Mobile navigation must stay in document flow')
+    if 'button.textContent' in source:
+        raise RuntimeError('Mobile menu button text must not shift when opened')
 
     HOME.write_text(source, encoding='utf-8')
-    print('Applied responsive header with in-flow mobile navigation')
+    print('Applied polished mobile header navigation')
 
 
 if __name__ == '__main__':
