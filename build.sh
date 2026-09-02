@@ -16,9 +16,11 @@ python3 scripts/add_x_footer.py
 python3 scripts/apply_homepage_search_seo.py
 python3 scripts/generate_methodology_page.py
 python3 scripts/generate_authority_pages.py
+python3 scripts/generate_email_seo_pages.py
 python3 scripts/apply_design_polish.py
 python3 scripts/apply_anonymous_scan_stats.py
 python3 scripts/apply_email_input.py
+python3 scripts/apply_email_v11_ui.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
 if [[ ! "$INDEXNOW_KEY" =~ ^[A-Za-z0-9-]{8,128}$ ]]; then
   echo "Invalid IndexNow key format" >&2
