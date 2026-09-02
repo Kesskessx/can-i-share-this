@@ -22,19 +22,28 @@ jobs:
           node --check api/email-check.js
           node --check scripts/test_email_safety.js
           python3 -m py_compile scripts/apply_email_input.py
+          python3 -m py_compile scripts/apply_email_v11_ui.py
+          python3 -m py_compile scripts/generate_email_seo_pages.py
 
       - name: Run deterministic email safety tests
         run: node scripts/test_email_safety.js
 
-      - name: Validate backend privacy contract
+      - name: Validate backend privacy and v1.1 contract
         shell: bash
         run: |
           set -euo pipefail
           ! grep -q 'console.log' api/email-check.js
           grep -q "inputType: 'email'" api/email-check.js
           grep -q 'SPF and DMARC presence' lib/email-safety.js
+          grep -q 'SPF policy quality' lib/email-safety.js
+          grep -q 'DMARC enforcement policy' lib/email-safety.js
+          grep -q 'DNSSEC DS presence' lib/email-safety.js
+          grep -q 'MTA-STS and TLS reporting presence' lib/email-safety.js
+          grep -q 'Domain registration age via RDAP' lib/email-safety.js
           grep -q 'Brand-lookalike patterns' lib/email-safety.js
           grep -q 'Disposable-domain signals' lib/email-safety.js
+          grep -q 'https://rdap.org/domain/' lib/email-safety.js
+          ! grep -q 'local:' api/email-check.js
 
       - name: Build site with email integration
         run: bash build.sh
@@ -51,10 +60,29 @@ jobs:
           grep -q "currentInputType==='email'" dist/index.html
           grep -q 'Email domain' dist/index.html
           grep -q 'MX records' dist/index.html
-          grep -q '>SPF<' dist/index.html
-          grep -q '>DMARC<' dist/index.html
+          grep -q 'SPF quality' dist/index.html
+          grep -q 'DMARC policy' dist/index.html
+          grep -q 'Domain age' dist/index.html
+          grep -q 'DNSSEC' dist/index.html
+          grep -q 'MTA-STS' dist/index.html
+          grep -q 'TLS-RPT' dist/index.html
           grep -q "if(currentInputType==='url')trackScanSummary(d)" dist/index.html
           grep -q 'Check reputation' dist/index.html
+
+      - name: Validate email SEO pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          for slug in email-safety-checker fake-email-address-signs spf-dmarc-email-security; do
+            test -s "dist/${slug}.html"
+            grep -q '<meta name="robots" content="index,follow">' "dist/${slug}.html"
+            grep -q 'application/ld+json' "dist/${slug}.html"
+            grep -q "https://canisharethis.com/${slug}" dist/sitemap.xml
+          done
+          grep -q 'RFC 9989' dist/spf-dmarc-email-security.html
+          grep -q 'RDAP' dist/email-safety-checker.html
+          grep -q 'email-safety-library' dist/methodology.html
+          grep -q 'email-safety-library' dist/safe-link-checker.html
 
       - name: Validate email result privacy boundaries
         shell: bash
