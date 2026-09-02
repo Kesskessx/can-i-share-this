@@ -18,6 +18,7 @@ python3 scripts/generate_methodology_page.py
 python3 scripts/generate_authority_pages.py
 python3 scripts/generate_email_seo_pages.py
 python3 scripts/align_email_dmarc_rfc9989.py
+python3 scripts/generate_scam_prevention_pages.py
 python3 scripts/apply_design_polish.py
 python3 scripts/apply_anonymous_scan_stats.py
 python3 scripts/apply_email_input.py
