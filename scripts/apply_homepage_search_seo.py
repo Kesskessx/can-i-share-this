@@ -5,10 +5,10 @@ ROOT = Path(__file__).resolve().parents[1]
 HOME = ROOT / 'dist' / 'index.html'
 
 TITLE = 'Is This Link Safe? Scam, Phishing & Malware URL Checker'
-DESCRIPTION = ('Check suspicious links for scams, phishing, malware, virus downloads and dangerous redirects '
+DESCRIPTION = ('Check suspicious links for scams, phishing, malware, malicious downloads and dangerous redirects '
                'before you open them. Free, privacy-first URL safety checker.')
-VISIBLE_SUB = ('Paste a suspicious link. Check for scam, phishing, malware, virus-download and dangerous '
-               'redirect warning signs before you open it.')
+VISIBLE_SUB = ('Paste a suspicious link. Check for scams, phishing, malware, malicious downloads and dangerous '
+               'redirects before you open it.')
 
 
 def replace_once(source: str, old: str, new: str, label: str) -> str:
@@ -44,13 +44,13 @@ def main() -> None:
     source = replace_once(
         source,
         '<meta property="og:description" content="Paste a suspicious link. Analyze it before you open it.">',
-        '<meta property="og:description" content="Free link checker for scam, phishing, malware, virus-download and redirect warning signs.">',
+        '<meta property="og:description" content="Free link checker for scam, phishing, malware, malicious-download and redirect warning signs.">',
         'Open Graph description',
     )
     source = replace_once(
         source,
         '"description":"Simple link safety checks for suspicious URLs."',
-        '"description":"Free privacy-first URL safety checker for suspicious links, scams, phishing, malware, virus downloads and dangerous redirects."',
+        '"description":"Free privacy-first URL safety checker for suspicious links, scams, phishing, malware, malicious downloads and dangerous redirects."',
         'structured-data description',
     )
     source = replace_once(
