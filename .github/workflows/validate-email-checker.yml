@@ -62,7 +62,7 @@ jobs:
           checks = {
               'universal placeholder': 'Paste a link or email address…',
               'accessible universal input label': 'Link or email address to analyze',
-              'input privacy wording': 'Inputs aren’t stored',
+              'input privacy wording': 'Nothing you paste is saved',
               'email API route': "'/api/email-check'",
               'URL API route': "'/api/check'",
               'email routing state': "currentInputType==='email'",
