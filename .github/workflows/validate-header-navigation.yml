@@ -28,11 +28,13 @@ jobs:
           set -euo pipefail
           grep -q 'class="site-header"' dist/index.html
           grep -q 'class="header-desktop-nav"' dist/index.html
-          grep -q 'class="header-mobile-menu"' dist/index.html
+          grep -q 'id="mobile-menu-button"' dist/index.html
+          grep -q 'id="mobile-menu-panel"' dist/index.html
+          grep -q 'aria-controls="mobile-menu-panel"' dist/index.html
+          grep -q 'aria-expanded="false"' dist/index.html
           grep -q '<summary>Check</summary>' dist/index.html
           grep -q '<summary>Prevention</summary>' dist/index.html
           grep -q '<summary>About</summary>' dist/index.html
-          grep -q '<summary>Menu</summary>' dist/index.html
           grep -q 'href="/email-safety-checker">Email checker<' dist/index.html
           grep -q 'href="/qr-code-link-checker">QR code checker<' dist/index.html
           grep -q 'href="/scam-prevention">Scam Prevention<' dist/index.html
@@ -41,6 +43,10 @@ jobs:
           grep -q 'href="/how-link-scanning-works">How it works<' dist/index.html
           grep -q 'href="/methodology">Methodology<' dist/index.html
           grep -q 'cist-header-navigation-style' dist/index.html
+          grep -q 'cist-header-navigation-script' dist/index.html
+          grep -q 'header-mobile-panel{display:none;border-top' dist/index.html
+          grep -q 'header-mobile-panel{display:block;position:static' dist/index.html
+          ! grep -q '<details class="header-mobile-menu"' dist/index.html
 
       - name: Validate linked destinations exist
         shell: bash
