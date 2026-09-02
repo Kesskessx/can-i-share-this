@@ -23,6 +23,7 @@ jobs:
           node --check api/event.js
           python3 -m py_compile scripts/generate_scam_safety_cluster.py
           python3 -m py_compile scripts/generate_methodology_page.py
+          python3 -m py_compile scripts/generate_authority_pages.py
           python3 -m py_compile scripts/apply_design_polish.py
 
       - name: Build site
@@ -80,8 +81,7 @@ jobs:
               'malware-link-checker','short-link-checker','how-to-check-if-a-link-is-safe',
               'can-a-link-give-you-a-virus','how-to-tell-if-a-link-is-phishing',
               'how-to-check-a-link-without-clicking-it','is-a-bitly-link-safe',
-              'suspicious-text-message-link','fake-package-delivery-link',
-              'how-to-check-a-qr-code-before-opening'
+              'suspicious-text-message-link','fake-package-delivery-link','how-to-check-a-qr-code-before-opening'
           ]
           titles=[]; descriptions=[]
           for p in pages:
@@ -142,6 +142,39 @@ jobs:
           grep -q 'What the scanner cannot guarantee' dist/methodology.html
           grep -q 'https://canisharethis.com/methodology' dist/sitemap.xml
           grep -q 'href="/favicon.svg"' dist/methodology.html
+
+      - name: Validate five authority reference pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          pages=(how-link-scanning-works phishing-url-signals lookalike-domain-examples redirect-risk-explained shortened-url-risks)
+          test "${#pages[@]}" -eq 5
+          for page in "${pages[@]}"; do
+            file="dist/$page.html"
+            test -f "$file"
+            grep -q '<meta name="robots" content="index,follow">' "$file"
+            grep -q "<link rel=\"canonical\" href=\"https://canisharethis.com/$page\">" "$file"
+            grep -q '"@type":"Article"' "$file"
+            grep -q 'Quick answer' "$file"
+            grep -q 'Primary references' "$file"
+            grep -q 'Last reviewed: September 2, 2026.' "$file"
+            grep -q 'href="/favicon.svg"' "$file"
+            grep -q "https://canisharethis.com/$page" dist/sitemap.xml
+            grep -q "href=\"/$page\"" dist/methodology.html
+            grep -q "href=\"/$page\"" dist/safe-link-checker.html
+          done
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          pages=['how-link-scanning-works','phishing-url-signals','lookalike-domain-examples','redirect-risk-explained','shortened-url-risks']
+          titles=[]; descriptions=[]
+          for p in pages:
+              text=Path(f'dist/{p}.html').read_text(encoding='utf-8')
+              titles.append(re.search(r'<title>(.*?)</title>', text, re.S).group(1))
+              descriptions.append(re.search(r'<meta name="description" content="(.*?)">', text, re.S).group(1))
+          assert len(set(titles)) == 5, 'duplicate authority title'
+          assert len(set(descriptions)) == 5, 'duplicate authority description'
+          PY
 
       - name: Validate Web Risk and privacy contracts
         shell: bash
