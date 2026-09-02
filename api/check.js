@@ -141,6 +141,15 @@ function pathExtension(pathname) {
   const match = clean.match(/(\.[a-z0-9]{1,12})$/);
   return match ? match[1] : '';
 }
+function responseFileName(contentDisposition) {
+  const value = String(contentDisposition || '');
+  let raw = value.match(/filename\*=UTF-8''([^;]+)/i)?.[1] || value.match(/filename\*=[^']*''([^;]+)/i)?.[1] || value.match(/filename="([^"]+)"/i)?.[1] || value.match(/filename=([^;]+)/i)?.[1] || '';
+  raw = raw.trim().replace(/^['"]|['"]$/g, '');
+  if (!raw) return '';
+  try { raw = decodeURIComponent(raw); } catch {}
+  raw = raw.replace(/[\r\n\0]/g, '').split(/[\\/]/).pop().trim();
+  return raw.slice(0, 180);
+}
 function addSignal(signals, code, severity, title, detail, weight) {
   signals.push({ code, severity, title, detail, weight });
 }
@@ -248,8 +257,8 @@ module.exports = async function handler(req, res) {
         response = await fetch(current, {
           method: 'GET', redirect: 'manual', signal: controller.signal,
           headers: {
-            'user-agent': 'CanIShareThis/1.1 (+https://canisharethis.com)',
-            'accept': 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+            'user-agent': 'CanIShareThis/1.2 (+https://canisharethis.com)',
+            'accept': 'text/html,application/xhtml+xml,application/pdf,audio/*,video/*,image/*;q=0.9,*/*;q=0.8',
             'accept-language': 'en-US,en;q=0.8'
           }
         });
@@ -275,11 +284,14 @@ module.exports = async function handler(req, res) {
     const contentType = response.headers.get('content-type') || '';
     const contentDisposition = response.headers.get('content-disposition') || '';
     const safety = analyzeSafety({ rawInput, initialUrl, finalUrl: current, redirects, contentType, contentDisposition, loginRequired });
+    const cleanContentType = String(contentType).split(';')[0].trim().toLowerCase().slice(0, 120);
+    const fileName = responseFileName(contentDisposition);
 
     return res.status(200).json({
       reachable: true, status: response.status, finalUrl: current.toString(), finalHost: current.hostname,
       addresses: finalAddresses.length ? finalAddresses : firstAddresses, responseMs: totalMs,
       redirects, loginRequired, pageTitle: meta.title || undefined, pageDescription: meta.description || undefined,
+      contentType: cleanContentType || undefined, fileName: fileName || undefined,
       safety
     });
   } catch (err) {
