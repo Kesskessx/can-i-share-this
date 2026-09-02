@@ -37,6 +37,10 @@ jobs:
           grep -q 'id="universal-content-value"' dist/index.html
           grep -q 'id="universal-destination-value"' dist/index.html
           grep -q 'id="universal-advice-value"' dist/index.html
+          grep -q "'Email address'" dist/index.html
+          grep -q "'Mailbox and sender domain'" dist/index.html
+          grep -q "'Sender domain'" dist/index.html
+          grep -q 'Address and domain checks cannot prove who controls a mailbox.' dist/index.html
 
       - name: Validate recommended action V1.3
         shell: bash
@@ -53,6 +57,28 @@ jobs:
           grep -q "card.classList.contains('reputation-checked-safe')" dist/index.html
           grep -q 'The link redirects to a different website.' dist/index.html
           grep -q 'No scanner can guarantee that a website is safe.' dist/index.html
+
+      - name: Validate risk breakdown V1.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'id="risk-breakdown"' dist/index.html
+          grep -q 'Risk breakdown' dist/index.html
+          grep -q 'Independent signals — not a safety guarantee.' dist/index.html
+          grep -q '>Reputation<' dist/index.html
+          grep -q '>URL signals<' dist/index.html
+          grep -q '>Destination<' dist/index.html
+          grep -q '>Content<' dist/index.html
+          grep -q "'Address signals'" dist/index.html
+          grep -q "'Mail delivery'" dist/index.html
+          grep -q "'Authentication'" dist/index.html
+          grep -q "'Domain age'" dist/index.html
+          grep -q "'Known threat reported'" dist/index.html
+          grep -q "'No known threat reported'" dist/index.html
+          grep -q "'Redirects to another website'" dist/index.html
+          grep -q "'Very new domain'" dist/index.html
+          grep -q "el.closest('#recommended-action')||el.closest('#risk-breakdown')||el.closest('#universal-summary')" dist/index.html
+          ! grep -q '100% safe' dist/index.html
 
       - name: Validate lightweight classification coverage
         shell: bash
