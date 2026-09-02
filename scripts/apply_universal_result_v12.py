@@ -6,7 +6,7 @@ HOME = ROOT / 'dist' / 'index.html'
 
 STYLE = r'''
 <style id="cist-universal-result-v12-style">
-.universal-summary{margin-top:14px;text-align:left}.universal-summary-heading{margin:0 0 8px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.universal-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.universal-summary-item{min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--soft) 64%,transparent)}.universal-summary-label{display:block;margin-bottom:3px;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}.universal-summary-value{display:block;color:var(--text);font-size:13px;font-weight:850;line-height:1.28;overflow-wrap:anywhere}.universal-summary-note{display:block;margin-top:3px;color:var(--muted);font-size:10px;line-height:1.35;overflow-wrap:anywhere}.universal-summary-item.safety-good .universal-summary-value{color:var(--green)}.universal-summary-item.safety-warn .universal-summary-value{color:var(--amber)}.universal-summary-item.safety-bad .universal-summary-value{color:var(--red)}.redirect-route{margin-top:9px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--amber) 28%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--amber) 5%,var(--card));text-align:left}.redirect-route strong{display:block;font-size:11px;line-height:1.35}.redirect-route span{display:block;margin-top:3px;color:var(--muted);font-size:10px;line-height:1.4;overflow-wrap:anywhere}
+.universal-summary{margin-top:14px;text-align:left}.universal-summary-heading{margin:0 0 8px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.universal-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.universal-summary-item{min-width:0;display:grid;gap:4px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--soft) 64%,transparent)}.universal-summary-label{display:block;margin:0;color:var(--muted);font-size:9px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}.universal-summary-value{display:block;color:var(--text);font-size:13px;font-weight:850;line-height:1.28;overflow-wrap:anywhere}.universal-summary-note{display:block;margin:0;color:var(--muted);font-size:10px;line-height:1.35;overflow-wrap:anywhere}.universal-summary-item.safety-good .universal-summary-value{color:var(--green)}.universal-summary-item.safety-warn .universal-summary-value{color:var(--amber)}.universal-summary-item.safety-bad .universal-summary-value{color:var(--red)}.redirect-route{margin-top:9px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--amber) 28%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--amber) 5%,var(--card));text-align:left}.redirect-route strong{display:block;font-size:11px;line-height:1.35}.redirect-route span{display:block;margin-top:3px;color:var(--muted);font-size:10px;line-height:1.4;overflow-wrap:anywhere}
 @media(max-width:600px){.universal-summary-grid{grid-template-columns:1fr}.universal-summary-item{padding:10px 11px}.universal-summary-value{font-size:12px}}
 </style>
 '''
@@ -64,12 +64,11 @@ HELPERS = r'''
     return['Check that you recognize the final website.','Be cautious if it asks for a password, payment or download.'];
   }
   function cistUniversalSafety(){
-    var card=document.getElementById('result-card'),verdict=document.getElementById('verdict');var text=String(verdict&&verdict.textContent||'');
-    if(card&&card.classList.contains('one-click-running'))return{value:'Checking safety…',note:'Checking the link and known online threat lists.',cls:''};
+    var card=document.getElementById('result-card'),verdict=document.getElementById('verdict');var text=String(verdict&&verdict.textContent||'');var lower=text.toLowerCase();
     if(card&&card.classList.contains('status-high'))return{value:'Dangerous warning signs',note:'Do not open this link unless you can independently verify it.',cls:'safety-bad'};
     if(card&&card.classList.contains('status-caution'))return{value:'Be careful',note:'Some checks found warning signs or could not be completed.',cls:'safety-warn'};
-    if(card&&card.classList.contains('reputation-checked-safe'))return{value:'No known malware or phishing',note:'Nothing dangerous was reported, but no scanner can guarantee safety.',cls:'safety-good'};
-    if(text.toLowerCase().indexOf('checking')>=0)return{value:'Checking safety…',note:'Waiting for the full safety check.',cls:''};
+    if((card&&card.classList.contains('reputation-checked-safe'))||lower.indexOf('no known threat found')>=0||lower.indexOf('no known danger reported')>=0)return{value:'No known threat found',note:'Nothing dangerous was reported by the known threat lists checked.',cls:'safety-good'};
+    if((card&&card.classList.contains('one-click-running'))||lower.indexOf('checking')>=0)return{value:'Checking safety…',note:'Checking the link and known online threat lists.',cls:''};
     return{value:'No obvious local warning signs',note:'The full online threat-list result may still be pending.',cls:''};
   }
   function cistUpdateUniversalSummary(){
@@ -85,8 +84,8 @@ HELPERS = r'''
     var route=cistRedirectInfo(data);if(destNote)destNote.textContent=route.count?route.count+' redirect'+(route.count===1?'':'s')+' followed':'Direct destination';
     var routeBox=document.getElementById('redirect-route'),routeText=document.getElementById('redirect-route-text');
     if(routeBox&&routeText&&route.count>0&&route.hosts.length>1){routeText.textContent=route.hosts.join(' → ');routeBox.classList.remove('hidden')}else if(routeBox){routeBox.classList.add('hidden')}
-    var advice=cistAdviceFor(typeLabel,window.cistSensitiveCategoryCurrent),adviceValue=document.getElementById('universal-advice-value'),adviceNote=document.getElementById('universal-advice-note');if(adviceValue)adviceValue.textContent=advice[0];if(adviceNote)adviceNote.textContent=advice[1];
     var safety=cistUniversalSafety(),safetyBox=document.getElementById('universal-safety'),safetyValue=document.getElementById('universal-safety-value'),safetyNote=document.getElementById('universal-safety-note');if(safetyValue)safetyValue.textContent=safety.value;if(safetyNote)safetyNote.textContent=safety.note;if(safetyBox){safetyBox.classList.remove('safety-good','safety-warn','safety-bad');if(safety.cls)safetyBox.classList.add(safety.cls)}
+    var advice=cistAdviceFor(typeLabel,window.cistSensitiveCategoryCurrent),typeLower=typeLabel.toLowerCase();var special=window.cistSensitiveCategoryCurrent||/(software|downloadable|compressed|shortened|document|pdf)/.test(typeLower);if(safety.cls==='safety-good'&&!special)advice=['Continue only if you expected this link.','Be cautious if it asks for a password, payment or download.'];var adviceValue=document.getElementById('universal-advice-value'),adviceNote=document.getElementById('universal-advice-note');if(adviceValue)adviceValue.textContent=advice[0];if(adviceNote)adviceNote.textContent=advice[1];
     var oldType=document.getElementById('link-type-card');if(oldType)oldType.classList.add('hidden');
     panel.classList.remove('hidden');
   }
@@ -139,6 +138,29 @@ def main() -> None:
     new_loading = "window.cistSensitiveCategoryCurrent=null;window.cistUniversalResultData=null;var universalPanel=document.getElementById('universal-summary');if(universalPanel)universalPanel.classList.add('hidden');var redirectPanel=document.getElementById('redirect-route');if(redirectPanel)redirectPanel.classList.add('hidden');"
     source = replace_once(source, old_loading, new_loading, 'new scan reset')
 
+    # Final full-scan state must use the same plain wording everywhere.
+    source = source.replace("verdict.textContent='No known danger reported';", "verdict.textContent='No known threat found';", 1)
+    source = source.replace(
+        "summary.textContent='We checked the link itself and known online threat lists. Nothing dangerous was reported. This does not guarantee that the website is safe.';",
+        "summary.textContent='We checked the link itself and known online threat lists. No known malware or phishing threat was reported. This does not guarantee that the website is safe.';",
+        1,
+    )
+    source = source.replace(
+        "adviceText.textContent='If you expected this link and recognize the website, you can decide whether to open it. Be careful if it asks for a password, payment or download.';",
+        "adviceText.textContent='Continue only if you expected this link and recognize the website. Be cautious if it asks for a password, payment or download.';",
+        1,
+    )
+    source = source.replace(
+        "whyList.innerHTML='<li>No known danger was reported by the security services we checked.</li>';",
+        "whyList.innerHTML='<li>Known threat lists did not report this link as dangerous.</li>';",
+        1,
+    )
+    source = source.replace(
+        "reputation.classList.add('hidden');\n      return;",
+        "reputation.classList.add('hidden');if(typeof cistUpdateUniversalSummary==='function')queueMicrotask(cistUpdateUniversalSummary);\n      return;",
+        1,
+    )
+
     if 'id="cist-universal-result-v12-observer"' not in source:
         source = source.replace('</body>', OBSERVER + '\n</body>', 1)
 
@@ -149,14 +171,20 @@ def main() -> None:
         'Unexpected software can harm your device.', 'Compressed files can hide other files inside.',
         'Short links hide the real website until they are followed.',
         "el.closest('#universal-summary')||el.closest('#link-type-card')",
-        'renderSensitiveCategory(data);renderUniversalResult(data);'
+        'renderSensitiveCategory(data);renderUniversalResult(data);',
+        "value:'No known threat found'", 'Nothing dangerous was reported by the known threat lists checked.',
+        "verdict.textContent='No known threat found'", 'Known threat lists did not report this link as dangerous.',
+        "queueMicrotask(cistUpdateUniversalSummary)", 'Continue only if you expected this link.'
     ]
     for token in required:
         if token not in source:
             raise RuntimeError(f'Universal result V1.2 guard failed: missing {token}')
 
+    if 'No known danger was reported by the security services we checked.' in source:
+        raise RuntimeError('Universal result consistency guard failed: obsolete security-services wording remains')
+
     HOME.write_text(source, encoding='utf-8')
-    print('Applied universal result V1.2: summary, real response type, redirects and plain-language advice')
+    print('Applied universal result V1.2 with synchronized final safety state and concise copy')
 
 
 if __name__ == '__main__':
