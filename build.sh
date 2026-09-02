@@ -33,6 +33,7 @@ python3 scripts/apply_scanner_ux_v2.py
 python3 scripts/apply_readability_v1.py
 python3 scripts/apply_wordmark_logo.py
 python3 scripts/apply_homepage_brand_accent.py
+python3 scripts/apply_brand_favicon.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
 if [[ ! "$INDEXNOW_KEY" =~ ^[A-Za-z0-9-]{8,128}$ ]]; then
   echo "Invalid IndexNow key format" >&2
