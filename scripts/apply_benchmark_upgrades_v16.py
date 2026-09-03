@@ -13,14 +13,14 @@ UPDATED = '2026-09-02'
 
 STYLE = r'''
 <style id="cist-benchmark-v16-style">
-.scanner-proof{margin:14px auto 0;max-width:680px;padding:11px 13px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--card) 82%,var(--soft));text-align:left}.scanner-proof-head{display:flex;align-items:center;gap:7px;color:var(--text);font-size:10px;font-weight:950;letter-spacing:.06em;text-transform:uppercase}.scanner-proof-items{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.scanner-proof-item{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--muted);font-size:9px;font-weight:800}.scanner-proof-item::before{content:'✓';color:var(--green);font-weight:950}.scanner-proof-note{display:block;margin-top:7px;color:var(--muted);font-size:9px;line-height:1.4}.home-explain{margin-top:42px}.home-section-kicker{margin:0 0 6px;color:var(--muted);font-size:10px;font-weight:950;letter-spacing:.08em;text-transform:uppercase}.home-explain h2,.use-cases h2{margin:0;font-size:clamp(24px,4vw,32px);letter-spacing:-.035em;line-height:1.1}.home-section-intro{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.55}.how-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:15px}.how-card{padding:15px;border:1px solid var(--line);border-radius:15px;background:var(--card)}.how-num{display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--cist-accent) 10%,var(--soft));color:var(--cist-accent);font-size:11px;font-weight:950}.how-card strong{display:block;margin-top:9px;font-size:13px}.how-card p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.45}.use-cases{margin-top:36px}.use-case-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:14px}.use-case{display:block;padding:11px 9px;border:1px solid var(--line);border-radius:13px;background:var(--card);text-decoration:none;text-align:center;transition:transform .15s ease,border-color .15s ease}.use-case:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--cist-accent) 40%,var(--line))}.use-case-icon{display:block;font-size:19px}.use-case strong{display:block;margin-top:5px;font-size:10px}.use-case small{display:block;margin-top:2px;color:var(--muted);font-size:8px;line-height:1.35}.domain-age-context{margin-top:9px;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--soft) 54%,transparent);text-align:left}.domain-age-row{display:flex;align-items:flex-start;gap:9px}.domain-age-icon{font-size:17px;line-height:1}.domain-age-copy{min-width:0}.domain-age-kicker{display:block;color:var(--muted);font-size:8px;font-weight:950;letter-spacing:.07em;text-transform:uppercase}.domain-age-value{display:block;margin-top:2px;color:var(--text);font-size:11px;font-weight:900}.domain-age-detail{display:block;margin-top:2px;color:var(--muted);font-size:9px;line-height:1.4}.domain-age-context.domain-age-warn{border-color:color-mix(in srgb,var(--amber) 38%,var(--line));background:color-mix(in srgb,var(--amber) 6%,var(--card))}.domain-age-context.domain-age-warn .domain-age-value{color:var(--amber)}.risk-factor-top{position:relative;padding-right:66px}.risk-factor-symbol{display:grid;place-items:center;width:22px;height:22px;flex:0 0 auto;border-radius:7px;background:var(--card);border:1px solid var(--line);font-size:11px}.risk-factor-state{position:absolute;right:0;top:1px;padding:3px 6px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:7px;font-weight:950;letter-spacing:.05em;text-transform:uppercase}.risk-factor.risk-good .risk-factor-state{background:color-mix(in srgb,var(--green) 12%,var(--card));color:var(--green)}.risk-factor.risk-warn .risk-factor-state{background:color-mix(in srgb,var(--amber) 12%,var(--card));color:var(--amber)}.risk-factor.risk-bad .risk-factor-state{background:color-mix(in srgb,var(--red) 12%,var(--card));color:var(--red)}
-@media(max-width:700px){.use-case-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.use-case:last-child{grid-column:1/-1}.how-grid{grid-template-columns:1fr}.scanner-proof{margin-top:12px}.risk-factor-top{padding-right:60px}}
+.scanner-proof{margin:12px auto 0;max-width:680px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--card) 82%,var(--soft));text-align:left}.scanner-proof summary{display:flex;align-items:center;gap:7px;padding:10px 12px;color:var(--text);font-size:10px;font-weight:950;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;list-style:none}.scanner-proof summary::-webkit-details-marker{display:none}.scanner-proof summary::after{content:'+';margin-left:auto;color:var(--muted);font-size:15px}.scanner-proof[open] summary::after{content:'−'}.scanner-proof-body{padding:0 12px 11px}.scanner-proof-items{display:flex;gap:6px;flex-wrap:wrap}.scanner-proof-item{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--muted);font-size:9px;font-weight:800}.scanner-proof-item::before{content:'✓';color:var(--green);font-weight:950}.scanner-proof-note{display:block;margin-top:7px;color:var(--muted);font-size:9px;line-height:1.4}.home-explain{margin-top:34px}.home-section-kicker{margin:0 0 6px;color:var(--muted);font-size:10px;font-weight:950;letter-spacing:.08em;text-transform:uppercase}.home-explain h2,.use-cases h2{margin:0;font-size:clamp(24px,4vw,32px);letter-spacing:-.035em;line-height:1.1}.home-section-intro{margin:8px 0 0;color:var(--muted);font-size:13px;line-height:1.5}.how-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:13px}.how-card{display:flex;align-items:center;gap:9px;min-width:0;padding:11px;border:1px solid var(--line);border-radius:13px;background:var(--card)}.how-num{display:grid;place-items:center;flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:color-mix(in srgb,var(--cist-accent) 10%,var(--soft));color:var(--cist-accent);font-size:11px;font-weight:950}.how-card strong{display:block;font-size:12px;line-height:1.2}.how-card p{margin:2px 0 0;color:var(--muted);font-size:9px;line-height:1.3}.use-cases{margin-top:34px}.use-case-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:14px}.use-case{display:flex;min-height:96px;padding:12px 8px;border:1px solid var(--line);border-radius:14px;background:var(--card);text-decoration:none;text-align:center;transition:transform .15s ease,border-color .15s ease;align-items:center;justify-content:center}.use-case:hover,.use-case:focus-visible{transform:translateY(-1px);border-color:color-mix(in srgb,var(--cist-accent) 45%,var(--line))}.use-case-icon{display:block;font-size:24px;line-height:1}.use-case strong{display:block;margin-top:7px;font-size:12px}.use-case small{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.3}.domain-age-context{margin-top:9px;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--soft) 54%,transparent);text-align:left}.domain-age-row{display:flex;align-items:flex-start;gap:9px}.domain-age-icon{font-size:17px;line-height:1}.domain-age-copy{min-width:0}.domain-age-kicker{display:block;color:var(--muted);font-size:8px;font-weight:950;letter-spacing:.07em;text-transform:uppercase}.domain-age-value{display:block;margin-top:2px;color:var(--text);font-size:11px;font-weight:900}.domain-age-detail{display:block;margin-top:2px;color:var(--muted);font-size:9px;line-height:1.4}.domain-age-context.domain-age-warn{border-color:color-mix(in srgb,var(--amber) 38%,var(--line));background:color-mix(in srgb,var(--amber) 6%,var(--card))}.domain-age-context.domain-age-warn .domain-age-value{color:var(--amber)}.risk-factor-top{position:relative;padding-right:66px}.risk-factor-symbol{display:grid;place-items:center;width:22px;height:22px;flex:0 0 auto;border-radius:7px;background:var(--card);border:1px solid var(--line);font-size:11px}.risk-factor-state{position:absolute;right:0;top:1px;padding:3px 6px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:7px;font-weight:950;letter-spacing:.05em;text-transform:uppercase}.risk-factor.risk-good .risk-factor-state{background:color-mix(in srgb,var(--green) 12%,var(--card));color:var(--green)}.risk-factor.risk-warn .risk-factor-state{background:color-mix(in srgb,var(--amber) 12%,var(--card));color:var(--amber)}.risk-factor.risk-bad .risk-factor-state{background:color-mix(in srgb,var(--red) 12%,var(--card));color:var(--red)}
+@media(max-width:700px){.use-case-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.use-case{min-height:108px}.how-grid{gap:6px}.how-card{display:block;padding:9px;text-align:center}.how-num{margin:0 auto 6px}.how-card p{display:none}.scanner-proof{margin-top:11px}.risk-factor-top{padding-right:60px}}
 </style>
 '''
 
-PROOF = r'''  <section id="scanner-proof" class="scanner-proof" aria-label="Scanner capabilities">
-    <div class="scanner-proof-head"><span aria-hidden="true">🛡️</span><span>Checks available</span></div>
-    <div class="scanner-proof-items">
+PROOF = r'''  <details id="scanner-proof" class="scanner-proof">
+    <summary><span aria-hidden="true">🛡️</span><span>Technical checks</span></summary>
+    <div class="scanner-proof-body"><div class="scanner-proof-items">
       <span class="scanner-proof-item">Google Web Risk</span>
       <span class="scanner-proof-item">Redirect analysis</span>
       <span class="scanner-proof-item">File type detection</span>
@@ -28,30 +28,33 @@ PROOF = r'''  <section id="scanner-proof" class="scanner-proof" aria-label="Scan
       <span class="scanner-proof-item">Email domain checks</span>
     </div>
     <small class="scanner-proof-note">Known-threat checks apply to eligible public links. We do not show an accuracy percentage unless it has been independently validated.</small>
-  </section>
+    </div>
+  </details>
 '''
 
 HOME_SECTIONS = r'''  <section id="how-it-works" class="home-explain" aria-labelledby="how-title">
     <p class="home-section-kicker">How it works</p>
     <h2 id="how-title">Three steps. One clear answer.</h2>
-    <p class="home-section-intro">The scanner keeps the technical work in the background and shows the information that matters before you trust a link or sender.</p>
     <div class="how-grid">
-      <article class="how-card"><span class="how-num">1</span><strong>Paste</strong><p>Paste a link or email address, or use the QR scanner.</p></article>
-      <article class="how-card"><span class="how-num">2</span><strong>We check</strong><p>We inspect the destination, redirects, file type, domain context and known threat reports.</p></article>
-      <article class="how-card"><span class="how-num">3</span><strong>Decide</strong><p>Get a plain-language result, risk breakdown and recommended action.</p></article>
+      <article class="how-card"><span class="how-num">1</span><div><strong>Paste</strong><p>A link, email or QR code</p></div></article>
+      <article class="how-card"><span class="how-num">2</span><div><strong>Automatic checks</strong><p>Destination, risks and context</p></div></article>
+      <article class="how-card"><span class="how-num">3</span><div><strong>Clear result</strong><p>Verdict and next action</p></div></article>
     </div>
   </section>
 
   <section id="use-cases" class="use-cases" aria-labelledby="use-case-title">
-    <p class="home-section-kicker">Where did you get it?</p>
-    <h2 id="use-case-title">Check the suspicious thing you received.</h2>
-    <p class="home-section-intro">The same scanner works across common scam situations. These guides explain what to look for without creating five different tools.</p>
+    <p class="home-section-kicker">One scanner, more signals</p>
+    <h2 id="use-case-title">What can I check?</h2>
+    <p class="home-section-intro">Paste it into the same scanner. We automatically detect what it is.</p>
     <div class="use-case-grid">
-      <a class="use-case" href="/sms-link-checker"><span class="use-case-icon">📱</span><strong>SMS</strong><small>Unexpected text link</small></a>
-      <a class="use-case" href="/whatsapp-link-checker"><span class="use-case-icon">💬</span><strong>WhatsApp</strong><small>Message or group link</small></a>
-      <a class="use-case" href="/email-safety-checker"><span class="use-case-icon">✉️</span><strong>Email</strong><small>Sender or email link</small></a>
-      <a class="use-case" href="/qr-code-link-checker"><span class="use-case-icon">▦</span><strong>QR code</strong><small>See where it leads</small></a>
-      <a class="use-case" href="/download-link-checker"><span class="use-case-icon">💾</span><strong>Download</strong><small>File or installer link</small></a>
+      <a class="use-case" href="/sms-link-checker"><span><span class="use-case-icon" aria-hidden="true">📱</span><strong>SMS link</strong><small>Suspicious text message</small></span></a>
+      <a class="use-case" href="/whatsapp-link-checker"><span><span class="use-case-icon" aria-hidden="true">💬</span><strong>WhatsApp</strong><small>Message or group link</small></span></a>
+      <a class="use-case" href="/qr-code-scam-checker"><span><span class="use-case-icon" aria-hidden="true">🔳</span><strong>QR code</strong><small>Reveal its destination</small></span></a>
+      <a class="use-case" href="/download-link-checker"><span><span class="use-case-icon" aria-hidden="true">📦</span><strong>Download</strong><small>File or installer link</small></span></a>
+      <a class="use-case" href="/short-link-checker"><span><span class="use-case-icon" aria-hidden="true">🔗</span><strong>Short link</strong><small>Reveal hidden redirects</small></span></a>
+      <a class="use-case" href="/email-safety-checker"><span><span class="use-case-icon" aria-hidden="true">✉️</span><strong>Email</strong><small>Sender-domain signals</small></span></a>
+      <a class="use-case" href="/crypto-scam-link-checker"><span><span class="use-case-icon" aria-hidden="true">₿</span><strong>Crypto</strong><small>Wallet or investment link</small></span></a>
+      <a class="use-case" href="/gambling-link-safety"><span><span class="use-case-icon" aria-hidden="true">🎰</span><strong>Gambling</strong><small>Betting or casino website</small></span></a>
     </div>
   </section>
 '''
@@ -244,7 +247,8 @@ def main() -> None:
 
     required = [
         'id="how-it-works"', 'Three steps. One clear answer.',
-        '/sms-link-checker', '/whatsapp-link-checker', '/email-safety-checker', '/qr-code-link-checker', '/download-link-checker',
+        '/sms-link-checker', '/whatsapp-link-checker', '/email-safety-checker', '/qr-code-scam-checker', '/download-link-checker',
+        '/short-link-checker', '/crypto-scam-link-checker', '/gambling-link-safety',
         'id="scanner-proof"', 'Google Web Risk', 'Redirect analysis', 'File type detection', 'Domain age via RDAP',
         'We do not show an accuracy percentage unless it has been independently validated.',
         'id="url-domain-age"', "fetch('/api/domain-age'", 'Only the final registered domain is queried via RDAP.',
