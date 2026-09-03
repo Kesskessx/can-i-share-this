@@ -198,7 +198,7 @@ PAGES = [
         "related": [
             ("/phishing-link-checker", "Phishing Link Checker", "Run a phishing-oriented URL assessment."),
             ("/fake-package-delivery-link", "Fake package delivery links", "Recognize a common phishing scenario."),
-            ("/suspicious-text-message-link", "Suspicious text-message links", "Check links received by SMS."),
+            ("/sms-link-checker", "SMS Link Checker", "Check links received by SMS."),
         ],
     },
     {
@@ -270,7 +270,7 @@ PAGES = [
         ],
     },
     {
-        "path": "/suspicious-text-message-link",
+        "path": "/sms-link-checker",
         "keyword": "suspicious text message link",
         "title": "Suspicious Text Message Link? Check It Before You Tap",
         "description": "Received a suspicious link by SMS? Learn how to check text-message links for phishing, fake delivery, account and payment warning signs before tapping.",
@@ -332,7 +332,7 @@ PAGES = [
             ("Should I click just to see the tracking number?", "No. Copy and check the URL first, or visit the carrier independently."),
         ],
         "related": [
-            ("/suspicious-text-message-link", "Suspicious text-message links", "Use a safer workflow for SMS links."),
+            ("/sms-link-checker", "SMS Link Checker", "Use a safer workflow for SMS links."),
             ("/scam-link-checker", "Scam Link Checker", "Check the suspicious delivery URL."),
             ("/how-to-check-a-link-without-clicking-it", "Check without clicking", "Inspect the URL first."),
         ],

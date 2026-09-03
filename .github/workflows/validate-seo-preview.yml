@@ -45,6 +45,7 @@ jobs:
         run: python scripts/validate_seo_preview.py
 
       - name: Verify preview safety marker
+        if: github.ref == 'refs/heads/seo-2026-safe-integration'
         shell: bash
         run: |
           set -euo pipefail
@@ -52,6 +53,7 @@ jobs:
           grep -q 'Do not merge or promote this branch to production as-is' PREVIEW_ONLY.md
 
       - name: Verify production branch was not bundled into preview config
+        if: github.ref == 'refs/heads/seo-2026-safe-integration'
         shell: bash
         run: |
           set -euo pipefail

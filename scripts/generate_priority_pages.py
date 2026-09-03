@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the 10 prepared SEO pages as a reversible static overlay."""
+"""Generate the editorial pages assigned to the priority generator."""
 
 from __future__ import annotations
 
@@ -544,7 +544,9 @@ def update_sitemap(routes: list[dict]) -> None:
 
 def main() -> None:
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-    routes = manifest["routes"]
+    routes = [route for route in manifest["routes"] if route.get("generator") == "priority"]
+    if not routes:
+        raise RuntimeError("SEO registry has no routes assigned to the priority generator")
     source = CONTENT_PATH.read_text(encoding="utf-8")
     priority_routes = {route["path"] for route in routes}
 

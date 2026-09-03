@@ -47,7 +47,7 @@ HOME_SECTIONS = r'''  <section id="how-it-works" class="home-explain" aria-label
     <h2 id="use-case-title">Check the suspicious thing you received.</h2>
     <p class="home-section-intro">The same scanner works across common scam situations. These guides explain what to look for without creating five different tools.</p>
     <div class="use-case-grid">
-      <a class="use-case" href="/suspicious-text-message-link"><span class="use-case-icon">📱</span><strong>SMS</strong><small>Unexpected text link</small></a>
+      <a class="use-case" href="/sms-link-checker"><span class="use-case-icon">📱</span><strong>SMS</strong><small>Unexpected text link</small></a>
       <a class="use-case" href="/whatsapp-link-checker"><span class="use-case-icon">💬</span><strong>WhatsApp</strong><small>Message or group link</small></a>
       <a class="use-case" href="/email-safety-checker"><span class="use-case-icon">✉️</span><strong>Email</strong><small>Sender or email link</small></a>
       <a class="use-case" href="/qr-code-link-checker"><span class="use-case-icon">▦</span><strong>QR code</strong><small>See where it leads</small></a>
@@ -140,7 +140,7 @@ PAGES = [
             ('Does this checker read my WhatsApp messages?', 'No. The checker only analyzes the link or email address you choose to paste. It does not connect to or read your WhatsApp conversations.'),
             ('What if the message came from someone I know?', 'Treat the link separately from the sender identity. Accounts can be compromised. If the request is unusual, confirm it through another channel before paying, logging in or sharing information.')
         ],
-        'related': [('/suspicious-text-message-link', 'Suspicious SMS link'), ('/qr-code-link-checker', 'QR code checker'), ('/phishing-link-checker', 'Phishing link guide')]
+        'related': [('/sms-link-checker', 'Suspicious SMS link'), ('/qr-code-link-checker', 'QR code checker'), ('/phishing-link-checker', 'Phishing link guide')]
     },
     {
         'slug': 'download-link-checker',
@@ -244,7 +244,7 @@ def main() -> None:
 
     required = [
         'id="how-it-works"', 'Three steps. One clear answer.',
-        '/suspicious-text-message-link', '/whatsapp-link-checker', '/email-safety-checker', '/qr-code-link-checker', '/download-link-checker',
+        '/sms-link-checker', '/whatsapp-link-checker', '/email-safety-checker', '/qr-code-link-checker', '/download-link-checker',
         'id="scanner-proof"', 'Google Web Risk', 'Redirect analysis', 'File type detection', 'Domain age via RDAP',
         'We do not show an accuracy percentage unless it has been independently validated.',
         'id="url-domain-age"', "fetch('/api/domain-age'", 'Only the final registered domain is queried via RDAP.',
