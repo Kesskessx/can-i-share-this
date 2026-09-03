@@ -21,7 +21,7 @@ SCRIPT = r'''
   function emailValue(v){return String(v||'').trim().replace(/^mailto:/i,'')}
   function looksLikeEmail(v){v=emailValue(v);return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)}
   function buttonLabel(){return looksLikeEmail(input.value)?'Check email':'Check link'}
-  function resetButton(){if(!analyze.disabled)analyze.textContent=buttonLabel()}
+  function resetButton(){var label=buttonLabel();if(!analyze.disabled&&analyze.textContent!==label)analyze.textContent=label}
   input.addEventListener('input',resetButton);
   paste.addEventListener('click',async function(e){
     e.preventDefault();e.stopImmediatePropagation();paste.disabled=true;paste.textContent='Pasting…';
@@ -70,7 +70,7 @@ def main() -> None:
     if 'id="cist-one-click-scan"' not in source:
         source = source.replace('</body>', SCRIPT + '\n</body>', 1)
 
-    required = ['Paste &amp; check', '>Check link</button>', 'Quick check first.', 'id="cist-one-click-scan"', 'form.requestSubmit()']
+    required = ['Paste &amp; check', '>Check link</button>', 'Quick check first.', 'id="cist-one-click-scan"', 'form.requestSubmit()', 'analyze.textContent!==label']
     for token in required:
         if token not in source:
             raise RuntimeError(f"Fast scan guard failed: missing {token}")
