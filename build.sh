@@ -40,16 +40,19 @@ python3 scripts/apply_universal_result_v12.py
 python3 scripts/apply_recommended_action_v13.py
 python3 scripts/apply_benchmark_upgrades_v16.py
 python3 scripts/generate_context_checker_pages.py
+python3 scripts/generate_growth_authority_pages.py
 python3 scripts/apply_readability_v1.py
 python3 scripts/apply_wordmark_logo.py
 python3 scripts/apply_homepage_brand_accent.py
 python3 scripts/apply_brand_favicon.py
 python3 scripts/apply_vercel_analytics.py
 python3 scripts/ensure_indexable_robots.py
+python3 scripts/register_growth_routes.py
 python3 scripts/apply_seo_registry.py
 python3 scripts/apply_capability_strip.py
 python3 scripts/remove_redundant_home_sections.py
 python3 scripts/apply_entity_identity.py
+python3 scripts/apply_breadcrumb_schema.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
