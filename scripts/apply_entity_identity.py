@@ -75,7 +75,7 @@ def main() -> None:
 
     home = (DIST / 'index.html').read_text(encoding='utf-8')
     required = [
-        'Check anything before you trust it',
+        'Check anything before you <span class="hero-safe">trust it</span>',
         'id="cist-entity-graph"',
         'id="cist-entity-faq"',
         'content="Can I Share This?"',
