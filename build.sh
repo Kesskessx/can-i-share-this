@@ -47,6 +47,7 @@ python3 scripts/apply_brand_favicon.py
 python3 scripts/apply_vercel_analytics.py
 python3 scripts/ensure_indexable_robots.py
 python3 scripts/apply_seo_registry.py
+python3 scripts/apply_capability_strip.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
