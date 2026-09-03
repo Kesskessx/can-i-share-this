@@ -95,13 +95,7 @@ HELPERS = r'''
 OBSERVER = r'''
 <script id="cist-universal-result-v12-observer">
 (function(){
-  var card=document.getElementById('result-card');if(!card)return;var queued=false;
-  new MutationObserver(function(records){
-    if(queued||!window.cistUniversalResultData)return;
-    var relevant=records.some(function(m){var el=m.target&&m.target.nodeType===1?m.target:(m.target&&m.target.parentElement);return !(el&&el.closest&&(el.closest('#universal-summary')||el.closest('#link-type-card')))});
-    if(!relevant)return;
-    queued=true;queueMicrotask(function(){queued=false;cistUpdateUniversalSummary()});
-  }).observe(card,{subtree:true,childList:true,attributes:true,characterData:true});
+  document.addEventListener('cist:result-updated',function(){if(window.cistUniversalResultData)cistUpdateUniversalSummary()});
 })();
 </script>
 '''
@@ -147,7 +141,7 @@ def main() -> None:
         'This link changes destination', "route.hosts.join(' → ')",
         'Unexpected software can harm your device.', 'Compressed files can hide other files inside.',
         'Short links hide the real website until they are followed.',
-        "el.closest('#universal-summary')||el.closest('#link-type-card')",
+        "document.addEventListener('cist:result-updated'",
         'renderSensitiveCategory(data);renderUniversalResult(data);',
         "value:'No known threat found'", 'Nothing dangerous was reported by the known threat lists checked.'
     ]

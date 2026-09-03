@@ -87,9 +87,7 @@ OBSERVER = r'''
 <script id="cist-sensitive-v11-observer">
 (function(){
   var card=document.getElementById('result-card');if(!card)return;
-  var scheduled=false;
-  var observer=new MutationObserver(function(){if(scheduled)return;scheduled=true;queueMicrotask(function(){scheduled=false;if(window.cistSensitiveCategoryCurrent)cistApplySensitiveFinal()})});
-  observer.observe(card,{subtree:true,childList:true,attributes:true,characterData:true});
+  document.addEventListener('cist:result-updated',function(){if(window.cistSensitiveCategoryCurrent)cistApplySensitiveFinal()});
 })();
 </script>
 '''

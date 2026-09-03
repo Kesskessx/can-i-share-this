@@ -189,13 +189,7 @@ SCRIPT = r'''
     if(emailMode()){syncEmailUniversalSummary();renderEmailRisk();emailAction()}else{renderUrlRisk();urlAction()}
   }
 
-  var queued=false;
-  new MutationObserver(function(records){
-    if(queued)return;
-    var relevant=records.some(function(m){var el=m.target&&m.target.nodeType===1?m.target:(m.target&&m.target.parentElement);return !(el&&el.closest&&(el.closest('#recommended-action')||el.closest('#risk-breakdown')||el.closest('#universal-summary')))});
-    if(!relevant)return;queued=true;queueMicrotask(function(){queued=false;update()});
-  }).observe(card,{subtree:true,childList:true,attributes:true,characterData:true});
-  if(universal)new MutationObserver(function(){if(emailMode())queueMicrotask(syncEmailUniversalSummary)}).observe(universal,{subtree:true,childList:true,attributes:true,characterData:true});
+  document.addEventListener('cist:result-updated',update);
   input.addEventListener('input',function(){panel.classList.add('hidden');riskPanel.classList.add('hidden')});
   update();
 })();
@@ -238,7 +232,7 @@ def main() -> None:
         'Address signals', 'Mail delivery', 'Authentication', 'Domain age',
         'Known threat reported', 'No known threat reported', 'Redirects to another website', 'Very new domain',
         'Email address', 'Mailbox and sender domain', 'Sender domain',
-        "el.closest('#recommended-action')||el.closest('#risk-breakdown')||el.closest('#universal-summary')",
+        "document.addEventListener('cist:result-updated',update)",
     ]
     for token in required:
         if token not in source:
