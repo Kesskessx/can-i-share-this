@@ -17,8 +17,8 @@ def main() -> None:
         raise RuntimeError('Homepage not found')
 
     source = HOME.read_text(encoding='utf-8')
-    old = '<h1 id="page-title">Is this link safe?</h1>'
-    new = '<h1 id="page-title">Is this link <span class="hero-safe">safe?</span></h1>'
+    old = '<h1 id="page-title">Check anything before you trust it</h1>'
+    new = '<h1 id="page-title">Check anything before you <span class="hero-safe">trust it</span></h1>'
 
     if old not in source:
         if new in source and 'id="cist-homepage-brand-accent"' in source:
@@ -30,14 +30,14 @@ def main() -> None:
     source = source.replace('</head>', STYLE + '\n</head>', 1)
 
     if source.count('class="hero-safe"') != 1:
-        raise RuntimeError('Expected exactly one safe accent in homepage H1')
-    if '<p class="eyebrow">Scam · Phishing · Malware Link Checker</p>' not in source:
-        raise RuntimeError('Homepage eyebrow must remain unchanged')
-    if 'Paste a suspicious link. Check for scams, phishing, malware, malicious downloads and dangerous redirects before you open it.' not in source:
-        raise RuntimeError('Homepage description must remain unchanged')
+        raise RuntimeError('Expected exactly one accent in homepage H1')
+    if '<p class="eyebrow">Links · QR · Email · Scam Safety</p>' not in source:
+        raise RuntimeError('Homepage universal-safety eyebrow must remain unchanged')
+    if 'Can I Share This? is an independent online safety checker for suspicious links, QR codes, email addresses, downloads and shortened URLs.' not in source:
+        raise RuntimeError('Homepage entity description must remain unchanged')
 
     HOME.write_text(source, encoding='utf-8')
-    print('Applied homepage safe word accent')
+    print('Applied homepage trust-word accent')
 
 
 if __name__ == '__main__':
