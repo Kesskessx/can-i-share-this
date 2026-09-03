@@ -39,10 +39,12 @@ FOOTER = r'''<footer class="site-footer">
     <nav class="footer-resources" aria-label="Safety resources">
       <h2 class="footer-label">Safety resources</h2>
       <div class="footer-resource-links">
-        <a href="/scam-checker">Scam Checker</a><i aria-hidden="true">·</i>
+        <a href="/safe-link-checker">Safe link</a><i aria-hidden="true">·</i>
+        <a href="/google-drive-link-checker">Google Drive</a><i aria-hidden="true">·</i>
+        <a href="/dropbox-link-checker">Dropbox</a><i aria-hidden="true">·</i>
+        <a href="/scam-prevention">Scam Prevention</a><i aria-hidden="true">·</i>
         <a href="/supported-checks">Supported Checks</a><i aria-hidden="true">·</i>
         <a href="/scan-examples">Examples</a><i aria-hidden="true">·</i>
-        <a href="/methodology">Methodology</a><i aria-hidden="true">·</i>
         <a href="/security">Security</a><i aria-hidden="true">·</i>
         <a href="/about">About</a>
       </div>
@@ -84,10 +86,12 @@ def main() -> None:
         'class="site-footer"',
         'class="footer-resources"',
         'Safety resources',
-        'Scam Checker',
+        'Safe link',
+        'Google Drive',
+        'Dropbox',
+        'Scam Prevention',
         'Supported Checks',
         'Examples',
-        'Methodology',
         'Security',
         'About',
         'Privacy-first · No signup',
