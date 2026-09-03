@@ -107,8 +107,10 @@ jobs:
           grep -q 'id="paste"' dist/index.html
           grep -q 'Paste &amp; check' dist/index.html
           grep -q '>Check link</button>' dist/index.html
-          grep -q 'One click runs the full check.' dist/index.html
-          grep -q 'deepConfirm.click()' dist/index.html
+          grep -q 'Quick check first.' dist/index.html
+          grep -q 'runs only after you choose it and confirm' dist/index.html
+          grep -q 'AbortController' dist/index.html
+          ! grep -q 'deepConfirm.click()' dist/index.html
           grep -q 'What should I do?' dist/index.html
           grep -q 'Share result' dist/index.html
           grep -q 'id="universal-summary"' dist/index.html
