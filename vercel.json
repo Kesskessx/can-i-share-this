@@ -3,6 +3,14 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {"source": "/suspicious-text-message-link", "destination": "/sms-link-checker", "permanent": true},
+    {"source": "/is-this-email-safe", "destination": "/email-safety-checker", "permanent": true},
+    {"source": "/check-google-drive-link", "destination": "/google-drive-link-checker", "permanent": true},
+    {"source": "/google-drive-share-link-test", "destination": "/google-drive-link-checker", "permanent": true},
+    {"source": "/check-dropbox-link", "destination": "/dropbox-link-checker", "permanent": true},
+    {"source": "/will-my-dropbox-link-work", "destination": "/dropbox-link-checker", "permanent": true}
+  ],
   "headers": [
     {"source": "/(.*)", "headers": [
       {"key": "X-Content-Type-Options", "value": "nosniff"},

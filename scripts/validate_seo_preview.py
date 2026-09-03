@@ -104,12 +104,12 @@ def validate_manifest() -> list[dict]:
         fail(f"SEO route manifest is invalid JSON: {exc}")
         return []
 
-    routes = data.get("routes")
+    routes = [route for route in data.get("routes", []) if route.get("generator") == "priority"]
     if not isinstance(routes, list):
         fail("Manifest routes must be a list")
         return []
-    if len(routes) != 10:
-        fail(f"Expected exactly 10 priority SEO routes, found {len(routes)}")
+    if len(routes) != 9:
+        fail(f"Expected exactly 9 consolidated priority SEO routes, found {len(routes)}")
 
     for key in ("path", "title", "description", "h1"):
         vals = [r.get(key) for r in routes if isinstance(r, dict)]
@@ -129,8 +129,8 @@ def validate_manifest() -> list[dict]:
             if not str(route.get(field, "")).strip():
                 fail(f"Missing {field} for {path}")
 
-    if data.get("status") != "prepared-not-deployed":
-        warn("Manifest status is no longer 'prepared-not-deployed'; verify deployment gate manually")
+    if data.get("canonicalHost") != "https://canisharethis.com":
+        fail("Manifest canonicalHost is not the production origin")
     return routes
 
 

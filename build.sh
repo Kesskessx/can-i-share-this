@@ -3,7 +3,7 @@ set -euo pipefail
 rm -rf dist
 mkdir -p dist
 cat chunks/site.part* | base64 -d > /tmp/cist-site.tgz
-tar -xzf /tmp/cist-site.tgz -C dist
+tar --no-same-owner -xzf /tmp/cist-site.tgz -C dist
 python3 scripts/generate_priority_pages.py
 python3 scripts/enable_indexing.py
 python3 scripts/apply_seo_architecture.py
@@ -39,12 +39,15 @@ python3 scripts/apply_sensitive_category_v11.py
 python3 scripts/apply_universal_result_v12.py
 python3 scripts/apply_recommended_action_v13.py
 python3 scripts/apply_benchmark_upgrades_v16.py
+python3 scripts/generate_context_checker_pages.py
 python3 scripts/apply_readability_v1.py
 python3 scripts/apply_wordmark_logo.py
 python3 scripts/apply_homepage_brand_accent.py
 python3 scripts/apply_brand_favicon.py
 python3 scripts/apply_vercel_analytics.py
 python3 scripts/ensure_indexable_robots.py
+python3 scripts/apply_seo_registry.py
+python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
 if [[ ! "$INDEXNOW_KEY" =~ ^[A-Za-z0-9-]{8,128}$ ]]; then

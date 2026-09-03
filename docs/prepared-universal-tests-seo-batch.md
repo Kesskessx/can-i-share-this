@@ -52,7 +52,7 @@ The pages are stored as full content specifications in `scripts/generate_context
 | `/qr-code-scam-checker` | qr code scam checker | decoded QR destinations and QR-payment scams |
 | `/download-link-checker` | download link checker | file type, software/archive and download context |
 | `/short-link-checker` | short link checker | shortener detection and final-destination verification |
-| `/is-this-email-safe` | is this email safe | sender-address/domain signals, distinct from URL checking |
+| `/email-safety-checker` | is this email safe | enriches the existing sender-address hub instead of creating a competing page |
 | `/gambling-link-safety` | gambling link safety | separates technical threats from gambling/licensing context |
 | `/crypto-scam-link-checker` | crypto scam link checker | crypto/investment links, wallet and payment caution |
 

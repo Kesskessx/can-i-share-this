@@ -51,7 +51,7 @@ LINK_GUIDE_FILES = {
     'how-to-tell-if-a-link-is-phishing.html',
     'how-to-check-a-link-without-clicking-it.html',
     'is-a-bitly-link-safe.html',
-    'suspicious-text-message-link.html',
+    'sms-link-checker.html',
     'fake-package-delivery-link.html',
     'how-to-check-a-qr-code-before-opening.html',
 }

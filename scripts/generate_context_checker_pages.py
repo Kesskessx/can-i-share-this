@@ -169,7 +169,7 @@ PAGES = [{'path': '/sms-link-checker',
                'https://www.cisa.gov/sites/default/files/publications/AA22-047A%20Russian%20State-Sponsored%20Cyber%20Actors%20Target%20CDC%20Networks.pdf'),
               ('CISA — Technical Trends in Phishing Attacks',
                'https://www.cisa.gov/sites/default/files/publications/phishing_trends0511.pdf')]},
- {'path': '/is-this-email-safe',
+ {'path': '/email-safety-checker',
   'keyword': 'is this email safe',
   'title': 'Is This Email Safe? Check a Sender Address for Warning Signs',
   'description': 'Check an email address for domain and mail-security warning signs, including MX, SPF, DMARC, domain age and possible lookalike patterns.',
@@ -194,10 +194,10 @@ PAGES = [{'path': '/sms-link-checker',
             'Not reliably without interacting with the mail provider, which can be inaccurate and privacy-invasive. The checker focuses on domain-level signals.'),
            ('Does the email checker send my address to Google Web Risk?',
             'No. The email path uses email and domain checks rather than sending the email address to the URL threat-list service.')],
-  'related': ['/email-safety-checker',
-              '/fake-email-address-signs',
+  'related': ['/fake-email-address-signs',
               '/spf-dmarc-email-security',
-              '/account-verification-scam'],
+              '/account-verification-scam',
+              '/phishing-url-signals'],
   'sources': [('FTC — How To Recognize and Avoid Phishing Scams',
                'https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams'),
               ('FTC — Protect yourself from phishing scams',
@@ -264,10 +264,61 @@ PAGES = [{'path': '/sms-link-checker',
               ('FTC — 2026 investment scam warning',
                'https://consumer.ftc.gov/consumer-alerts/2026/04/people-losing-big-investment-scams-learn-how-spot-and-avoid-them')]}]
 
+EXAMPLES = {
+    "/sms-link-checker": {
+        "fixture": "redirect-cross-domain",
+        "rows": [("Detected type", "Website"), ("Redirect", "Cross-domain"),
+                 ("Final destination", "destination.example"), ("Safety state", "Context warning")],
+        "note": "The fixture shows why a message link must be judged by its final domain, not only by the URL visible in the text.",
+    },
+    "/whatsapp-link-checker": {
+        "fixture": "short-bitly",
+        "rows": [("Detected type", "Shortened link"), ("Shortener", "bit.ly"),
+                 ("Final destination", "Unknown until resolved"), ("Safety state", "Context warning")],
+        "note": "The scanner does not treat the shortener itself as malicious; it asks the user to inspect the resolved destination.",
+    },
+    "/qr-code-scam-checker": {
+        "fixture": "threat-phishing-official",
+        "rows": [("Detected type", "Website"), ("Threat fixture", "Social engineering"),
+                 ("Reputation state", "Known dangerous"), ("Recommended action", "Do not continue")],
+        "note": "This uses Google's official Safe Browsing phishing test URL, not a live malicious page or a user-submitted scan.",
+    },
+    "/download-link-checker": {
+        "fixture": "file-exe",
+        "rows": [("Detected type", "Software or app file"), ("Format", "EXE"),
+                 ("Destination", "files.example"), ("Safety state", "Context warning")],
+        "note": "The scanner recognizes the executable context. It does not claim to inspect or certify the downloaded file's bytes.",
+    },
+    "/short-link-checker": {
+        "fixture": "short-tco",
+        "rows": [("Detected type", "Shortened link"), ("Shortener", "t.co"),
+                 ("Final destination", "Unknown until resolved"), ("Safety state", "Context warning")],
+        "note": "A shortened URL remains unresolved until the redirect check identifies the final public destination.",
+    },
+    "/email-safety-checker": {
+        "fixture": "email-lookalike-synthetic",
+        "rows": [("Detected type", "Email address"), ("Domain", "paypai.example"),
+                 ("Lookalike signal", "PayPal"), ("Safety state", "Context warning")],
+        "note": "The reserved .example address exercises the lookalike detector without checking a real person's mailbox.",
+    },
+    "/gambling-link-safety": {
+        "fixture": "category-gambling-gamdom",
+        "rows": [("Detected type", "Gambling / betting website"), ("Destination", "gamdom.com"),
+                 ("Content notice", "Gambling or betting"), ("Safety state", "Context warning")],
+        "note": "The notice describes content and financial context. It is not a malware verdict or a licensing decision.",
+    },
+    "/crypto-scam-link-checker": {
+        "fixture": "category-crypto-coinbase",
+        "rows": [("Detected type", "Crypto / financial website"), ("Destination", "coinbase.com"),
+                 ("Technical threat", "No claim made by this fixture"), ("Safety state", "Context warning")],
+        "note": "The fixture proves category detection only. A crypto label is not evidence that the website is fraudulent.",
+    },
+}
+
 STYLE = r"""
 <style>
 :root{--bg:#0b0d12;--card:#11151d;--soft:#171c26;--text:#f5f7fb;--muted:#a7b0c0;--line:#252b37;--accent:#8ea2ff;--green:#69d6a3;--amber:#f0bf66}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.65}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}header{border-bottom:1px solid var(--line);background:rgba(11,13,18,.94);position:sticky;top:0;z-index:5}.nav{max-width:1000px;margin:auto;padding:14px 22px;display:flex;justify-content:space-between;gap:16px;align-items:center}.brand{font-weight:900;color:var(--text)}.button{display:inline-block;padding:9px 12px;border-radius:10px;background:var(--accent);color:#0a0c12;font-weight:900}.button:hover{text-decoration:none;filter:brightness(1.04)}main{max-width:820px;margin:auto;padding:38px 22px 72px}.crumbs{font-size:12px;color:var(--muted);margin-bottom:22px}.kicker{display:inline-block;color:var(--accent);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.09em}h1{font-size:clamp(32px,5vw,52px);line-height:1.04;margin:9px 0 15px;letter-spacing:-.035em}h2{font-size:22px;line-height:1.2;margin:0 0 10px}h3{font-size:16px;line-height:1.3;margin:0 0 5px}p{margin:0 0 14px}.answer{margin:20px 0;padding:18px 19px;border:1px solid color-mix(in srgb,var(--accent) 38%,var(--line));border-radius:16px;background:color-mix(in srgb,var(--accent) 7%,var(--card));font-size:16px}.answer strong{display:block;margin-bottom:5px;color:var(--accent);font-size:11px;letter-spacing:.08em;text-transform:uppercase}.card{margin-top:16px;padding:19px;border:1px solid var(--line);border-radius:16px;background:var(--card)}.check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.check{padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}.check p{font-size:13px;color:var(--muted);margin:0}ul{margin:8px 0 0;padding-left:21px}li+li{margin-top:7px}.limits{border-color:color-mix(in srgb,var(--amber) 32%,var(--line));background:color-mix(in srgb,var(--amber) 5%,var(--card))}.limits strong{color:var(--amber)}.faq details{padding:13px 0;border-top:1px solid var(--line)}.faq details:first-of-type{border-top:0}.faq summary{cursor:pointer;font-weight:850}.faq p{margin:8px 0 0;color:var(--muted)}.related{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.related a{padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--soft);font-size:12px;font-weight:800}.sources{font-size:12px;color:var(--muted)}.cta{margin-top:24px;padding:22px;border-radius:18px;border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,var(--card)),var(--card))}.updated{margin-top:24px;color:var(--muted);font-size:11px}footer{border-top:1px solid var(--line);padding:28px 22px;color:var(--muted);text-align:center;font-size:12px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.65}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}header{border-bottom:1px solid var(--line);background:rgba(11,13,18,.94);position:sticky;top:0;z-index:5}.nav{max-width:1000px;margin:auto;padding:14px 22px;display:flex;justify-content:space-between;gap:16px;align-items:center}.brand{font-weight:900;color:var(--text)}.button{display:inline-block;padding:9px 12px;border-radius:10px;background:var(--accent);color:#0a0c12;font-weight:900}.button:hover{text-decoration:none;filter:brightness(1.04)}main{max-width:820px;margin:auto;padding:38px 22px 72px}.crumbs{font-size:12px;color:var(--muted);margin-bottom:22px}.kicker{display:inline-block;color:var(--accent);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.09em}h1{font-size:clamp(32px,5vw,52px);line-height:1.04;margin:9px 0 15px;letter-spacing:-.035em}h2{font-size:22px;line-height:1.2;margin:0 0 10px}h3{font-size:16px;line-height:1.3;margin:0 0 5px}p{margin:0 0 14px}.answer{margin:20px 0;padding:18px 19px;border:1px solid color-mix(in srgb,var(--accent) 38%,var(--line));border-radius:16px;background:color-mix(in srgb,var(--accent) 7%,var(--card));font-size:16px}.answer strong{display:block;margin-bottom:5px;color:var(--accent);font-size:11px;letter-spacing:.08em;text-transform:uppercase}.card{margin-top:16px;padding:19px;border:1px solid var(--line);border-radius:16px;background:var(--card)}.check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.check{padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}.check p{font-size:13px;color:var(--muted);margin:0}ul{margin:8px 0 0;padding-left:21px}li+li{margin-top:7px}.sample-grid{display:grid;grid-template-columns:minmax(130px,.7fr) 1.3fr;margin:14px 0 10px;border:1px solid var(--line);border-radius:13px;overflow:hidden}.sample-grid dt,.sample-grid dd{margin:0;padding:10px 12px;border-bottom:1px solid var(--line)}.sample-grid dt{font-weight:850;background:var(--soft)}.sample-grid dd{color:var(--muted)}.sample-note{color:var(--muted);font-size:13px}.limits{border-color:color-mix(in srgb,var(--amber) 32%,var(--line));background:color-mix(in srgb,var(--amber) 5%,var(--card))}.limits strong{color:var(--amber)}.faq details{padding:13px 0;border-top:1px solid var(--line)}.faq details:first-of-type{border-top:0}.faq summary{cursor:pointer;font-weight:850}.faq p{margin:8px 0 0;color:var(--muted)}.related{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.related a{padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:var(--soft);font-size:12px;font-weight:800}.sources{font-size:12px;color:var(--muted)}.cta{margin-top:24px;padding:22px;border-radius:18px;border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,var(--card)),var(--card))}.updated{margin-top:24px;color:var(--muted);font-size:11px}footer{border-top:1px solid var(--line);padding:28px 22px;color:var(--muted);text-align:center;font-size:12px}
 @media(max-width:650px){.nav{padding:12px 16px}main{padding:30px 16px 60px}.check-grid,.related{grid-template-columns:1fr}h1{font-size:36px}}
 </style>
 """
@@ -368,6 +419,11 @@ def render(page: dict) -> str:
         f'<li><a href="{esc(url, True)}" target="_blank" rel="noopener noreferrer">{esc(label)}</a></li>'
         for label, url in page["sources"]
     )
+    example = EXAMPLES[page["path"]]
+    example_rows = "".join(
+        f"<dt>{esc(label)}</dt><dd>{esc(value)}</dd>"
+        for label, value in example["rows"]
+    )
     return f"""<!doctype html>
 <html lang="en" data-page-batch="context-seo-v1">
 <head>{common_head(page)}{STYLE}</head>
@@ -387,6 +443,13 @@ def render(page: dict) -> str:
 <section class="card">
 <h2>What Can I Share This? checks</h2>
 <div class="check-grid">{checks}</div>
+</section>
+
+<section class="card" data-regression-fixture="{esc(example['fixture'], True)}">
+<h2>Example scanner output</h2>
+<p>This documented regression fixture shows the same classifications used by the Universal Safety Checker.</p>
+<dl class="sample-grid">{example_rows}</dl>
+<p class="sample-note">{esc(example['note'])}</p>
 </section>
 
 <section class="card limits">
@@ -456,6 +519,8 @@ def validate_page_data() -> None:
             raise RuntimeError(f"Description length out of range for {path}: {len(page['description'])}")
         if len(page["faqs"]) < 4 or len(page["checks"]) < 4 or len(page["safe_steps"]) < 4:
             raise RuntimeError(f"Thin page data for {path}")
+        if path not in EXAMPLES or len(EXAMPLES[path].get("rows", [])) < 4:
+            raise RuntimeError(f"Missing documented scanner example for {path}")
         if len(set(page["related"])) != len(page["related"]):
             raise RuntimeError(f"Duplicate related link in {path}")
 

@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const ROOT = path.resolve(__dirname, '..');
 const MATRIX_PATH = path.join(ROOT, 'tests', 'universal_safety_matrix.json');
@@ -65,7 +66,8 @@ function fixtureMeta(fixture) {
 const matrix = JSON.parse(fs.readFileSync(MATRIX_PATH, 'utf8'));
 const html = fs.readFileSync(HOME_PATH, 'utf8');
 
-global.input = { value: '' };
+const sandbox = { input: { value: '' }, URL };
+vm.createContext(sandbox);
 
 const functionNames = [
   'cistSensitiveHost',
@@ -75,9 +77,7 @@ const functionNames = [
   'cistLinkType',
 ];
 
-for (const name of functionNames) {
-  eval(extractFunction(html, name));
-}
+vm.runInContext(functionNames.map((name) => extractFunction(html, name)).join('\n'), sandbox);
 
 let checked = 0;
 let skipped = 0;
@@ -89,7 +89,7 @@ for (const test of matrix.cases) {
     continue;
   }
 
-  global.input.value = test.input;
+  sandbox.input.value = test.input;
   const fixture = test.fixture || {};
   const finalUrl = fixture.final_url || test.input;
   const data = {
@@ -99,8 +99,8 @@ for (const test of matrix.cases) {
     ...fixtureMeta(fixture),
   };
 
-  const base = cistLinkType(data);
-  const sensitive = cistSensitiveCategory(data);
+  const base = sandbox.cistLinkType(data);
+  const sensitive = sandbox.cistSensitiveCategory(data);
   const effectiveContent = sensitive ? sensitive.typeLabel : base.label;
   const effectivePlatform = sensitive ? '' : (base.platform || '');
 

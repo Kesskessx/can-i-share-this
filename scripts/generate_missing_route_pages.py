@@ -22,7 +22,7 @@ STYLE = r'''
 
 PAGES = {
     "/privacy": {
-        "title": "Privacy — Can I Share This?",
+        "title": "Privacy and Data Handling — Can I Share This?",
         "description": "How Can I Share This? handles link checks, email checks, analytics and optional external reputation lookups.",
         "eyebrow": "Privacy",
         "h1": "Privacy by design, with clear limits",

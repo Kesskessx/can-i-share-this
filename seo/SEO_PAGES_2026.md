@@ -264,57 +264,11 @@ The goal is to evaluate link accessibility signals, not to require access to con
 
 ---
 
-# 5. /google-drive-share-link-test
+# Merged route: /google-drive-share-link-test
 
-**Title:** Test a Google Drive Share Link Before Sending It
-
-**Meta description:** Test the exact Google Drive share URL your recipient will receive. Catch sign-in, permission, and access problems before you send the message.
-
-**H1:** Test Your Google Drive Share Link
-
-**Primary query:** test google drive share link
-
-## Above-the-fold answer
-
-The best time to discover a broken share link is before it reaches the recipient. Paste the exact Google Drive URL you plan to send and check whether it appears reachable without your logged-in browser session.
-
-## Main copy
-
-### Test the final URL, not an earlier draft
-
-Sharing settings can change while you prepare a document. Always test the link after the final permission change and use the same URL you will paste into the email, message, proposal, invoice, or support ticket.
-
-### Recipient access is the real test
-
-Opening a document successfully as its owner proves very little about external access. A pre-share check should focus on the experience of a recipient who does not possess your Google cookies, session, or owner privileges.
-
-### Use the verdict as a pre-send gate
-
-A clear pre-send routine can prevent friction: copy final link, test, inspect permission or login warnings, correct the sharing setting if needed, then send. For high-value files, also manually verify the target account and confidentiality level.
-
-### Do not confuse access with privacy
-
-A link can be reachable and still be inappropriate to share publicly. Before sending, confirm both questions: can the intended person open it, and is the chosen access level acceptable for the information inside?
-
-## FAQ
-
-### Should I test every Drive link?
-It is especially useful for external recipients, clients, application documents, invoices, proposals, shared folders, and files sent outside a Workspace domain.
-
-### Does testing change the file?
-A link check should not modify the underlying document or its permission settings.
-
-### What if the recipient still cannot open it?
-Their account or organization context may differ. Confirm the exact Google account they are using and review account-specific sharing restrictions.
-
-### Can I use this before sending a link in email?
-Yes. The intended workflow is to validate the URL before it is sent.
-
-## Internal links
-
-- `/google-drive-link-checker`
-- `/google-drive-link-not-working`
-- `/privacy-link-checker`
+This URL permanently redirects to `/google-drive-link-checker`. Both pages
+targeted the same pre-send Google Drive test, so their content and internal
+links are consolidated on the canonical hub.
 
 ---
 
@@ -626,7 +580,7 @@ Homepage should prominently link to:
 - `/google-drive-permission-checker`
 - `/google-drive-link-not-working`
 - `/google-drive-folder-sharing-checker`
-- `/google-drive-share-link-test`
+- `/check-google-drive-link-without-signing-in`
 
 Each supporting page should link back to the hub and to 1–2 contextually relevant sibling pages.
 

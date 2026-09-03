@@ -2,8 +2,8 @@
 """Post-process the built static site for production SEO architecture.
 
 This script is intentionally idempotent: every build can run it safely.
-It strengthens internal linking, differentiates legacy quick-check routes from
-SEO hubs, and adds lightweight structured data to legacy/static pages.
+It strengthens internal linking around canonical hubs and adds lightweight
+structured data to older static pages.
 """
 
 from __future__ import annotations
@@ -25,36 +25,30 @@ PRIORITY_LINKS = [
 
 CLUSTERS = {
     "/google-drive-link-checker": [
-        ("/check-google-drive-link", "Run the quick Google Drive link check"),
         ("/google-drive-permission-checker", "Check Google Drive permissions"),
         ("/google-drive-link-not-working", "Diagnose a Drive link that does not work"),
         ("/google-drive-folder-sharing-checker", "Test a shared Drive folder"),
-        ("/google-drive-share-link-test", "Test the final Drive share URL"),
+        ("/check-google-drive-link-without-signing-in", "Test Drive access without signing in"),
         ("/drive-vs-dropbox-share-link-checker", "Compare Drive and Dropbox sharing"),
     ],
     "/google-drive-permission-checker": [
         ("/google-drive-link-checker", "Google Drive Link Checker hub"),
         ("/google-drive-link-not-working", "Why a Drive link does not work"),
         ("/google-drive-folder-sharing-checker", "Check Drive folder sharing"),
-        ("/google-drive-share-link-test", "Test the final Drive share URL"),
+        ("/check-google-drive-link-without-signing-in", "Test Drive access without signing in"),
     ],
     "/google-drive-link-not-working": [
         ("/google-drive-link-checker", "Google Drive Link Checker hub"),
         ("/google-drive-permission-checker", "Check Google Drive permissions"),
-        ("/google-drive-share-link-test", "Test the final Drive share URL"),
+        ("/google-drive-link-request-access", "Fix a request-access screen"),
     ],
     "/google-drive-folder-sharing-checker": [
         ("/google-drive-link-checker", "Google Drive Link Checker hub"),
         ("/google-drive-permission-checker", "Check Google Drive permissions"),
-        ("/google-drive-share-link-test", "Test the final Drive share URL"),
-    ],
-    "/google-drive-share-link-test": [
-        ("/google-drive-link-checker", "Google Drive Link Checker hub"),
-        ("/google-drive-permission-checker", "Check Google Drive permissions"),
-        ("/google-drive-link-not-working", "Diagnose a Drive link that does not work"),
+        ("/google-drive-anyone-with-the-link-vs-restricted", "Compare public and restricted access"),
     ],
     "/dropbox-link-checker": [
-        ("/check-dropbox-link", "Run the quick Dropbox link check"),
+        ("/check-dropbox-link-without-account", "Test Dropbox access without an account"),
         ("/dropbox-permission-checker", "Check Dropbox permissions"),
         ("/dropbox-shared-link-not-working", "Diagnose a Dropbox link that does not work"),
         ("/dropbox-link-expiration-checker", "Check Dropbox link expiration"),
@@ -83,32 +77,15 @@ CLUSTERS = {
     ],
 }
 
-LEGACY_TOOLS = {
-    "/check-google-drive-link": {
-        "title": "Quick Google Drive Link Test — Check Access Now | Can I Share This?",
-        "description": "Paste a Google Drive URL for a fast recipient-access check. For detailed permission guidance, use the full Google Drive Link Checker guide.",
-        "h1": "Run a Quick Google Drive Link Test",
-        "hub": "/google-drive-link-checker",
-        "hub_label": "Read the full Google Drive Link Checker guide",
-        "copy": "Use this page when you already have a Drive URL and want to run the checker immediately. For troubleshooting permissions, sign-in walls, Workspace restrictions and recipient access, the detailed Google Drive Link Checker guide explains what each result means and what to change before sharing.",
-    },
-    "/check-dropbox-link": {
-        "title": "Quick Dropbox Link Test — Check Access Now | Can I Share This?",
-        "description": "Paste a Dropbox shared URL for a fast recipient-access check. For detailed sharing and expiration guidance, use the full Dropbox Link Checker guide.",
-        "h1": "Run a Quick Dropbox Link Test",
-        "hub": "/dropbox-link-checker",
-        "hub_label": "Read the full Dropbox Link Checker guide",
-        "copy": "Use this page when you already have a Dropbox URL and want a quick access verdict. For deeper help with login barriers, permissions, disabled links and expiration risk, the detailed Dropbox Link Checker guide explains the recipient-facing signals to review before sending.",
-    },
-}
+LEGACY_TOOLS: dict[str, dict] = {}
 
 SECONDARY_PAGES = {
     "/check-notion-link": (
-        "Before sending a Notion page, test the exact public or shared URL rather than relying on your signed-in workspace view. A recipient may see a login prompt or a restricted page even when the link opens normally for you.",
+        "Before sending a Notion page, test the exact public or shared URL rather than relying on your signed-in workspace view. A recipient may see a login prompt or a restricted page even when the link opens normally for you. Confirm that publishing is enabled for the page and any linked databases or subpages the recipient needs. Re-test after changing access because an older copied URL may not represent the final sharing state.",
         [("/recipient-access-checker", "Learn how recipient-access checking works"), ("/privacy-link-checker", "Review privacy signals before sharing")],
     ),
     "/check-onedrive-link": (
-        "OneDrive and SharePoint links can behave differently for owners, organization members and external recipients. Test the final URL after changing sharing permissions so the result reflects the link you will actually send.",
+        "OneDrive and SharePoint links can behave differently for owners, organization members and external recipients. Test the final URL after changing sharing permissions so the result reflects the link you will actually send. Check whether the organization blocks external guests, requires a named Microsoft account or applies an expiry date. A successful test shows current public behavior; it cannot reproduce every recipient's account, tenant policy or device state.",
         [("/recipient-access-checker", "Learn how recipient-access checking works"), ("/privacy-link-checker", "Review privacy signals before sharing")],
     ),
     "/remove-tracking-from-url": (
@@ -119,6 +96,11 @@ SECONDARY_PAGES = {
         "Some shared links can expire because of platform settings, temporary tokens or account policies. An expiration check is a risk signal rather than a guarantee, so important links should be re-tested close to the time they are sent.",
         [("/dropbox-link-expiration-checker", "Check Dropbox link expiration"), ("/recipient-access-checker", "Test whether a recipient can open the link now")],
     ),
+}
+
+SECONDARY_DESCRIPTIONS = {
+    "/check-notion-link": "Check whether a Notion page appears public to a signed-out recipient. Review publishing, login barriers, redirects and sharing limits before sending the URL.",
+    "/check-onedrive-link": "Check whether a OneDrive or SharePoint link appears accessible to an external recipient and review login, organization and expiration barriers before sending.",
 }
 
 
@@ -295,6 +277,8 @@ def patch_secondary_pages() -> None:
         if not path:
             continue
         source = path.read_text(encoding="utf-8", errors="replace")
+        if route in SECONDARY_DESCRIPTIONS:
+            source = upsert_meta_description(source, SECONDARY_DESCRIPTIONS[route])
         marker = f'id="seo-context-{route.strip("/")}"'
         if marker not in source:
             items = "".join(

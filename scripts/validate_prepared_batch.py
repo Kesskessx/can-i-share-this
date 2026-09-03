@@ -47,7 +47,7 @@ REQUIRED_ROUTES = {
     "/qr-code-scam-checker",
     "/download-link-checker",
     "/short-link-checker",
-    "/is-this-email-safe",
+    "/email-safety-checker",
     "/gambling-link-safety",
     "/crypto-scam-link-checker",
 }
