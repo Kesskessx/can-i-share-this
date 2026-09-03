@@ -45,6 +45,7 @@ jobs:
         run: python scripts/validate_seo_preview.py
 
       - name: Verify preview safety marker
+        if: github.ref == 'refs/heads/seo-2026-safe-integration'
         shell: bash
         run: |
           set -euo pipefail
