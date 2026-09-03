@@ -103,7 +103,7 @@ SCRIPT = r'''
     Array.from(risk.querySelectorAll('.risk-factor')).forEach(function(box){var top=box.querySelector('.risk-factor-top'),labelEl=box.querySelector('.risk-factor-label');if(!top||!labelEl)return;var key=String(labelEl.textContent||'').trim().toLowerCase();var symbol=top.querySelector('.risk-factor-symbol');if(!symbol){symbol=document.createElement('span');symbol.className='risk-factor-symbol';symbol.setAttribute('aria-hidden','true');top.insertBefore(symbol,top.firstChild)}setText(symbol,icons[key]||'•');var state=top.querySelector('.risk-factor-state');if(!state){state=document.createElement('span');state.className='risk-factor-state';top.appendChild(state)}var text=box.classList.contains('risk-bad')?'High risk':box.classList.contains('risk-warn')?'Review':box.classList.contains('risk-good')?'No known issue':'Info';setText(state,text)});
   }
   function update(){decorateRisk();ensureAge()}
-  var queued=false;new MutationObserver(function(records){if(queued)return;var relevant=records.some(function(m){var el=m.target&&m.target.nodeType===1?m.target:(m.target&&m.target.parentElement);return !(el&&el.closest&&(el.closest('#url-domain-age')||el.closest('[data-url-domain-age-tech]')||el.closest('.risk-factor-symbol')||el.closest('.risk-factor-state')))});if(!relevant)return;queued=true;queueMicrotask(function(){queued=false;update()})}).observe(card,{subtree:true,childList:true,attributes:true,characterData:true});
+  document.addEventListener('cist:result-updated',update);
   input.addEventListener('input',function(){lastRequested='';ageBox.classList.add('hidden');var old=techGrid&&techGrid.querySelector('[data-url-domain-age-tech]');if(old)old.remove()});
   update();
 })();

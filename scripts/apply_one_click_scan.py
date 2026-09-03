@@ -29,7 +29,6 @@ SCRIPT = r'''
     catch(err){input.focus();paste.textContent='Paste manually';setTimeout(function(){paste.textContent='Paste & check'},1200)}
     finally{paste.disabled=false;if(paste.textContent==='Pasting…')paste.textContent='Paste & check'}
   },true);
-  new MutationObserver(resetButton).observe(analyze,{subtree:true,childList:true,attributes:true,characterData:true});
   resetButton();
 })();
 </script>

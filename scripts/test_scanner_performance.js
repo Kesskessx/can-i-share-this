@@ -14,5 +14,7 @@ assert.match(homepage, /id="deep"/, 'manual deep scan control must remain availa
 assert.match(homepage, /id="deep-confirm"/, 'deep scan consent control must remain available');
 assert.doesNotMatch(homepage, /deepConfirm\.click\(\)/, 'deep scan must never start automatically');
 assert.doesNotMatch(homepage, /#deep,#consent\{display:none/, 'deep scan controls must not be hidden');
+assert.doesNotMatch(homepage, /MutationObserver/, 'homepage must not schedule DOM observer feedback loops');
+assert.match(homepage, /cist:result-updated/, 'result panels must update through an explicit event');
 
 console.log('Scanner performance and consent checks passed');
