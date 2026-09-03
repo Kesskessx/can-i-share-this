@@ -1,0 +1,17 @@
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+
+const api = fs.readFileSync('api/check.js', 'utf8');
+const homepage = fs.readFileSync('dist/index.html', 'utf8');
+
+assert.match(api, /const MAX_REDIRECTS = 3;/, 'redirect limit must stay bounded');
+assert.match(api, /const TOTAL_TIMEOUT_MS = 7000;/, 'server scan must have a total deadline');
+assert.match(api, /const DNS_TIMEOUT_MS = 1500;/, 'DNS lookup must have a deadline');
+assert.match(homepage, /AbortController/, 'browser requests must have a deadline');
+assert.match(homepage, /Quick check first\./, 'quick scan must be clearly identified');
+assert.match(homepage, /id="deep"/, 'manual deep scan control must remain available');
+assert.match(homepage, /id="deep-confirm"/, 'deep scan consent control must remain available');
+assert.doesNotMatch(homepage, /deepConfirm\.click\(\)/, 'deep scan must never start automatically');
+assert.doesNotMatch(homepage, /#deep,#consent\{display:none/, 'deep scan controls must not be hidden');
+
+console.log('Scanner performance and consent checks passed');

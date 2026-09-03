@@ -68,27 +68,21 @@ jobs:
           grep -q 'Dangerous link — do not open' dist/index.html
           grep -q "riskMeter.classList.add('hidden')" dist/index.html
 
-      - name: Validate one-click full scan
+      - name: Validate fast scan and explicit deep-scan consent
         shell: bash
         run: |
           set -euo pipefail
           grep -q 'id="cist-one-click-scan"' dist/index.html
           grep -q 'Paste &amp; check' dist/index.html
           grep -q '>Check link</button>' dist/index.html
-          grep -q 'One click runs the full check.' dist/index.html
-          grep -q 'Public links may be compared with online safety lists.' dist/index.html
-          grep -q 'deepConfirm.click()' dist/index.html
-          grep -q 'Running the full safety check' dist/index.html
-          grep -q "verdict.textContent='No known threat found'" dist/index.html
-          grep -q "value:'No known threat found'" dist/index.html
-          grep -q 'No known malware or phishing threat was reported.' dist/index.html
-          grep -q 'Known threat lists did not report this link as dangerous.' dist/index.html
-          grep -q "queueMicrotask(cistUpdateUniversalSummary)" dist/index.html
-          grep -q 'Continue only if you expected this link.' dist/index.html
-          ! grep -q 'No known danger was reported by the security services we checked.' dist/index.html
-          grep -q 'Dangerous warning signs found' dist/index.html
-          grep -q 'Extra check skipped to protect your privacy' dist/index.html
-          grep -q '#deep,#consent{display:none!important}' dist/index.html
+          grep -q 'Quick check first.' dist/index.html
+          grep -q 'runs only after you choose it and confirm' dist/index.html
+          grep -q 'AbortController' dist/index.html
+          ! grep -q 'deepConfirm.click()' dist/index.html
+          grep -q 'id="deep"' dist/index.html
+          grep -q 'id="deep-confirm"' dist/index.html
+          grep -q "fetchJson('/api/deep-check'" dist/index.html
+          ! grep -q '#deep,#consent{display:none!important}' dist/index.html
 
       - name: Validate contextual guide destinations
         shell: bash

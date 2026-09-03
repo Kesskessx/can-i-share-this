@@ -1,9 +1,11 @@
 const dns = require('node:dns').promises;
 const net = require('node:net');
 
-const MAX_REDIRECTS = 5;
+const MAX_REDIRECTS = 3;
 const MAX_HTML_BYTES = 65536;
-const TIMEOUT_MS = 8000;
+const TOTAL_TIMEOUT_MS = 7000;
+const FETCH_TIMEOUT_MS = 4500;
+const DNS_TIMEOUT_MS = 1500;
 
 const SHORTENER_HOSTS = new Set([
   'bit.ly', 'tinyurl.com', 't.co', 'rb.gy', 'rebrand.ly', 'is.gd', 'cutt.ly',
@@ -66,12 +68,35 @@ function isPrivateIp(ip) {
   return true;
 }
 
-async function resolvePublic(hostname) {
+function timeoutError(message) {
+  const error = new Error(message);
+  error.name = 'AbortError';
+  return error;
+}
+
+async function withTimeout(promise, timeoutMs, message) {
+  if (timeoutMs <= 0) throw timeoutError(message);
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => { timer = setTimeout(() => reject(timeoutError(message)), timeoutMs); })
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function resolvePublic(hostname, timeoutMs = DNS_TIMEOUT_MS) {
   const h = hostname.toLowerCase();
   if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local') || h === 'metadata.google.internal') {
     throw new Error('Private or local hosts are not allowed.');
   }
-  const records = await dns.lookup(hostname, { all: true, verbatim: true });
+  const records = await withTimeout(
+    dns.lookup(hostname, { all: true, verbatim: true }),
+    timeoutMs,
+    'DNS lookup timed out.'
+  );
   if (!records.length || records.some(r => isPrivateIp(r.address))) {
     throw new Error('Private or local network targets are not allowed.');
   }
@@ -245,13 +270,17 @@ module.exports = async function handler(req, res) {
     let response = null;
     let html = '';
     let totalMs = 0;
+    const deadline = Date.now() + TOTAL_TIMEOUT_MS;
+    const remainingMs = () => Math.max(0, deadline - Date.now());
 
     for (let i = 0; i <= MAX_REDIRECTS; i++) {
-      const addresses = await resolvePublic(current.hostname);
+      const addresses = await resolvePublic(current.hostname, Math.min(DNS_TIMEOUT_MS, remainingMs()));
       if (i === 0) firstAddresses = addresses;
       finalAddresses = addresses;
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      const requestTimeout = Math.min(FETCH_TIMEOUT_MS, remainingMs());
+      if (requestTimeout <= 0) throw timeoutError('Destination timed out.');
+      const timer = setTimeout(() => controller.abort(), requestTimeout);
       const started = Date.now();
       try {
         response = await fetch(current, {
@@ -262,20 +291,22 @@ module.exports = async function handler(req, res) {
             'accept-language': 'en-US,en;q=0.8'
           }
         });
-      } finally { clearTimeout(timer); }
-      const elapsed = Date.now() - started;
-      totalMs += elapsed;
-      const loc = response.headers.get('location');
-      if (loc && [301, 302, 303, 307, 308].includes(response.status)) {
-        if (i === MAX_REDIRECTS) throw new Error('Too many redirects.');
-        const next = safeUrl(new URL(loc, current).toString());
-        redirects.push({ status: response.status, url: next.toString(), responseMs: elapsed });
-        current = next;
-        continue;
+        const elapsed = Date.now() - started;
+        totalMs += elapsed;
+        const loc = response.headers.get('location');
+        if (loc && [301, 302, 303, 307, 308].includes(response.status)) {
+          if (i === MAX_REDIRECTS) throw new Error('Too many redirects.');
+          const next = safeUrl(new URL(loc, current).toString());
+          redirects.push({ status: response.status, url: next.toString(), responseMs: elapsed });
+          current = next;
+          continue;
+        }
+        const type = (response.headers.get('content-type') || '').toLowerCase();
+        if (type.includes('text/html') || type.includes('application/xhtml+xml')) html = await readPrefix(response);
+        break;
+      } finally {
+        clearTimeout(timer);
       }
-      const type = (response.headers.get('content-type') || '').toLowerCase();
-      if (type.includes('text/html') || type.includes('application/xhtml+xml')) html = await readPrefix(response);
-      break;
     }
 
     if (!response) throw new Error('No response received.');

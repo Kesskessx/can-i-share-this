@@ -138,29 +138,6 @@ def main() -> None:
     new_loading = "window.cistSensitiveCategoryCurrent=null;window.cistUniversalResultData=null;var universalPanel=document.getElementById('universal-summary');if(universalPanel)universalPanel.classList.add('hidden');var redirectPanel=document.getElementById('redirect-route');if(redirectPanel)redirectPanel.classList.add('hidden');"
     source = replace_once(source, old_loading, new_loading, 'new scan reset')
 
-    # Final full-scan state must use the same plain wording everywhere.
-    source = source.replace("verdict.textContent='No known danger reported';", "verdict.textContent='No known threat found';", 1)
-    source = source.replace(
-        "summary.textContent='We checked the link itself and known online threat lists. Nothing dangerous was reported. This does not guarantee that the website is safe.';",
-        "summary.textContent='We checked the link itself and known online threat lists. No known malware or phishing threat was reported. This does not guarantee that the website is safe.';",
-        1,
-    )
-    source = source.replace(
-        "adviceText.textContent='If you expected this link and recognize the website, you can decide whether to open it. Be careful if it asks for a password, payment or download.';",
-        "adviceText.textContent='Continue only if you expected this link and recognize the website. Be cautious if it asks for a password, payment or download.';",
-        1,
-    )
-    source = source.replace(
-        "whyList.innerHTML='<li>No known danger was reported by the security services we checked.</li>';",
-        "whyList.innerHTML='<li>Known threat lists did not report this link as dangerous.</li>';",
-        1,
-    )
-    source = source.replace(
-        "reputation.classList.add('hidden');\n      return;",
-        "reputation.classList.add('hidden');if(typeof cistUpdateUniversalSummary==='function')queueMicrotask(cistUpdateUniversalSummary);\n      return;",
-        1,
-    )
-
     if 'id="cist-universal-result-v12-observer"' not in source:
         source = source.replace('</body>', OBSERVER + '\n</body>', 1)
 
@@ -172,16 +149,11 @@ def main() -> None:
         'Short links hide the real website until they are followed.',
         "el.closest('#universal-summary')||el.closest('#link-type-card')",
         'renderSensitiveCategory(data);renderUniversalResult(data);',
-        "value:'No known threat found'", 'Nothing dangerous was reported by the known threat lists checked.',
-        "verdict.textContent='No known threat found'", 'Known threat lists did not report this link as dangerous.',
-        "queueMicrotask(cistUpdateUniversalSummary)", 'Continue only if you expected this link.'
+        "value:'No known threat found'", 'Nothing dangerous was reported by the known threat lists checked.'
     ]
     for token in required:
         if token not in source:
             raise RuntimeError(f'Universal result V1.2 guard failed: missing {token}')
-
-    if 'No known danger was reported by the security services we checked.' in source:
-        raise RuntimeError('Universal result consistency guard failed: obsolete security-services wording remains')
 
     HOME.write_text(source, encoding='utf-8')
     print('Applied universal result V1.2 with synchronized final safety state and concise copy')

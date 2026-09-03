@@ -94,13 +94,8 @@ def main() -> None:
     verdict_block = "    if(currentInputType==='email'){lastVerdict=status==='low'?'Looks low risk':status==='caution'?'Use caution':status==='high'?'High-risk email':'Check incomplete';summary.textContent=status==='low'?'No obvious high-risk address or domain signals were detected.':status==='caution'?'Some address or domain warning signs need verification.':status==='high'?'Strong email warning signs were detected. Verify the sender independently.':(data.error||'We could not fully assess this email address.')}else{lastVerdict=status==='low'?'Looks low risk':status==='caution'?'Use caution':status==='high'?'High-risk link':'Check incomplete';summary.textContent=status==='low'?'No obvious high-risk link signals were detected.':status==='caution'?'Some link warning signs need verification before you continue.':status==='high'?'Strong warning signs were detected. Do not open this link.':(data.error||'We could not fully assess this destination.')}verdict.textContent=lastVerdict;"
     source = replace_once(source, verdict_anchor, verdict_block, 'clearer verdict copy')
 
-    run_success_anchor = "var d=await r.json();renderQuick(d);if(currentInputType==='url')trackScanSummary(d)"
-    run_success_block = "var d=await r.json();renderQuick(d);renderScannerUx(d);if(currentInputType==='url')trackScanSummary(d)"
-    source = replace_once(source, run_success_anchor, run_success_block, 'result UX rendering')
-
-    catch_anchor = "catch(e){renderQuick({inputType:currentInputType,error:currentInputType==='email'?'The email address check could not complete.':'The safety check could not complete.',safety:{status:'unknown',riskScore:0,signals:[]}})}finally"
-    catch_block = "catch(e){var failed={inputType:currentInputType,error:currentInputType==='email'?'The email address check could not complete.':'The safety check could not complete.',safety:{status:'unknown',riskScore:0,signals:[]}};renderQuick(failed);renderScannerUx(failed)}finally"
-    source = replace_once(source, catch_anchor, catch_block, 'failed result UX rendering')
+    if 'renderScannerUx(d)' not in source or 'renderScannerUx(failed)' not in source:
+        raise RuntimeError('Scanner UX v2 failed: result renderer hooks not found')
 
     paste_anchor = "  input.addEventListener('paste',function(){track('paste')});"
     paste_block = "  input.addEventListener('input',updateInputKind);\n  input.addEventListener('paste',function(){track('paste');setTimeout(updateInputKind,0)});"

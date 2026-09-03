@@ -35,3 +35,6 @@ jobs:
 
       - name: Run Universal Safety Checker regression matrix
         run: node scripts/test_universal_matrix.js
+
+      - name: Validate scanner performance budgets and consent
+        run: node scripts/test_scanner_performance.js
