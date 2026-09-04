@@ -52,6 +52,33 @@ function normalizeOutput(raw) {
   };
 }
 
+function cleanJsonText(text) {
+  return String(text || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+}
+
+async function callGemini({ key, model, image, prompt, signal }) {
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'X-goog-api-key': key
+    },
+    body: JSON.stringify({
+      contents: [{ parts: [
+        { inline_data: { mime_type: image.mimeType, data: image.data } },
+        { text: prompt }
+      ] }],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 1200
+      }
+    }),
+    signal
+  });
+  const data = await r.json().catch(() => null);
+  return { r, data };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 
@@ -61,45 +88,43 @@ export default async function handler(req, res) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return json(res, 503, { error: 'Image analysis is not configured yet.' });
 
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
   const prompt = `You are a security extraction component for Can I Share This?. Analyze this screenshot or photo for scam and phishing indicators. Do not claim certainty. Extract only evidence visible in the image. Detect visible text, URLs, email addresses, phone numbers, QR-code contents if readable, brands or organizations being claimed, requests for login/payment/crypto/download, urgency, threats, impersonation, and brand/domain mismatch. Return JSON only with this exact shape: {"risk":"low|caution|high|unknown","confidence":0.0,"summary":"short plain-language summary","recommended_action":"short action","visible_text":"important visible text","urls":[],"emails":[],"phones":[],"qr_values":[],"claimed_brands":[],"suspicious_signals":[{"type":"short_type","detail":"specific visible evidence"}]}. If the image is unrelated or unreadable, use risk unknown. Never invent a URL, email, phone number, QR value or brand.`;
 
+  const preferred = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+  const models = [...new Set([preferred, 'gemini-2.5-flash-lite'])];
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 30000);
+
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'X-goog-api-key': key
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [
-          { text: prompt },
-          { inline_data: { mime_type: image.mimeType, data: image.data } }
-        ] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          temperature: 0.1,
-          maxOutputTokens: 1200
-        }
-      }),
-      signal: controller.signal
+    let lastStatus = 502;
+    let lastMessage = '';
+    for (const model of models) {
+      const { r, data } = await callGemini({ key, model, image, prompt, signal: controller.signal });
+      if (!r.ok) {
+        lastStatus = r.status;
+        lastMessage = data && data.error && data.error.message ? String(data.error.message) : '';
+        console.error('Gemini image check failed', model, r.status, lastMessage);
+        if (r.status === 429) return json(res, 429, { error: 'Image analysis quota is temporarily exhausted.' });
+        if (![400, 403, 404].includes(r.status)) break;
+        continue;
+      }
+
+      const text = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts
+        ? data.candidates[0].content.parts.map(p => p.text || '').join('') : '';
+      let parsed;
+      try { parsed = JSON.parse(cleanJsonText(text)); } catch (_) {
+        lastStatus = 502;
+        lastMessage = 'Unreadable JSON response';
+        continue;
+      }
+      return json(res, 200, { ok: true, analysis: normalizeOutput(parsed), provider: 'gemini', model });
+    }
+
+    return json(res, lastStatus === 401 || lastStatus === 403 ? 503 : 502, {
+      error: lastStatus === 401 || lastStatus === 403
+        ? 'Image analysis authentication is not available.'
+        : 'Image analysis is temporarily unavailable.'
     });
-    const data = await r.json().catch(() => null);
-    if (!r.ok) {
-      console.error('Gemini image check failed', r.status, data && data.error && data.error.message);
-      return json(res, r.status === 429 ? 429 : 502, {
-        error: r.status === 429 ? 'Image analysis quota is temporarily exhausted.' : 'Image analysis is temporarily unavailable.'
-      });
-    }
-    const text = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts
-      ? data.candidates[0].content.parts.map(p => p.text || '').join('') : '';
-    let parsed;
-    try { parsed = JSON.parse(text); } catch (_) {
-      return json(res, 502, { error: 'Image analysis returned an unreadable result.' });
-    }
-    return json(res, 200, { ok: true, analysis: normalizeOutput(parsed), provider: 'gemini', model });
   } catch (err) {
     if (err && err.name === 'AbortError') return json(res, 504, { error: 'Image analysis timed out.' });
     console.error('Image check error', err);
