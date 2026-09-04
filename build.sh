@@ -70,7 +70,6 @@ python3 scripts/apply_homepage_visual_hierarchy_v2.py
 python3 scripts/apply_clean_link_tool.py
 python3 scripts/apply_redirect_destination_ui.py
 python3 scripts/apply_lookalike_explanation_ui.py
-python3 scripts/apply_domain_context_ui.py
 python3 scripts/apply_business_contact.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
