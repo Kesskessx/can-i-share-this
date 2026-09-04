@@ -79,7 +79,7 @@ async function callGemini({ key, model, image, prompt, signal }) {
   return { r, data };
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
 
   const image = parseDataUrl(req.body && req.body.image);
@@ -132,4 +132,4 @@ export default async function handler(req, res) {
   } finally {
     clearTimeout(timer);
   }
-}
+};
