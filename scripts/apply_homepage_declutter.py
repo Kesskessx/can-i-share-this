@@ -12,7 +12,7 @@ css=r'''<style id="homepage-declutter-v1">
 .hero .eyebrow{display:none!important}
 .footer-resource-links a[href="/safe-link-checker"],.footer-resource-links a[href="/google-drive-link-checker"],.footer-resource-links a[href="/dropbox-link-checker"],.footer-resource-links a[href="/scam-prevention"],.footer-resource-links a[href="/scan-examples"]{display:none!important}
 .footer-resource-links i{display:none!important}.footer-resource-links{gap:10px!important}.footer-label{display:none!important}
-a[href="/qr-code-scanner"],a[href="/qr-scanner"],a[href="/check-qr-code"],a[href="/qr-code-link-checker"],.qr-cta,.qr-code-cta,.qr-scanner-cta{display:none!important}
+a[href="/qr-code-link-checker"],.qr-cta,.qr-code-cta,.qr-scanner-cta{display:none!important}
 @media(max-width:600px){
   .hero{padding-top:34px!important;padding-bottom:14px!important}
   .hero .sub{max-width:560px!important;margin:12px auto 18px!important;line-height:1.45!important}
