@@ -56,6 +56,7 @@ python3 scripts/apply_entity_identity.py
 python3 scripts/apply_breadcrumb_schema.py
 python3 scripts/apply_crypto_input.py
 python3 scripts/apply_result_priority_layout.py
+python3 scripts/apply_single_complete_scan.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
