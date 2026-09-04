@@ -8,7 +8,7 @@ if 'id="homepage-visual-hierarchy-v2"' in s:
     raise SystemExit('already applied')
 
 css=r'''<style id="homepage-visual-hierarchy-v2">
-.hero{padding-top:82px!important;padding-bottom:22px!important}
+.hero{padding-top:34px!important;padding-bottom:22px!important}
 .hero h1{font-size:clamp(46px,5.1vw,68px)!important;line-height:1.04!important;letter-spacing:-.045em!important;max-width:850px!important;margin-left:auto!important;margin-right:auto!important}
 .hero .sub{max-width:690px!important;margin:17px auto 25px!important;font-size:18px!important;line-height:1.45!important;color:color-mix(in srgb,var(--text) 70%,var(--muted))!important}
 #scan-form{max-width:760px!important;margin-left:auto!important;margin-right:auto!important;padding:8px!important;border:1px solid rgba(120,143,247,.72)!important;border-radius:20px!important;background:linear-gradient(180deg,rgba(23,27,38,.98),rgba(17,20,29,.98))!important;box-shadow:0 0 0 1px rgba(120,143,247,.12),0 0 24px rgba(120,143,247,.18),0 14px 40px rgba(0,0,0,.22)!important;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease!important}
@@ -26,7 +26,7 @@ css=r'''<style id="homepage-visual-hierarchy-v2">
 .cist-example-v2{display:none!important}
 .site-footer{margin-top:34px!important}.footer-resource-links{align-items:center!important}.footer-resource-links a{transition:color .15s ease}.footer-resource-links a:hover{color:var(--text)!important}
 @media(min-width:760px){.hero div:has(> div > strong:first-child){max-width:820px}}
-@media(max-width:600px){.hero{padding-top:44px!important;padding-bottom:18px!important}.hero h1{font-size:clamp(38px,11.5vw,52px)!important}.hero .sub{font-size:16px!important;margin:14px auto 21px!important}#scan-form{border-radius:17px!important;box-shadow:0 0 0 1px rgba(120,143,247,.12),0 0 20px rgba(120,143,247,.16),0 12px 34px rgba(0,0,0,.22)!important}.site-footer{margin-top:30px!important}}
+@media(max-width:600px){.hero{padding-top:22px!important;padding-bottom:18px!important}.hero h1{font-size:clamp(38px,11.5vw,52px)!important}.hero .sub{font-size:16px!important;margin:14px auto 21px!important}#scan-form{border-radius:17px!important;box-shadow:0 0 0 1px rgba(120,143,247,.12),0 0 20px rgba(120,143,247,.16),0 12px 34px rgba(0,0,0,.22)!important}.site-footer{margin-top:30px!important}}
 </style>'''
 
 js=r'''<script id="homepage-visual-hierarchy-v2-script">(function(){
@@ -49,4 +49,4 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 if '</head>' not in s or '</body>' not in s: raise SystemExit('invalid homepage')
 s=s.replace('</head>',css+'\n</head>',1).replace('</body>',js+'\n</body>',1)
 p.write_text(s,encoding='utf-8')
-print('Applied homepage visual hierarchy without example analysis and with blue scanner glow')
+print('Applied compact header-to-hero spacing with blue scanner glow')
