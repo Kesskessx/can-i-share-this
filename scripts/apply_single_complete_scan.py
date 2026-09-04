@@ -18,12 +18,13 @@ SCRIPT = r'''
   var form=document.getElementById('scan-form'),input=document.getElementById('url'),result=document.getElementById('result');
   var deepConfirm=document.getElementById('deep-confirm'),reputation=document.getElementById('reputation');
   if(!form||!input||!result||!deepConfirm)return;
-  var startedFor='';
+  var startedFor='',watchdog=0;
   function value(){return String(input.value||'').trim()}
   function email(v){v=String(v||'').trim().replace(/^mailto:/i,'');return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)}
   function crypto(v){v=String(v||'').trim();return /^(0x[0-9a-fA-F]{40}|bc1[ac-hj-np-z02-9]{20,90}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|T[1-9A-HJ-NP-Za-km-z]{33}|[1-9A-HJ-NP-Za-km-z]{32,44})$/.test(v)}
   function isPublicLink(v){return !!v&&!email(v)&&!crypto(v)&&(/^(https?:\/\/)/i.test(v)||/^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(?:[\/:?#]|$)/i.test(v))}
-  function reset(){startedFor='';document.body.classList.remove('cist-full-scan-running')}
+  function stopWatchdog(){if(watchdog){clearTimeout(watchdog);watchdog=0}}
+  function reset(){startedFor='';stopWatchdog();document.body.classList.remove('cist-full-scan-running')}
   form.addEventListener('submit',reset,true);
   input.addEventListener('input',reset);
   document.addEventListener('cist:result-updated',function(){
@@ -32,11 +33,22 @@ SCRIPT = r'''
     startedFor=v;
     document.body.classList.add('cist-full-scan-running');
     if(reputation){reputation.className='reputation reputation-pending';reputation.innerHTML='<strong>Completing safety check…</strong><span>Checking known phishing and malware reports for this public link.</span>';reputation.classList.remove('hidden')}
+    stopWatchdog();
+    watchdog=setTimeout(function(){
+      if(startedFor===v&&document.body.classList.contains('cist-full-scan-running')){
+        document.body.classList.remove('cist-full-scan-running');
+        if(reputation&&!reputation.classList.contains('reputation-alert')){
+          reputation.className='reputation reputation-alert';
+          reputation.innerHTML='<strong>Safety check timed out</strong><span>The external security check took too long. The page is responsive again; do not treat the incomplete result as a safety guarantee.</span>';
+          reputation.classList.remove('hidden');
+        }
+      }
+    },9000);
     setTimeout(function(){deepConfirm.click()},0);
   });
   if(reputation){
     new MutationObserver(function(){
-      if(startedFor&&reputation.classList.contains('reputation-alert'))document.body.classList.remove('cist-full-scan-running');
+      if(startedFor&&reputation.classList.contains('reputation-alert')){stopWatchdog();document.body.classList.remove('cist-full-scan-running')}
     }).observe(reputation,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
   }
 })();
@@ -53,16 +65,28 @@ def main():
     source=source.replace('One more check recommended','Completing safety check')
     source=source.replace('The first check did not find anything obvious. One more security check is recommended before you open the link.','No obvious warning signs were found in the first stage. The complete safety check is still running.')
     source=source.replace('Before opening this link, run the extra safety check below. The quick check alone cannot confirm that a link is safe.','Wait for the complete result before deciding whether to open this link.')
+
+    # Never allow either network stage to leave the UI stuck on “Checking…”.
+    quick = "fetch('/api/check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:currentUrl})})"
+    quick_timed = "Promise.race([fetch('/api/check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:currentUrl})}),new Promise(function(_,reject){setTimeout(function(){reject(new Error('scan-timeout'))},8000)})])"
+    if quick in source:
+        source=source.replace(quick,quick_timed,1)
+
+    deep = "fetch('/api/deep-check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:currentUrl,consent:true})})"
+    deep_timed = "Promise.race([fetch('/api/deep-check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:currentUrl,consent:true})}),new Promise(function(_,reject){setTimeout(function(){reject(new Error('deep-timeout'))},8000)})])"
+    if deep in source:
+        source=source.replace(deep,deep_timed,1)
+
     if 'id="cist-single-complete-scan-style"' not in source:
         source=source.replace('</head>',STYLE+'\n</head>',1)
     if 'id="cist-single-complete-scan"' not in source:
         source=source.replace('</body>',SCRIPT+'\n</body>',1)
-    required=['One complete check.','id="cist-single-complete-scan"','#deep,#consent{display:none!important}','deepConfirm.click()']
+    required=['One complete check.','id="cist-single-complete-scan"','#deep,#consent{display:none!important}','deepConfirm.click()','Safety check timed out','scan-timeout','deep-timeout']
     for token in required:
         if token not in source:
             raise RuntimeError(f'Single complete scan guard failed: missing {token}')
     HOME.write_text(source,encoding='utf-8')
-    print('Applied single-button complete safety scan UX')
+    print('Applied single-button complete safety scan UX with hard network timeouts')
 
 if __name__=='__main__':
     main()
