@@ -30,7 +30,7 @@ BLOCK = r'''
 SCRIPT = r'''
 <script id="cist-homepage-stats-script">
 (function(){
-  var total=document.getElementById('cist-total-checks'),mix=document.getElementById('cist-analysis-mix'),note=document.getElementById('cist-stats-note'),input=document.getElementById('url'),result=document.getElementById('result'),form=document.getElementById('scan-form');
+  var total=document.getElementById('cist-total-checks'),mix=document.getElementById('cist-analysis-mix'),note=document.getElementById('cist-stats-note'),input=document.getElementById('url'),form=document.getElementById('scan-form');
   if(!total||!mix)return;
   var labels={link:'Links',qr:'QR',email:'Email',file:'Files',shortlink:'Short links',crypto:'Crypto',message:'Messages',other:'Other'};
   var order=['link','qr','email','file','shortlink','crypto','message','other'];
@@ -43,9 +43,12 @@ SCRIPT = r'''
     return 'link';
   }
   function render(data){var t=Number(data&&data.total||0),by=data&&data.byType||{};total.textContent=t.toLocaleString();mix.innerHTML='';order.forEach(function(k){var n=Number(by[k]||0);if(!n&&t>0)return;var pct=t?Math.round(n*100/t):0;var row=document.createElement('div');row.className='cist-mix-row';row.innerHTML='<span class="cist-mix-name">'+labels[k]+'</span><span class="cist-mix-track"><span class="cist-mix-fill" style="width:'+pct+'%"></span></span><span class="cist-mix-value">'+pct+'%</span>';mix.appendChild(row)});if(!mix.children.length)mix.textContent='No analyses yet';if(data&&data.persistent===false)note.textContent='Live counters are active, but persistent storage is not configured yet.'}
-  function refresh(){fetch('/api/counter',{cache:'no-store'}).then(function(r){return r.json()}).then(render).catch(function(){})}
-  function countOnce(){if(counted||!result||result.classList.contains('hidden'))return;counted=true;fetch('/api/counter',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:detectType()})}).then(function(r){return r.json()}).then(render).catch(function(){})}
-  if(form)form.addEventListener('submit',function(){counted=false},true);if(result)new MutationObserver(countOnce).observe(result,{attributes:true,attributeFilter:['class']});document.addEventListener('cist:result-updated',countOnce);refresh();
+  function request(url,options){var controller=new AbortController(),timer=setTimeout(function(){controller.abort()},1500),opts=options||{};opts.signal=controller.signal;return fetch(url,opts).then(function(r){clearTimeout(timer);if(!r.ok)throw new Error('counter');return r.json()}).catch(function(e){clearTimeout(timer);throw e})}
+  function refresh(){request('/api/counter',{cache:'no-store'}).then(render).catch(function(){total.textContent='—';note.textContent='Usage statistics are temporarily unavailable.'})}
+  function countOnce(){if(counted)return;counted=true;request('/api/counter',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:detectType()})}).then(render).catch(function(){})}
+  if(form)form.addEventListener('submit',function(){counted=false},true);
+  document.addEventListener('cist:result-updated',countOnce);
+  refresh();
 })();
 </script>
 '''
@@ -61,7 +64,7 @@ def main():
     anchor='<footer'
     source=source.replace(anchor,BLOCK+'\n'+anchor,1) if anchor in source else source.replace('</body>',BLOCK+'\n</body>',1)
     source=source.replace('</body>',SCRIPT+'\n</body>',1)
-    for token in ['Total analyses','Analysis mix','/api/counter','cist_input_source']:
+    for token in ['Total analyses','Analysis mix','/api/counter','cist_input_source','cist:result-updated']:
         if token not in source: raise RuntimeError(f'Homepage stats guard failed: missing {token}')
     HOME.write_text(source,encoding='utf-8')
     if QR.is_file():
@@ -70,6 +73,6 @@ def main():
         new="sessionStorage.setItem('cist_pending_url',value);sessionStorage.setItem('cist_input_source','qr')"
         if old in qr and 'cist_input_source' not in qr: qr=qr.replace(old,new,1)
         QR.write_text(qr,encoding='utf-8')
-    print('Applied live total analysis counter and analysis mix')
+    print('Applied non-blocking live total analysis counter and analysis mix')
 
 if __name__=='__main__': main()
