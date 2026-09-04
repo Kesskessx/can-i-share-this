@@ -12,17 +12,18 @@ css=r'''<style id="homepage-declutter-v1">
 .hero .eyebrow{display:none!important}
 .footer-resource-links a[href="/safe-link-checker"],.footer-resource-links a[href="/google-drive-link-checker"],.footer-resource-links a[href="/dropbox-link-checker"],.footer-resource-links a[href="/scam-prevention"],.footer-resource-links a[href="/scan-examples"]{display:none!important}
 .footer-resource-links i{display:none!important}.footer-resource-links{gap:10px!important}.footer-label{display:none!important}
+a[href="/qr-code-scanner"],a[href="/qr-scanner"],a[href="/check-qr-code"],.qr-cta,.qr-code-cta,.qr-scanner-cta{display:none!important}
 @media(max-width:600px){.hero{padding-top:34px!important}.hero .sub{max-width:560px!important;margin:12px auto 18px!important;line-height:1.45!important}.image-tools{margin-top:10px}.image-analysis{margin-top:12px}.site-footer{margin-top:22px!important}}
 </style>'''
 js=r'''<script id="homepage-declutter-script">(function(){
 function norm(v){return String(v||'').replace(/\s+/g,' ').trim()}
 function hideSelfOrSameTextParent(el){if(!el)return;var t=norm(el.textContent),x=el;while(x.parentElement&&norm(x.parentElement.textContent)===t&&x.parentElement!==document.body)x=x.parentElement;x.style.display='none'}
-var exact=['Link · Email · QR · Image · Crypto','One scanner · Type detection is automatic','One scanner. More signals.','Scan a QR code','Nothing you paste is saved','No account needed'];
+var exact=['Link · Email · QR · Image · Crypto','One scanner · Type detection is automatic','One scanner. More signals.','Scan a QR code','QR code','QR Code','Nothing you paste is saved','No account needed'];
 document.querySelectorAll('body *').forEach(function(el){var t=norm(el.textContent);if(exact.indexOf(t)>=0)hideSelfOrSameTextParent(el)});
 /* Hide the old technical proof card if an earlier class name survives. */
 document.querySelectorAll('body *').forEach(function(el){var t=norm(el.textContent);if(t==='CHECKS AVAILABLE'){var x=el;while(x.parentElement&&norm(x.parentElement.textContent).indexOf('Google Web Risk')>=0&&norm(x.parentElement.textContent).length<700)x=x.parentElement;x.style.display='none'}});
-/* Hide duplicate privacy pills and the separate QR CTA as complete controls, not only their inner text. */
-document.querySelectorAll('a,button,span,div').forEach(function(el){var t=norm(el.textContent);if(t==='Scan a QR code'||t==='Nothing you paste is saved'||t==='No account needed')hideSelfOrSameTextParent(el)});
+/* Hide duplicate privacy pills and every standalone QR CTA/control. */
+document.querySelectorAll('a,button,span,div').forEach(function(el){var t=norm(el.textContent);if(t==='Scan a QR code'||t==='QR code'||t==='QR Code'||t==='Nothing you paste is saved'||t==='No account needed')hideSelfOrSameTextParent(el)});
 /* Reduce What we check from four cards to three by removing the redundant copycat card. */
 document.querySelectorAll('body *').forEach(function(el){var t=norm(el.textContent);if(t.indexOf('Copycat sites')===0&&t.indexOf('Look-alike website names')>0&&t.length<180)el.style.display='none'});
 /* Remove the long scanner disclaimer from the homepage; details remain on Security/Supported Checks. */
