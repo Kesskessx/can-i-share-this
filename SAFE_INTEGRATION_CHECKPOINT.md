@@ -10,6 +10,7 @@ Branch: `seo-2026-safe-integration`
 - The preview is explicitly non-indexable through page-level `noindex` and Vercel `X-Robots-Tag: noindex, nofollow`.
 - Preview API requests continue to proxy to `https://canisharethis.com/api/*`; no production API source has been recovered into this repository.
 - GitHub Actions rebuilds and validates the preview on every push to this branch.
+- Redeploy trigger after Gemini production environment configuration: 2026-09-04.
 
 ## Automated gates
 
