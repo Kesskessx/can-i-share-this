@@ -59,7 +59,6 @@ python3 scripts/apply_result_priority_layout.py
 python3 scripts/apply_single_complete_scan.py
 python3 scripts/apply_simple_result_ui.py
 python3 scripts/apply_homepage_stats.py
-python3 scripts/generate_priority_safety_cluster.py
 python3 scripts/apply_image_safety_input.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
