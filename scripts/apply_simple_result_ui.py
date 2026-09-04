@@ -36,6 +36,7 @@ SCRIPT = r'''
   var reputation=document.getElementById('reputation'),universal=document.getElementById('universal-summary');
   var verdict=document.getElementById('verdict'),summary=document.getElementById('summary'),technical=document.getElementById('technical');
   if(!input||!result||!card)return;
+  var finalizedFor='';
   function value(){return String(input.value||'').trim()}
   function isEmail(){var v=value().replace(/^mailto:/i,'');return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)}
   function isCrypto(){var v=value();return /^(0x[0-9a-fA-F]{40}|bc1[ac-hj-np-z02-9]{20,90}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|T[1-9A-HJ-NP-Za-km-z]{33}|[1-9A-HJ-NP-Za-km-z]{32,44})$/.test(v)}
@@ -43,15 +44,17 @@ SCRIPT = r'''
   function finalReputation(){return Boolean(reputation&&reputation.classList.contains('reputation-alert'))}
   function simplify(){
     if(result.classList.contains('hidden'))return;
+    var current=value();
+    if(finalizedFor===current)return;
     var link=isLink(),ready=!link||finalReputation();if(!ready)return;
+    finalizedFor=current;
     if(link){var bad=reputation.classList.contains('bad')||card.classList.contains('status-high');var good=reputation.classList.contains('good')||card.classList.contains('reputation-checked-safe');if(bad){if(verdict)verdict.textContent='Dangerous link';if(summary)summary.textContent='A known security service reported this link as dangerous. Do not open it.'}else if(good){if(verdict)verdict.textContent='No known danger found';if(summary)summary.textContent='No known phishing or malware threat was reported for this link.'}}
     document.body.classList.remove('cist-full-scan-running');document.body.classList.add('cist-simple-result-final');
     if(universal)universal.classList.remove('hidden');if(technical){technical.classList.remove('hidden');technical.open=false}
   }
-  function reset(){document.body.classList.remove('cist-simple-result-final')}
+  function reset(){finalizedFor='';document.body.classList.remove('cist-simple-result-final')}
   input.addEventListener('input',reset);var form=document.getElementById('scan-form');if(form)form.addEventListener('submit',reset,true);var again=document.getElementById('again');if(again)again.addEventListener('click',function(){setTimeout(reset,0)});
-  if(reputation)new MutationObserver(simplify).observe(reputation,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
-  new MutationObserver(simplify).observe(result,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
+  if(reputation)new MutationObserver(function(){if(finalReputation())simplify()}).observe(reputation,{attributes:true,attributeFilter:['class']});
   document.addEventListener('cist:result-updated',simplify);simplify();
 })();
 </script>
@@ -62,10 +65,13 @@ def main():
     source=HOME.read_text(encoding='utf-8')
     if 'id="cist-simple-result-ui-style"' not in source: source=source.replace('</head>',STYLE+'\n</head>',1)
     if 'id="cist-simple-result-ui"' not in source: source=source.replace('</body>',SCRIPT+'\n</body>',1)
-    required=['cist-simple-result-final','#universal-safety{display:none!important}','No known phishing or malware threat was reported for this link.','new MutationObserver(simplify).observe(result','technical.open=false']
+    required=['cist-simple-result-final','#universal-safety{display:none!important}','No known phishing or malware threat was reported for this link.','finalizedFor','attributeFilter:[\'class\']']
+    forbidden=['new MutationObserver(simplify).observe(result','childList:true,subtree:true']
     for token in required:
         if token not in source: raise RuntimeError(f'Simple result UI guard failed: missing {token}')
+    for token in forbidden:
+        if token in source: raise RuntimeError(f'Simple result UI guard failed: forbidden {token}')
     HOME.write_text(source,encoding='utf-8')
-    print('Applied simplified result UI to links, QR destinations, short links, files, email and crypto')
+    print('Applied simplified result UI without recursive DOM observers')
 
 if __name__=='__main__': main()
