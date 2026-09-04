@@ -61,11 +61,11 @@ export default async function handler(req, res) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return json(res, 503, { error: 'Image analysis is not configured yet.' });
 
-  const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
   const prompt = `You are a security extraction component for Can I Share This?. Analyze this screenshot or photo for scam and phishing indicators. Do not claim certainty. Extract only evidence visible in the image. Detect visible text, URLs, email addresses, phone numbers, QR-code contents if readable, brands or organizations being claimed, requests for login/payment/crypto/download, urgency, threats, impersonation, and brand/domain mismatch. Return JSON only with this exact shape: {"risk":"low|caution|high|unknown","confidence":0.0,"summary":"short plain-language summary","recommended_action":"short action","visible_text":"important visible text","urls":[],"emails":[],"phones":[],"qr_values":[],"claimed_brands":[],"suspicious_signals":[{"type":"short_type","detail":"specific visible evidence"}]}. If the image is unrelated or unreadable, use risk unknown. Never invent a URL, email, phone number, QR value or brand.`;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 12000);
+  const timer = setTimeout(() => controller.abort(), 30000);
   try {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: 'POST',
@@ -78,7 +78,11 @@ export default async function handler(req, res) {
           { text: prompt },
           { inline_data: { mime_type: image.mimeType, data: image.data } }
         ] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.1 }
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.1,
+          maxOutputTokens: 1200
+        }
       }),
       signal: controller.signal
     });
