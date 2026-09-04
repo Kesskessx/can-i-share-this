@@ -10,19 +10,28 @@ function redisConfig() {
 async function redis(command) {
   const cfg = redisConfig();
   if (!cfg) return null;
-  const r = await fetch(cfg.url, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${cfg.token}`, 'content-type': 'application/json' },
-    body: JSON.stringify(command)
-  });
-  if (!r.ok) throw new Error(`Counter storage error ${r.status}`);
-  const data = await r.json();
-  return data.result;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 1200);
+  try {
+    const r = await fetch(cfg.url, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${cfg.token}`, 'content-type': 'application/json' },
+      body: JSON.stringify(command),
+      signal: controller.signal
+    });
+    if (!r.ok) throw new Error(`Counter storage error ${r.status}`);
+    const data = await r.json();
+    return data.result;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
-async function snapshot() {
-  const cfg = redisConfig();
-  if (!cfg) return { total: memory.total, byType: memory.byType, persistent: false };
+function memorySnapshot() {
+  return { total: memory.total, byType: memory.byType, persistent: false };
+}
+
+async function persistentSnapshot() {
   const rows = await redis(['HGETALL', 'cist:scan-counts']);
   const obj = Object.create(null);
   if (Array.isArray(rows)) for (let i = 0; i < rows.length; i += 2) obj[rows[i]] = Number(rows[i + 1] || 0);
@@ -32,25 +41,38 @@ async function snapshot() {
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  let type = 'other';
+  if (req.method === 'POST') {
+    try {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+      type = TYPES.has(String(body.type || '')) ? String(body.type) : 'other';
+    } catch (_) {}
+  }
+
+  if (!redisConfig()) {
+    if (req.method === 'POST') {
+      memory.total += 1;
+      memory.byType[type] = (memory.byType[type] || 0) + 1;
+    }
+    return res.status(200).json(memorySnapshot());
+  }
+
   try {
     if (req.method === 'POST') {
-      const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-      const type = TYPES.has(String(body.type || '')) ? String(body.type) : 'other';
-      if (redisConfig()) {
-        await redis(['HINCRBY', 'cist:scan-counts', 'total', 1]);
-        await redis(['HINCRBY', 'cist:scan-counts', `type:${type}`, 1]);
-      } else {
-        memory.total += 1;
-        memory.byType[type] = (memory.byType[type] || 0) + 1;
-      }
-    } else if (req.method !== 'GET') {
-      return res.status(405).json({ error: 'Method not allowed' });
+      await redis(['HINCRBY', 'cist:scan-counts', 'total', 1]);
+      await redis(['HINCRBY', 'cist:scan-counts', `type:${type}`, 1]);
     }
-    return res.status(200).json(await snapshot());
+    return res.status(200).json(await persistentSnapshot());
   } catch (e) {
-    console.error('[cist-counter]', e && e.message ? e.message : e);
-    return res.status(500).json({ error: 'Counter unavailable' });
+    console.error('[cist-counter-fallback]', e && e.message ? e.message : e);
+    if (req.method === 'POST') {
+      memory.total += 1;
+      memory.byType[type] = (memory.byType[type] || 0) + 1;
+    }
+    return res.status(200).json(memorySnapshot());
   }
 };
