@@ -1,7 +1,7 @@
 const dns = require('node:dns').promises;
 const net = require('node:net');
 
-const MAX_REDIRECTS = 3;
+const MAX_REDIRECTS = 5;
 const MAX_HTML_BYTES = 65536;
 const TOTAL_TIMEOUT_MS = 7000;
 const FETCH_TIMEOUT_MS = 4500;
