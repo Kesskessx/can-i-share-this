@@ -7,21 +7,39 @@ QR = ROOT / 'dist' / 'qr-code-link-checker.html'
 
 STYLE = r'''
 <style id="cist-homepage-stats-style">
-.cist-stats{max-width:760px;margin:22px auto 0;padding:18px 16px;border:1px solid var(--border,#2a2f38);border-radius:16px;background:var(--panel,#15181e)}
-.cist-stats-title{margin:0 0 12px;text-align:center;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#aab0bb)}
-.cist-stats-grid{display:grid;grid-template-columns:1fr 2fr;gap:12px}.cist-stat{padding:14px 12px;border-radius:12px;background:rgba(255,255,255,.025)}
-.cist-stat-value{display:block;font-size:30px;line-height:1;font-weight:850;color:var(--text,#f6f7f9)}.cist-stat-label{display:block;margin-top:7px;font-size:11px;color:var(--muted,#aab0bb)}
-.cist-mix{display:grid;gap:7px}.cist-mix-row{display:grid;grid-template-columns:82px 1fr 46px;gap:8px;align-items:center;font-size:11px}.cist-mix-name{color:var(--muted,#aab0bb)}.cist-mix-track{height:7px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}.cist-mix-fill{height:100%;border-radius:inherit;background:var(--accent,#7c8cff);width:0}.cist-mix-value{text-align:right;color:var(--text,#f6f7f9);font-variant-numeric:tabular-nums}.cist-stats-note{margin:11px 0 0;text-align:center;font-size:10px;line-height:1.45;color:var(--muted,#8f96a3)}
-@media(max-width:650px){.cist-stats-grid{grid-template-columns:1fr}.cist-stat-value{font-size:26px}.cist-mix-row{grid-template-columns:72px 1fr 42px}}
+.cist-stats{max-width:760px;margin:28px auto 0;padding:0;border:1px solid var(--border,#2a2f38);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.12)}
+.cist-stats-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border,#2a2f38)}
+.cist-stats-title{margin:0;font-size:11px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:var(--muted,#aab0bb)}
+.cist-live-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:750;color:var(--muted,#aab0bb)}
+.cist-live-badge:before{content:"";width:7px;height:7px;border-radius:999px;background:#37c976;box-shadow:0 0 0 4px rgba(55,201,118,.1)}
+.cist-stats-grid{display:grid;grid-template-columns:minmax(180px,.85fr) minmax(0,2fr)}
+.cist-total-card{padding:24px 20px;border-right:1px solid var(--border,#2a2f38);display:flex;flex-direction:column;justify-content:center;min-height:180px}
+.cist-stat-kicker{font-size:11px;font-weight:700;color:var(--muted,#aab0bb);margin-bottom:8px}
+.cist-stat-value{display:block;font-size:clamp(38px,5vw,52px);line-height:.95;letter-spacing:-.045em;font-weight:900;color:var(--text,#f6f7f9);font-variant-numeric:tabular-nums}
+.cist-stat-label{display:block;margin-top:9px;font-size:12px;line-height:1.35;color:var(--muted,#aab0bb)}
+.cist-mix-card{padding:20px 20px 18px}.cist-mix-heading{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-bottom:14px}.cist-mix-title{font-size:13px;font-weight:820;color:var(--text,#f6f7f9)}.cist-mix-sub{font-size:10px;color:var(--muted,#aab0bb)}
+.cist-mix{display:grid;gap:10px}.cist-mix-row{display:grid;grid-template-columns:88px 1fr 44px;gap:10px;align-items:center;font-size:11px}.cist-mix-name{color:var(--muted,#aab0bb);white-space:nowrap}.cist-mix-track{height:9px;border-radius:999px;background:rgba(127,127,127,.13);overflow:hidden}.cist-mix-fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--accent,#7c8cff),#a8b2ff);width:0;min-width:2px;transition:width .35s ease}.cist-mix-value{text-align:right;color:var(--text,#f6f7f9);font-weight:750;font-variant-numeric:tabular-nums}
+.cist-stats-note{margin:0;padding:10px 18px;border-top:1px solid var(--border,#2a2f38);text-align:center;font-size:9.5px;line-height:1.45;color:var(--muted,#8f96a3);background:rgba(255,255,255,.015)}
+@media(max-width:650px){.cist-stats{margin-top:20px;border-radius:17px}.cist-stats-head{padding:12px 14px}.cist-stats-grid{grid-template-columns:1fr}.cist-total-card{min-height:0;padding:20px 16px;border-right:0;border-bottom:1px solid var(--border,#2a2f38);text-align:center}.cist-stat-value{font-size:42px}.cist-mix-card{padding:16px 14px}.cist-mix-heading{margin-bottom:12px}.cist-mix-row{grid-template-columns:76px 1fr 40px;gap:8px}.cist-stats-note{padding:9px 12px}}
 </style>
 '''
 
 BLOCK = r'''
 <section class="cist-stats" id="cist-stats" aria-label="Can I Share This usage statistics">
-  <p class="cist-stats-title">Live usage</p>
+  <div class="cist-stats-head">
+    <p class="cist-stats-title">Can I Share This? activity</p>
+    <span class="cist-live-badge">Live usage</span>
+  </div>
   <div class="cist-stats-grid">
-    <div class="cist-stat"><strong class="cist-stat-value" id="cist-total-checks">—</strong><span class="cist-stat-label">Total analyses</span></div>
-    <div class="cist-stat"><div class="cist-mix" id="cist-analysis-mix"></div><span class="cist-stat-label">Analysis mix</span></div>
+    <div class="cist-total-card">
+      <span class="cist-stat-kicker">Since tracking started</span>
+      <strong class="cist-stat-value" id="cist-total-checks">—</strong>
+      <span class="cist-stat-label">Total analyses performed</span>
+    </div>
+    <div class="cist-mix-card">
+      <div class="cist-mix-heading"><span class="cist-mix-title">What people check</span><span class="cist-mix-sub">Share of analyses</span></div>
+      <div class="cist-mix" id="cist-analysis-mix"></div>
+    </div>
   </div>
   <p class="cist-stats-note" id="cist-stats-note">Anonymous aggregate counters only. No scanned content is shown here.</p>
 </section>
@@ -64,7 +82,7 @@ def main():
     anchor='<footer'
     source=source.replace(anchor,BLOCK+'\n'+anchor,1) if anchor in source else source.replace('</body>',BLOCK+'\n</body>',1)
     source=source.replace('</body>',SCRIPT+'\n</body>',1)
-    for token in ['Total analyses','Analysis mix','/api/counter','cist_input_source','cist:result-updated']:
+    for token in ['Total analyses performed','What people check','/api/counter','cist_input_source','cist:result-updated']:
         if token not in source: raise RuntimeError(f'Homepage stats guard failed: missing {token}')
     HOME.write_text(source,encoding='utf-8')
     if QR.is_file():
@@ -73,6 +91,6 @@ def main():
         new="sessionStorage.setItem('cist_pending_url',value);sessionStorage.setItem('cist_input_source','qr')"
         if old in qr and 'cist_input_source' not in qr: qr=qr.replace(old,new,1)
         QR.write_text(qr,encoding='utf-8')
-    print('Applied non-blocking live total analysis counter and analysis mix')
+    print('Applied polished non-blocking live usage counters')
 
 if __name__=='__main__': main()
