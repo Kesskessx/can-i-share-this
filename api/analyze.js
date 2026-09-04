@@ -1,6 +1,7 @@
 const checkHandler = require('./check');
 const emailHandler = require('./email-check');
 const cryptoHandler = require('./crypto-check');
+const imageHandler = require('./image-check');
 
 function detectType(input) {
   const value = String(input || '').trim();
@@ -34,6 +35,13 @@ module.exports = async function handler(req, res) {
   if (typeof body === 'string') {
     try { body = JSON.parse(body); } catch { body = {}; }
   }
+
+  // Images use the same public entry point but keep their dedicated processing engine.
+  if (typeof body.image === 'string' && body.image.startsWith('data:image/')) {
+    req.body = { image: body.image };
+    return imageHandler(req, wrapResponse(res, 'image'));
+  }
+
   const original = String(body.input || body.url || body.email || body.address || '').trim();
   if (!original) return res.status(400).json({ error: 'Input required', detectedType: 'unknown' });
 
