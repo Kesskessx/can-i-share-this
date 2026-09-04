@@ -16,20 +16,46 @@ STYLE = r'''
 SCRIPT = r'''
 <script id="cist-one-click-scan">
 (function(){
-  var form=document.getElementById('scan-form'),input=document.getElementById('url'),paste=document.getElementById('paste'),analyze=document.getElementById('analyze');
+  var form=document.getElementById('scan-form'),input=document.getElementById('url'),paste=document.getElementById('paste'),analyze=document.getElementById('analyze'),result=document.getElementById('result');
   if(!form||!input||!paste||!analyze)return;
   function emailValue(v){return String(v||'').trim().replace(/^mailto:/i,'')}
   function looksLikeEmail(v){v=emailValue(v);return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)}
   function buttonLabel(){return looksLikeEmail(input.value)?'Check email':'Check link'}
   function resetButton(){var label=buttonLabel();if(!analyze.disabled&&analyze.textContent!==label)analyze.textContent=label}
-  input.addEventListener('input',resetButton);
+  function unlockForNextScan(){
+    input.disabled=false;input.readOnly=false;analyze.disabled=false;paste.disabled=false;
+    document.documentElement.style.pointerEvents='';document.body.style.pointerEvents='';
+    document.documentElement.style.cursor='';document.body.style.cursor='';
+    document.body.classList.remove('cist-full-scan-running');
+    analyze.textContent=buttonLabel();paste.textContent='Paste & check';
+  }
+  input.addEventListener('input',function(){unlockForNextScan();resetButton()});
   paste.addEventListener('click',async function(e){
-    e.preventDefault();e.stopImmediatePropagation();paste.disabled=true;paste.textContent='Pasting…';
-    try{var text=await navigator.clipboard.readText();if(text){input.value=text;input.dispatchEvent(new Event('input',{bubbles:true}));form.requestSubmit()}else{input.focus()}}
-    catch(err){input.focus();paste.textContent='Paste manually';setTimeout(function(){paste.textContent='Paste & check'},1200)}
-    finally{paste.disabled=false;if(paste.textContent==='Pasting…')paste.textContent='Paste & check'}
+    e.preventDefault();e.stopImmediatePropagation();
+    unlockForNextScan();
+    paste.disabled=true;paste.textContent='Pasting…';
+    var shouldSubmit=false;
+    try{
+      var text=await navigator.clipboard.readText();
+      if(text){
+        input.value=text.trim();
+        input.dispatchEvent(new Event('input',{bubbles:true}));
+        if(result)result.classList.add('hidden');
+        shouldSubmit=true;
+      }else input.focus();
+    }catch(err){
+      input.focus();paste.textContent='Paste manually';
+      setTimeout(function(){if(!paste.disabled)paste.textContent='Paste & check'},1200);
+    }finally{
+      paste.disabled=false;
+      if(paste.textContent==='Pasting…')paste.textContent='Paste & check';
+      analyze.disabled=false;
+      if(shouldSubmit)setTimeout(function(){try{form.requestSubmit()}catch(e){analyze.click()}},0);
+    }
   },true);
-  resetButton();
+  form.addEventListener('submit',function(){input.disabled=false;input.readOnly=false},true);
+  window.addEventListener('pageshow',unlockForNextScan);
+  unlockForNextScan();resetButton();
 })();
 </script>
 '''
@@ -69,7 +95,7 @@ def main() -> None:
     if 'id="cist-one-click-scan"' not in source:
         source = source.replace('</body>', SCRIPT + '\n</body>', 1)
 
-    required = ['Paste &amp; check', '>Check link</button>', 'Quick check first.', 'id="cist-one-click-scan"', 'form.requestSubmit()', 'analyze.textContent!==label']
+    required = ['Paste &amp; check', '>Check link</button>', 'Quick check first.', 'id="cist-one-click-scan"', 'form.requestSubmit()', 'unlockForNextScan()', 'input.readOnly=false']
     for token in required:
         if token not in source:
             raise RuntimeError(f"Fast scan guard failed: missing {token}")
@@ -77,7 +103,7 @@ def main() -> None:
         raise RuntimeError("Fast scan guard failed: deep scan must require explicit consent")
 
     HOME.write_text(source, encoding="utf-8")
-    print("Applied fast scanner controls with explicit deep-scan consent")
+    print("Applied repeatable paste-and-check scanner controls")
 
 
 if __name__ == '__main__':
