@@ -62,6 +62,7 @@ python3 scripts/apply_homepage_stats.py
 python3 scripts/apply_image_safety_input.py
 python3 scripts/apply_universal_scanner_design.py
 python3 scripts/apply_unified_scanner_ui.py
+python3 scripts/apply_homepage_declutter.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
