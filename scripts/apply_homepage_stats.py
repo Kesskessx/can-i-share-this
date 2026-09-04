@@ -3,6 +3,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 HOME = ROOT / 'dist' / 'index.html'
+QR = ROOT / 'dist' / 'qr-code-link-checker.html'
 
 STYLE = r'''
 <style id="cist-homepage-stats-style">
@@ -38,7 +39,7 @@ SCRIPT = r'''
     try{if(sessionStorage.getItem('cist_input_source')==='qr'){sessionStorage.removeItem('cist_input_source');return 'qr'}}catch(e){}
     var v=String(input&&input.value||'').trim();if(/^mailto:/i.test(v)||/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v))return 'email';
     if(/^(0x[0-9a-fA-F]{40}|bc1[ac-hj-np-z02-9]{20,90}|[13][a-km-zA-HJ-NP-Z1-9]{25,34}|T[1-9A-HJ-NP-Za-km-z]{33}|[1-9A-HJ-NP-Za-km-z]{32,44})$/.test(v))return 'crypto';
-    try{var u=new URL(/^https?:\/\//i.test(v)?v:'https://'+v);var h=u.hostname.toLowerCase(),p=u.pathname.toLowerCase();if(/(^|\.)(bit\.ly|t\.co|tinyurl\.com|is\.gd|ow\.ly|buff\.ly|rebrand\.ly|cutt\.ly|rb\.gy)$/.test(h))return 'shortlink';if(/\.(exe|msi|apk|dmg|pkg|zip|rar|7z|pdf|docx?|xlsx?|pptx?|iso|img)(?:$|[?#])/i.test(p))return 'file'}catch(e){}
+    try{var u=new URL(/^https?:\/\//i.test(v)?v:'https://'+v);var h=u.hostname.toLowerCase(),p=u.pathname.toLowerCase();if(/(^|\.)(bit\.ly|t\.co|tinyurl\.com|is\.gd|ow\.ly|buff\.ly|rebrand\.ly|cutt\.ly|rb\.gy)$/.test(h))return 'shortlink';if(/\.(exe|msi|apk|dmg|pkg|zip|rar|7z|pdf|docx?|xlsx?|pptx?|iso|img)$/i.test(p))return 'file'}catch(e){}
     return 'link';
   }
   function render(data){var t=Number(data&&data.total||0),by=data&&data.byType||{};total.textContent=t.toLocaleString();mix.innerHTML='';order.forEach(function(k){var n=Number(by[k]||0);if(!n&&t>0)return;var pct=t?Math.round(n*100/t):0;var row=document.createElement('div');row.className='cist-mix-row';row.innerHTML='<span class="cist-mix-name">'+labels[k]+'</span><span class="cist-mix-track"><span class="cist-mix-fill" style="width:'+pct+'%"></span></span><span class="cist-mix-value">'+pct+'%</span>';mix.appendChild(row)});if(!mix.children.length)mix.textContent='No analyses yet';if(data&&data.persistent===false)note.textContent='Live counters are active, but persistent storage is not configured yet.'}
@@ -63,6 +64,12 @@ def main():
     for token in ['Total analyses','Analysis mix','/api/counter','cist_input_source']:
         if token not in source: raise RuntimeError(f'Homepage stats guard failed: missing {token}')
     HOME.write_text(source,encoding='utf-8')
+    if QR.is_file():
+        qr=QR.read_text(encoding='utf-8')
+        old="sessionStorage.setItem('cist_pending_url',value)"
+        new="sessionStorage.setItem('cist_pending_url',value);sessionStorage.setItem('cist_input_source','qr')"
+        if old in qr and 'cist_input_source' not in qr: qr=qr.replace(old,new,1)
+        QR.write_text(qr,encoding='utf-8')
     print('Applied live total analysis counter and analysis mix')
 
 if __name__=='__main__': main()
