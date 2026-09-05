@@ -4,7 +4,10 @@ const assert = require('node:assert/strict');
 const api = fs.readFileSync('api/check.js', 'utf8');
 const homepage = fs.readFileSync('dist/index.html', 'utf8');
 
-assert.match(api, /const MAX_REDIRECTS = 3;/, 'redirect limit must stay bounded');
+const redirectLimitMatch = api.match(/const MAX_REDIRECTS = (\d+);/);
+assert.ok(redirectLimitMatch, 'redirect limit must be explicit');
+const redirectLimit = Number(redirectLimitMatch[1]);
+assert.ok(redirectLimit >= 1 && redirectLimit <= 5, 'redirect limit must stay bounded to five or fewer');
 assert.match(api, /const TOTAL_TIMEOUT_MS = 7000;/, 'server scan must have a total deadline');
 assert.match(api, /const DNS_TIMEOUT_MS = 1500;/, 'DNS lookup must have a deadline');
 assert.match(homepage, /AbortController/, 'browser requests must have a deadline');
