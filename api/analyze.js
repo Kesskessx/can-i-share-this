@@ -3,7 +3,7 @@ const emailHandler = require('./email-check');
 const cryptoHandler = require('./crypto-check');
 const imageHandler = require('./image-check');
 const messageHandler = require('./message-check');
-const socialProfileHandler = require('./social-profile-check');
+const socialProfileHandler = require('../lib/social-profile-safety');
 
 const SOCIAL_HOSTS = new Set([
   'instagram.com', 'www.instagram.com',
