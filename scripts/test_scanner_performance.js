@@ -12,12 +12,13 @@ assert.match(api, /const TOTAL_TIMEOUT_MS = 7000;/, 'server scan must have a tot
 assert.match(api, /const DNS_TIMEOUT_MS = 1500;/, 'DNS lookup must have a deadline');
 assert.match(homepage, /AbortController/, 'browser requests must have a deadline');
 assert.match(homepage, /analyze\.textContent!==label/, 'button observer must not rewrite unchanged text');
-assert.match(homepage, /Quick check first\./, 'quick scan must be clearly identified');
-assert.match(homepage, /id="deep"/, 'manual deep scan control must remain available');
-assert.match(homepage, /id="deep-confirm"/, 'deep scan consent control must remain available');
-assert.doesNotMatch(homepage, /deepConfirm\.click\(\)/, 'deep scan must never start automatically');
-assert.doesNotMatch(homepage, /#deep,#consent\{display:none/, 'deep scan controls must not be hidden');
+assert.match(homepage, /One complete check\./, 'single complete scan disclosure must remain visible in source');
+assert.match(homepage, /id="deep"/, 'deep scan control must remain in the document');
+assert.match(homepage, /id="deep-confirm"/, 'deep scan confirmation control must remain in the document');
+assert.match(homepage, /deepConfirm\.click\(\)/, 'public-link reputation stage must start after the initial result');
+assert.match(homepage, /#deep,#consent\{display:none!important\}/, 'legacy deep-scan controls must stay hidden in single-scan UX');
 assert.doesNotMatch(homepage, /MutationObserver/, 'homepage must not schedule DOM observer feedback loops');
 assert.match(homepage, /cist:result-updated/, 'result panels must update through an explicit event');
+assert.match(homepage, /isPublicLink\(v\)/, 'automatic external reputation stage must remain limited to public links');
 
 console.log('Scanner performance and consent checks passed');
