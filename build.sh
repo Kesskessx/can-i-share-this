@@ -56,6 +56,7 @@ python3 scripts/apply_capability_strip.py
 python3 scripts/remove_redundant_home_sections.py
 python3 scripts/apply_entity_identity.py
 python3 scripts/apply_breadcrumb_schema.py
+python3 scripts/apply_social_profile_cluster_links.py
 python3 scripts/apply_crypto_input.py
 python3 scripts/apply_result_priority_layout.py
 python3 scripts/apply_single_complete_scan.py
