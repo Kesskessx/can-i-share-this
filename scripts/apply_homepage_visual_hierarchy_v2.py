@@ -33,11 +33,11 @@ js=r'''<script id="homepage-visual-hierarchy-v2-script">(function(){
 function norm(v){return String(v||'').replace(/\s+/g,' ').trim()}
 function init(){
  var form=document.getElementById('scan-form'); if(!form)return;
- var sub=document.querySelector('.hero .sub'); if(sub)sub.textContent='Links, emails, QR codes, files and messages. One scanner. Multiple safety signals.';
+ var sub=document.querySelector('.hero .sub'); if(sub)sub.textContent='Links, emails, messages, social profiles, QR codes, images, files and crypto. One scanner.';
  var tools=document.getElementById('image-safety-tools');
  if(tools){var up=document.getElementById('choose-image'),cam=document.getElementById('take-photo');if(up)up.textContent='Upload photo';if(cam)cam.textContent='Scan QR / Camera';var note=tools.querySelector('.image-note');if(note)note.textContent='Private by design · No account required';}
  var privacy=[];document.querySelectorAll('p,small,div,span').forEach(function(el){var t=norm(el.textContent);if((t==='Private by design · No account required'||t==='Private by design · No account required · Images are not stored by Can I Share This?')&&el.children.length===0)privacy.push(el)});for(var pi=1;pi<privacy.length;pi++)privacy[pi].style.display='none';
- if(!document.querySelector('.cist-input-types-v2')){var types=document.createElement('div');types.className='cist-input-types-v2';types.setAttribute('aria-label','Supported input types');['URL','Email','Message','QR','Image','File','Crypto address'].forEach(function(x){var e=document.createElement('span');e.textContent=x;types.appendChild(e)});(tools||form).insertAdjacentElement('afterend',types)}
+ if(!document.querySelector('.cist-input-types-v2')){var types=document.createElement('div');types.className='cist-input-types-v2';types.setAttribute('aria-label','Supported input types');['URL','Email','Message','Social profile','QR','Image','File','Crypto address'].forEach(function(x){var e=document.createElement('span');e.textContent=x;types.appendChild(e)});(tools||form).insertAdjacentElement('afterend',types)}
  var labels={'Fake websites':'Phishing & impersonation','Harmful files':'Malware & unsafe downloads','Link destination':'Redirects & final destination','Suspicious messages':'Scam & social-engineering signals'};
  document.querySelectorAll('strong,b,h3,h4').forEach(function(el){var k=norm(el.textContent);if(labels[k]){var box=el.parentElement;if(box){var nodes=box.querySelectorAll('p,small,span,div');for(var i=0;i<nodes.length;i++){var t=norm(nodes[i].textContent);if(t&&t!==k&&t.length<90){nodes[i].textContent=labels[k];break}}}}});
  var example=document.querySelector('.cist-example-v2');if(example)example.remove();
@@ -46,7 +46,7 @@ function init(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();</script>'''
 
-if '</head>' not in s or '</body>' not in s: raise SystemExit('invalid homepage')
+if '</head>' not in s or '</body>' not in s: raise SystemExit('invalid homepage HTML')
 s=s.replace('</head>',css+'\n</head>',1).replace('</body>',js+'\n</body>',1)
 p.write_text(s,encoding='utf-8')
 print('Applied compact header-to-hero spacing with blue scanner glow')
