@@ -42,6 +42,7 @@ python3 scripts/apply_recommended_action_v13.py
 python3 scripts/apply_benchmark_upgrades_v16.py
 python3 scripts/generate_context_checker_pages.py
 python3 scripts/generate_growth_authority_pages.py
+python3 scripts/generate_social_profile_seo_cluster.py
 python3 scripts/apply_growth_title_polish.py
 python3 scripts/apply_readability_v1.py
 python3 scripts/apply_wordmark_logo.py
