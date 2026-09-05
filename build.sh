@@ -75,6 +75,7 @@ python3 scripts/apply_lookalike_explanation_ui.py
 python3 scripts/apply_business_contact.py
 python3 scripts/apply_result_feedback.py
 python3 scripts/apply_homepage_copy_dedup.py
+python3 scripts/apply_homepage_final_dedup.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
