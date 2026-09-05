@@ -6,17 +6,6 @@ ROOT = Path(__file__).resolve().parents[1]
 HOME = ROOT / 'dist' / 'index.html'
 
 
-def strip_container_with_text(source: str, needle: str, tags=('section','div','aside')) -> tuple[str, bool]:
-    for tag in tags:
-        pattern = re.compile(rf'<{tag}\b[^>]*>.*?{re.escape(needle)}.*?</{tag}>', re.I | re.S)
-        matches = list(pattern.finditer(source))
-        if not matches:
-            continue
-        match = min(matches, key=lambda m: len(m.group(0)))
-        return source[:match.start()] + source[match.end():], True
-    return source, False
-
-
 def visible_source(source: str) -> str:
     cleaned = re.sub(r'<script\b[^>]*>.*?</script>', '', source, flags=re.I | re.S)
     cleaned = re.sub(r'<style\b[^>]*>.*?</style>', '', cleaned, flags=re.I | re.S)
@@ -29,25 +18,38 @@ def main() -> None:
 
     source = HOME.read_text(encoding='utf-8')
 
-    # Remove static copies when possible.
-    source, _ = strip_container_with_text(source, 'What we check')
+    # Safe static removals only: exact leaf sentence + exact footer link.
     source = re.sub(
-        r'<(?:p|div|span|strong|b)[^>]*>\s*See the real destination before you open a link\.?\s*</(?:p|div|span|strong|b)>',
+        r'<(?:p|span|strong|b)[^>]*>\s*See the real destination before you open a link\.?\s*</(?:p|span|strong|b)>',
         '', source, count=1, flags=re.I | re.S
     )
     source = re.sub(r'\s*<a\b[^>]*href=["\']/security["\'][^>]*>\s*Security\s*</a>', '', source, count=1, flags=re.I)
-    source, _ = strip_container_with_text(source, 'Is Can I Share This? related to ShareThis?')
 
-    # Runtime cleanup handles blocks assembled by earlier homepage scripts.
+    # Runtime cleanup handles blocks assembled or reshaped by earlier homepage scripts.
     cleanup_js = r'''<script id="homepage-final-dedup-script">(function(){
 function norm(v){return String(v||'').replace(/\s+/g,' ').trim()}
-function removeClosest(el){if(!el)return;var box=el.closest('section,aside');if(!box){box=el;while(box.parentElement&&norm(box.parentElement.textContent).length<900)box=box.parentElement}if(box&&box!==document.body)box.remove()}
+function removeChecks(el){
+  var node=el;
+  for(var i=0;i<5&&node&&node!==document.body;i++,node=node.parentElement){
+    var t=norm(node.textContent);
+    if(t.indexOf('What we check')>=0&&t.indexOf('Fake websites')>=0&&t.indexOf('Harmful files')>=0&&t.length<900){node.remove();return;}
+  }
+  if(el.parentElement)el.parentElement.remove();else el.remove();
+}
+function removeShareThis(el){
+  var node=el;
+  for(var i=0;i<4&&node&&node!==document.body;i++,node=node.parentElement){
+    var t=norm(node.textContent);
+    if(t.indexOf('Is Can I Share This? related to ShareThis?')>=0&&t.indexOf('independent safety-checking service')>=0&&t.length<650){node.remove();return;}
+  }
+  var next=el.nextElementSibling;if(next&&norm(next.textContent).indexOf('No. Can I Share This? is an independent')===0)next.remove();el.remove();
+}
 function run(){
   document.querySelectorAll('h2,h3,h4,strong,b,p,div,span').forEach(function(el){
     var t=norm(el.textContent);
-    if(t==='What we check')removeClosest(el);
-    if(t==='See the real destination before you open a link.'||t==='See the real destination before you open a link')removeClosest(el);
-    if(t==='Is Can I Share This? related to ShareThis?')removeClosest(el);
+    if(t==='What we check')removeChecks(el);
+    else if(t==='See the real destination before you open a link.'||t==='See the real destination before you open a link')el.remove();
+    else if(t==='Is Can I Share This? related to ShareThis?')removeShareThis(el);
   });
   document.querySelectorAll('a[href="/security"]').forEach(function(a){
     var prev=a.previousElementSibling,next=a.nextElementSibling;a.remove();
@@ -59,7 +61,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();</script>'''
     source = source.replace('</body>', cleanup_js + '\n</body>', 1)
 
-    # Remove separator artifacts left by static footer-link deletion.
     source = re.sub(r'(<div class="footer-resource-links">)\s*<i[^>]*>·</i>', r'\1', source, flags=re.I)
     source = re.sub(r'<i[^>]*>·</i>\s*(</div>)', r'\1', source, flags=re.I)
     source = re.sub(r'(<i[^>]*>·</i>\s*){2,}', '<i aria-hidden="true">·</i>', source, flags=re.I)
@@ -81,7 +82,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
             raise RuntimeError(f'Homepage cleanup removed required content: {token}')
 
     HOME.write_text(source, encoding='utf-8')
-    print('Removed remaining visible homepage duplicate sections')
+    print('Removed remaining visible homepage duplicate sections safely')
 
 
 if __name__ == '__main__':
