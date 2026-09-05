@@ -1,5 +1,13 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const handler = require('../api/feedback');
+
+const homepage = fs.readFileSync(path.join(__dirname, '..', 'dist', 'index.html'), 'utf8');
+const feedbackScript = homepage.match(/<script id="cist-result-feedback-script">([\s\S]*?)<\/script>/);
+assert.ok(feedbackScript, 'feedback UI script must be present in the built homepage');
+assert.doesNotThrow(() => new Function(feedbackScript[1]), 'feedback UI script must be valid JavaScript');
+assert.match(homepage, /Was this result helpful\?/);
 
 async function request(body, method = 'POST') {
   let code = 200;

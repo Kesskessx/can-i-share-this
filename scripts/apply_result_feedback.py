@@ -36,7 +36,7 @@ SCRIPT = r'''
     var v=value().replace(/^mailto:/i,'');
     if(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v))return'email';
     if(/^(0x[0-9a-fA-F]{40}|bc1[ac-hj-np-z02-9]{20,90}|ltc1[ac-hj-np-z02-9]{20,90}|T[1-9A-HJ-NP-Za-km-z]{33}|[1-9A-HJ-NP-Za-km-z]{32,44})$/.test(v))return'crypto';
-    if(!/^https?:\/\//i.test(v)&&(\/\s\/.test(v)||v.length>180))return'message';
+    if(!/^https?:\/\//i.test(v)&&(/\s/.test(v)||v.length>180))return'message';
     return'link';
   }
   function verdictStatus(){
