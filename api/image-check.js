@@ -37,6 +37,7 @@ function normalizeOutput(raw) {
       }).filter(Boolean)
     : [];
   const risk = ['low', 'caution', 'high', 'unknown'].includes(out.risk) ? out.risk : 'unknown';
+  const social = out.social_profile && typeof out.social_profile === 'object' ? out.social_profile : null;
   return {
     risk,
     confidence: Number.isFinite(out.confidence) ? Math.max(0, Math.min(1, out.confidence)) : null,
@@ -48,6 +49,12 @@ function normalizeOutput(raw) {
     phones: arr(out.phones),
     qr_values: arr(out.qr_values),
     claimed_brands: arr(out.claimed_brands, 8, 120),
+    social_profile: social ? {
+      platform: safeText(social.platform, 80),
+      username: safeText(social.username, 120),
+      display_name: safeText(social.display_name, 160),
+      verification_evidence: safeText(social.verification_evidence, 240)
+    } : null,
     suspicious_signals: signals
   };
 }
@@ -70,7 +77,7 @@ async function callGemini({ key, model, image, prompt, signal }) {
       ] }],
       generationConfig: {
         temperature: 0.1,
-        maxOutputTokens: 1200
+        maxOutputTokens: 1400
       }
     }),
     signal
@@ -88,7 +95,7 @@ module.exports = async function handler(req, res) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return json(res, 503, { error: 'Image analysis is not configured yet.' });
 
-  const prompt = `You are a security extraction component for Can I Share This?. Analyze this screenshot or photo for scam and phishing indicators. Do not claim certainty. Extract only evidence visible in the image. Detect visible text, URLs, email addresses, phone numbers, QR-code contents if readable, brands or organizations being claimed, requests for login/payment/crypto/download, urgency, threats, impersonation, and brand/domain mismatch. Return JSON only with this exact shape: {"risk":"low|caution|high|unknown","confidence":0.0,"summary":"short plain-language summary","recommended_action":"short action","visible_text":"important visible text","urls":[],"emails":[],"phones":[],"qr_values":[],"claimed_brands":[],"suspicious_signals":[{"type":"short_type","detail":"specific visible evidence"}]}. If the image is unrelated or unreadable, use risk unknown. Never invent a URL, email, phone number, QR value or brand.`;
+  const prompt = `You are a security extraction component for Can I Share This?. Analyze this screenshot or photo for scam, phishing and social-profile impersonation indicators. Do not claim certainty and do not identify a person biometrically. Extract only evidence visible in the image. Detect visible text, URLs, email addresses, phone numbers, QR-code contents if readable, brands or organizations being claimed, requests for login/payment/crypto/download, urgency, threats, impersonation, brand/domain mismatch, attempts to move the conversation to Telegram or WhatsApp, requests for passwords/codes/documents, and fake-looking verification symbols placed in a display name or biography. If a social profile or direct-message interface is visible, extract the platform, visible @username, display name and what visible evidence exists for verification; do not assume a checkmark is genuine platform verification. Return JSON only with this exact shape: {"risk":"low|caution|high|unknown","confidence":0.0,"summary":"short plain-language summary","recommended_action":"short action","visible_text":"important visible text","urls":[],"emails":[],"phones":[],"qr_values":[],"claimed_brands":[],"social_profile":{"platform":"","username":"","display_name":"","verification_evidence":""},"suspicious_signals":[{"type":"short_type","detail":"specific visible evidence"}]}. For a visible social profile, use cautious result language: no obvious impersonation signs, profile needs verification, or high impersonation risk. Never state that a profile is definitely fake. If the image is unrelated or unreadable, use risk unknown and social_profile null. Never invent a URL, email, phone number, QR value, brand, username or verification status.`;
 
   const preferred = process.env.GEMINI_MODEL || 'gemini-flash-latest';
   const models = [...new Set([preferred, 'gemini-2.5-flash-lite'])];
