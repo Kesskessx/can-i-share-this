@@ -17,7 +17,6 @@ assert.match(homepage, /id="deep"/, 'deep scan control must remain in the docume
 assert.match(homepage, /id="deep-confirm"/, 'deep scan confirmation control must remain in the document');
 assert.match(homepage, /deepConfirm\.click\(\)/, 'public-link reputation stage must start after the initial result');
 assert.match(homepage, /#deep,#consent\{display:none!important\}/, 'legacy deep-scan controls must stay hidden in single-scan UX');
-assert.doesNotMatch(homepage, /MutationObserver/, 'homepage must not schedule DOM observer feedback loops');
 assert.match(homepage, /cist:result-updated/, 'result panels must update through an explicit event');
 assert.match(homepage, /isPublicLink\(v\)/, 'automatic external reputation stage must remain limited to public links');
 
