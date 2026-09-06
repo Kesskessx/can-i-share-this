@@ -79,6 +79,7 @@ python3 scripts/apply_homepage_copy_dedup.py
 python3 scripts/apply_homepage_final_dedup.py
 python3 scripts/apply_gsc_priority_seo.py
 python3 scripts/apply_universal_home_result_v2.py
+python3 scripts/apply_mobile_layout_fix_v1.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
