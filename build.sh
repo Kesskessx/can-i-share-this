@@ -82,6 +82,7 @@ python3 scripts/apply_universal_home_result_v2.py
 python3 scripts/apply_homepage_title_wrap_fix.py
 python3 scripts/apply_mobile_layout_fix_v1.py
 python3 scripts/apply_analyze_loading_halo.py
+python3 scripts/apply_compact_result_layout_v1.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
