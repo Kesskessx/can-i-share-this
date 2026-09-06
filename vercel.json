@@ -3,9 +3,6 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
-    {"source": "/api/analyze", "destination": "/api/analyze-v3"}
-  ],
   "redirects": [
     {"source": "/suspicious-text-message-link", "destination": "/sms-link-checker", "permanent": true},
     {"source": "/is-this-email-safe", "destination": "/email-safety-checker", "permanent": true},
