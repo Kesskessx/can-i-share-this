@@ -48,43 +48,34 @@ BLOCK = r'''
 SCRIPT = r'''
 <script id="cist-desktop-daily-rail-script">
 (function(){
-  var rail=document.getElementById('cist-daily-rail'),form=document.getElementById('scan-form'),card=document.getElementById('result-card'),input=document.getElementById('url');
+  var rail=document.getElementById('cist-daily-rail'),form=document.getElementById('scan-form'),card=document.getElementById('result-card');
   var scans=document.getElementById('cist-daily-scans'),warnings=document.getElementById('cist-daily-warnings'),average=document.getElementById('cist-daily-average'),typeEl=document.getElementById('cist-daily-type'),live=document.getElementById('cist-daily-live');
   if(!rail||!form||!card||!scans)return;
-  var startedAt=0,scanSent=true,refreshTimer=0,pollTimer=0,requestRunning=false;
+  var startedAt=0,metricsSent=true,refreshTimer=0,pollTimer=0,requestRunning=false;
   var typeLabels={link:'URL',qr:'QR code',email:'Email',file:'File',shortlink:'Short link',crypto:'Crypto',message:'Message',social:'Social profile',other:'Other'};
 
   function status(){if(card.classList.contains('status-high'))return'high';if(card.classList.contains('status-caution'))return'caution';if(card.classList.contains('status-low'))return'low';return'unknown'}
   function formatTime(ms){ms=Number(ms);if(!Number.isFinite(ms)||ms<=0)return'—';if(ms<1000)return Math.round(ms)+' ms';return (ms/1000).toFixed(ms<10000?1:0)+' s'}
   function topType(by){var best='',count=-1;Object.keys(by||{}).forEach(function(k){var n=Number(by[k]||0);if(n>count){count=n;best=k}});return count>0?(typeLabels[best]||best):'—'}
-  function detectedType(){
-    var d=window.cistUniversalResultData||{},raw=String(d.detectedType||d.inputType||'').toLowerCase();
-    if(raw==='url')return'link';if(raw==='social-profile')return'social';if(typeLabels[raw])return raw;
-    var v=String(input&&input.value||'').trim();
-    if(/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v))return'email';
-    if(/^(0x[0-9a-fA-F]{40}|bc1[ac-hj-np-z02-9]{20,90}|T[1-9A-HJ-NP-Za-km-z]{33})$/.test(v))return'crypto';
-    try{var u=new URL(v);var h=u.hostname.toLowerCase();if(/(^|\.)(instagram\.com|facebook\.com|tiktok\.com|x\.com|twitter\.com|t\.me|telegram\.me)$/.test(h))return'social';if(/(^|\.)(bit\.ly|t\.co|tinyurl\.com|is\.gd|ow\.ly|buff\.ly|rebrand\.ly|cutt\.ly|rb\.gy)$/.test(h))return'shortlink';return'link'}catch(e){}
-    return /\s/.test(v)?'message':'other';
-  }
-  function render(data){var d=data&&data.daily||{};scans.textContent=Number(d.total||0).toLocaleString();warnings.textContent=Number(d.warnings||0).toLocaleString();average.textContent=formatTime(d.averageMs);typeEl.textContent=topType(d.byType||{});live.textContent=data&&data.persistent===false?'Reconnecting…':'Live'}
-  function request(options){var controller=new AbortController(),timer=setTimeout(function(){controller.abort()},2200),opts=options||{};opts.signal=controller.signal;return fetch('/api/daily-counter',opts).then(function(r){clearTimeout(timer);if(!r.ok)throw new Error('stats');return r.json()}).catch(function(e){clearTimeout(timer);throw e})}
+  function render(data){var d=data&&data.daily||{};scans.textContent=Number(d.total||0).toLocaleString();warnings.textContent=Number(d.warnings||0).toLocaleString();average.textContent=formatTime(d.averageMs);typeEl.textContent=topType(d.byType||{});live.textContent=data&&data.persistent===false?'Session':'Live'}
+  function request(options){var controller=new AbortController(),timer=setTimeout(function(){controller.abort()},1800),opts=options||{};opts.signal=controller.signal;return fetch('/api/counter',opts).then(function(r){clearTimeout(timer);if(!r.ok)throw new Error('stats');return r.json()}).catch(function(e){clearTimeout(timer);throw e})}
   function refresh(delay){
     clearTimeout(refreshTimer);
     refreshTimer=setTimeout(function(){
       if(document.hidden||requestRunning)return;
       requestRunning=true;
-      request({cache:'no-store'}).then(render).catch(function(){live.textContent='Reconnecting…'}).finally(function(){requestRunning=false});
+      request({cache:'no-store'}).then(function(data){render(data);live.textContent=data&&data.persistent===false?'Session':'Live'}).catch(function(){live.textContent='Reconnecting…'}).finally(function(){requestRunning=false});
     },delay||0)
   }
-  function finishScan(){
-    if(scanSent||!startedAt||!document.body.classList.contains('cist-compact-result-active'))return;
-    scanSent=true;var duration=Math.max(1,Date.now()-startedAt),s=status(),type=detectedType();
-    request({method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({type:type,warning:s==='high'||s==='caution',durationMs:duration})}).then(function(data){render(data);refresh(250)}).catch(function(){live.textContent='Reconnecting…';refresh(500)});
+  function finishMetrics(){
+    if(metricsSent||!startedAt||!document.body.classList.contains('cist-compact-result-active'))return;
+    metricsSent=true;var duration=Math.max(1,Date.now()-startedAt),s=status();
+    request({method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({metricsOnly:true,warning:s==='high'||s==='caution',durationMs:duration})}).then(function(data){render(data);refresh(250)}).catch(function(){refresh(300)});
   }
   function startPolling(){clearInterval(pollTimer);pollTimer=setInterval(function(){if(!document.hidden)refresh(0)},15000)}
-  form.addEventListener('submit',function(){startedAt=Date.now();scanSent=false},true);
-  document.addEventListener('cist:result-updated',function(){setTimeout(finishScan,50)});
-  new MutationObserver(function(){finishScan()}).observe(document.body,{attributes:true,attributeFilter:['class']});
+  form.addEventListener('submit',function(){startedAt=Date.now();metricsSent=false},true);
+  document.addEventListener('cist:result-updated',function(){setTimeout(finishMetrics,40)});
+  new MutationObserver(function(){finishMetrics()}).observe(document.body,{attributes:true,attributeFilter:['class']});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh(0)});
   window.addEventListener('focus',function(){refresh(0)});
   window.addEventListener('online',function(){refresh(0)});
@@ -106,12 +97,12 @@ def main():
     source=source.replace('</head>',STYLE+'\n</head>',1)
     source=source.replace('<main',BLOCK+'\n<main',1)
     source=source.replace('</body>',SCRIPT+'\n</body>',1)
-    required=['Scans today','Warnings detected','Average scan time','Most checked type','/api/daily-counter','durationMs:duration','setInterval','visibilitychange','15000']
+    required=['Scans today','Warnings detected','Average scan time','Most checked type','metricsOnly:true','/api/counter','setInterval','visibilitychange','15000']
     for token in required:
         if token not in source:
             raise RuntimeError(f'Desktop daily rail guard failed: missing {token}')
     HOME.write_text(source,encoding='utf-8')
-    print('Applied persistent automatic live daily statistics rail')
+    print('Applied desktop-only automatic live daily statistics rail')
 
 if __name__=='__main__':
     main()
