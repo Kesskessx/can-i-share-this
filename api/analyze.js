@@ -6,7 +6,9 @@ const cryptoHandler = require('./crypto-check');
 const imageHandler = require('./image-check');
 const messageHandler = require('./message-check');
 const socialProfileHandler = require('../lib/social-profile-safety');
-const { enrichScanResult } = require('../lib/mega-evidence');
+const { enrichScanResult: enrichScanResultV2 } = require('../lib/mega-evidence');
+const { enrichScanResult: enrichScanResultV3, upgradeMegaResult } = require('../lib/mega-evidence-v3');
+const { orchestrateImageResult } = require('../lib/image-evidence-orchestrator');
 
 const SOCIAL_HOSTS = new Set([
   'instagram.com', 'www.instagram.com',
@@ -61,7 +63,7 @@ function enrichBody(detectedType, originalInput, body) {
   const base = { detectedType, ...body };
   if (base.error) return base;
   try {
-    return enrichScanResult({ detectedType, originalInput, body: base });
+    return enrichScanResultV3({ detectedType, originalInput, body: base });
   } catch (err) {
     console.error('Mega Scanner enrichment failed', err);
     return base;
@@ -94,6 +96,54 @@ function wrapResponse(res, detectedType, originalInput = '') {
     };
   }
   return res;
+}
+
+function captureHandler(handler, req) {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = (status, payload) => {
+      if (done) return;
+      done = true;
+      resolve({ status, body: payload });
+    };
+    const fake = {
+      statusCode: 200,
+      headers: {},
+      setHeader(k, v) { this.headers[String(k).toLowerCase()] = v; return this; },
+      getHeader(k) { return this.headers[String(k).toLowerCase()]; },
+      status(code) { this.statusCode = code; return this; },
+      json(payload) { finish(this.statusCode, payload); return this; },
+      end(payload) {
+        let body = payload;
+        if (typeof payload === 'string') {
+          try { body = JSON.parse(payload); } catch (_) {}
+        }
+        finish(this.statusCode, body);
+        return this;
+      }
+    };
+    Promise.resolve(handler(req, fake)).then(() => {
+      if (!done) finish(fake.statusCode, null);
+    }).catch(err => finish(500, { error: err && err.message ? err.message : 'Image analysis failed' }));
+  });
+}
+
+async function analyzeImage(req, res, image) {
+  const imageReq = { ...req, body: { image }, method: 'POST' };
+  const captured = await captureHandler(imageHandler, imageReq);
+  if (captured.status >= 400 || !captured.body || typeof captured.body !== 'object') {
+    return res.status(captured.status || 500).json(captured.body || { error: 'Image analysis failed' });
+  }
+  try {
+    const orchestrated = await orchestrateImageResult(captured.body);
+    const v2 = enrichScanResultV2({ detectedType: 'image', originalInput: '', body: { detectedType: 'image', ...orchestrated } });
+    const final = upgradeMegaResult(v2);
+    return res.status(captured.status || 200).json(final);
+  } catch (err) {
+    console.error('Mega Scanner image orchestration failed', err);
+    const fallback = enrichScanResultV3({ detectedType: 'image', originalInput: '', body: { detectedType: 'image', ...captured.body } });
+    return res.status(captured.status || 200).json(fallback);
+  }
 }
 
 function decodeHtml(value) {
@@ -151,7 +201,7 @@ async function fetchSocialAvatar(profileUrl) {
       response = await fetch(current.toString(), {
         redirect: 'manual', signal: controller.signal,
         headers: {
-          'user-agent': 'Mozilla/5.0 (compatible; CanIShareThis/2.0; +https://canisharethis.com)',
+          'user-agent': 'Mozilla/5.0 (compatible; CanIShareThis/3.0; +https://canisharethis.com)',
           'accept': 'text/html,application/xhtml+xml', 'accept-language': 'en-US,en;q=0.8'
         }
       });
@@ -203,8 +253,7 @@ module.exports = async function handler(req, res) {
   }
 
   if (typeof body.image === 'string' && body.image.startsWith('data:image/')) {
-    req.body = { image: body.image };
-    return imageHandler(req, wrapResponse(res, 'image', ''));
+    return analyzeImage(req, res, body.image);
   }
 
   const original = String(body.input || body.url || body.email || body.address || body.message || '').trim();
