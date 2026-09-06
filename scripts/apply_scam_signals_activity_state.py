@@ -69,7 +69,7 @@ def main():
     source=re.sub(r'\s*<script id="cist-scam-signals-activity-script">.*?</script>','',source,count=1,flags=re.S)
     source=source.replace('</head>',STYLE+'\n</head>',1)
     source=source.replace('</body>',SCRIPT+'\n</body>',1)
-    for token in ['No scam signals detected yet','scans analyzed today','cist-signal-activity','/api/counter']:
+    for token in ['No scam signals detected yet','cist-signal-activity','Activity unavailable','/api/counter']:
         if token not in source:
             raise RuntimeError(f'Scam activity guard failed: missing {token}')
     HOME.write_text(source,encoding='utf-8')
