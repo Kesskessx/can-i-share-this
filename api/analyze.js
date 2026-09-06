@@ -6,7 +6,7 @@ const cryptoHandler=require('./crypto-check');
 const imageHandler=require('./image-check');
 const messageHandler=require('./message-check');
 const socialProfileHandler=require('../lib/social-profile-safety');
-const { analyzeUploadedFile }=require('../lib/file-safety');
+const { analyzeUploadedFile, parseFilePayload }=require('../lib/file-safety');
 const { enrichScanResult: enrichScanResultV2 }=require('../lib/mega-evidence');
 const { upgradeMegaResult }=require('../lib/mega-evidence-v3');
 const { orchestrateImageResult }=require('../lib/image-evidence-orchestrator');
@@ -37,8 +37,8 @@ function isSocialProfileUrl(value){
 function detectType(input){
   const value=String(input||'').trim();if(!value)return'unknown';
   if(/^@[A-Za-z0-9._-]{2,64}$/.test(value))return'social-profile';
-  const first=leadingUrl(value);if(first&&isSocialProfileUrl(first))return'social-profile';
-  if(/^https?:\/\//i.test(value))return'url';
+  const first=leadingUrl(value);if(first===value&&isSocialProfileUrl(first))return'social-profile';
+  if(first===value)return'url';
   if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))return'email';
   if(/^0x[a-fA-F0-9]{40}$/.test(value)||/^bc1[ac-hj-np-z02-9]{11,87}$/i.test(value)||/^ltc1[ac-hj-np-z02-9]{11,87}$/i.test(value)||/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(value)||/^[13LMDA9][1-9A-HJ-NP-Za-km-z]{25,44}$/.test(value)||/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value))return'crypto';
   if(/https?:\/\/[^\s<>"']+/i.test(value))return'message-url';
@@ -83,13 +83,15 @@ async function analyzeImage(res,image,externalConsent){
   try{const imageOrchestrated=await orchestrateImageResult(captured.body);const final=await finalizeResult({detectedType:'image',originalInput:'',baseResult:imageOrchestrated,externalConsent});return res.status(200).json(final)}catch(err){console.error('Universal image orchestration failed',err);return res.status(200).json(applyConfidenceCoverage(upgradeMegaResult(enrichScanResultV2({detectedType:'image',originalInput:'',body:{detectedType:'image',...captured.body}}))))}
 }
 async function analyzeFile(res,file,externalConsent){
-  try{const base=analyzeUploadedFile(file);const final=await finalizeResult({detectedType:'file',originalInput:base.file&&base.file.name||'',baseResult:base,externalConsent});return res.status(200).json(final)}catch(err){return res.status(200).json({detectedType:'file',error:err&&err.message?err.message:'File analysis failed'})}
+  try{parseFilePayload(file)}catch(err){return res.status(/too large/i.test(err.message)?413:400).json({detectedType:'file',error:err.message})}
+  try{const base=analyzeUploadedFile(file);const final=await finalizeResult({detectedType:'file',originalInput:base.file&&base.file.name||'',baseResult:base,externalConsent});return res.status(200).json(final)}catch(err){return res.status(500).json({detectedType:'file',error:'File analysis failed. Please try again.'})}
 }
 
 module.exports=async function handler(req,res){
   res.setHeader('Cache-Control','no-store');res.setHeader('Content-Type','application/json; charset=utf-8');
   if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
   let body=req.body||{};if(typeof body==='string'){try{body=JSON.parse(body)}catch{body={}}}
+  if(!body||typeof body!=='object'||Array.isArray(body))return res.status(400).json({error:'Invalid request body'});
   const externalConsent=body.externalConsent===true;
   if(typeof body.image==='string'&&body.image.startsWith('data:image/'))return analyzeImage(res,body.image,externalConsent);
   if(body.file&&typeof body.file==='object')return analyzeFile(res,body.file,externalConsent);
