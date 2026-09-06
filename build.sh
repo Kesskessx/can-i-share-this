@@ -95,7 +95,9 @@ python3 scripts/apply_social_profile_checker_v2.py
 python3 scripts/apply_check_selector_cards_v1.py
 python3 scripts/apply_mega_scanner_home_v1.py
 python3 scripts/apply_mega_scanner_v2.py
+python3 scripts/apply_mega_scanner_v3.py
 node scripts/test_mega_evidence.js
+node scripts/test_mega_evidence_v3.js
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
