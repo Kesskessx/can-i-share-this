@@ -78,6 +78,7 @@ python3 scripts/apply_result_feedback.py
 python3 scripts/apply_homepage_copy_dedup.py
 python3 scripts/apply_homepage_final_dedup.py
 python3 scripts/apply_gsc_priority_seo.py
+python3 scripts/sync_priority_meta_descriptions.py
 python3 scripts/apply_universal_home_result_v2.py
 python3 scripts/apply_homepage_title_wrap_fix.py
 python3 scripts/apply_mobile_layout_fix_v1.py
@@ -93,6 +94,8 @@ python3 scripts/apply_brand_depth_polish_v1.py
 python3 scripts/apply_social_profile_checker_v2.py
 python3 scripts/apply_check_selector_cards_v1.py
 python3 scripts/apply_mega_scanner_home_v1.py
+python3 scripts/apply_mega_scanner_v2.py
+node scripts/test_mega_evidence.js
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
