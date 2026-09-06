@@ -14,6 +14,11 @@ const SOCIAL_HOSTS = new Set([
   'discord.com', 'www.discord.com', 'discordapp.com', 'www.discordapp.com'
 ]);
 
+function leadingUrl(value) {
+  const match = String(value || '').trim().match(/^https?:\/\/[^\s<>"']+/i);
+  return match ? match[0] : null;
+}
+
 function isSocialProfileUrl(value) {
   let url;
   try { url = new URL(value); } catch (_) { return false; }
@@ -37,7 +42,8 @@ function detectType(input) {
   const value = String(input || '').trim();
   if (!value) return 'unknown';
   if (/^@[A-Za-z0-9._-]{2,64}$/.test(value)) return 'social-profile';
-  if (/^https?:\/\//i.test(value) && isSocialProfileUrl(value)) return 'social-profile';
+  const firstUrl = leadingUrl(value);
+  if (firstUrl && isSocialProfileUrl(firstUrl)) return 'social-profile';
   if (/^https?:\/\//i.test(value)) return 'url';
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'email';
   if (/^0x[a-fA-F0-9]{40}$/.test(value) || /^bc1[ac-hj-np-z02-9]{11,87}$/i.test(value) || /^ltc1[ac-hj-np-z02-9]{11,87}$/i.test(value) || /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(value) || /^[13LMDA9][1-9A-HJ-NP-Za-km-z]{25,44}$/.test(value) || /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)) return 'crypto';
