@@ -1,9 +1,12 @@
+'use strict';
+
 const checkHandler = require('./check');
 const emailHandler = require('./email-check');
 const cryptoHandler = require('./crypto-check');
 const imageHandler = require('./image-check');
 const messageHandler = require('./message-check');
 const socialProfileHandler = require('../lib/social-profile-safety');
+const { enrichScanResult } = require('../lib/mega-evidence');
 
 const SOCIAL_HOSTS = new Set([
   'instagram.com', 'www.instagram.com',
@@ -27,7 +30,6 @@ function isSocialProfileUrl(value) {
   if (!SOCIAL_HOSTS.has(url.hostname.toLowerCase())) return false;
   const parts = url.pathname.split('/').filter(Boolean);
   const host = url.hostname.toLowerCase();
-
   if (host.includes('tiktok.com')) return parts.some(v => v.startsWith('@'));
   if (host === 'discord.com' || host === 'www.discord.com' || host === 'discordapp.com' || host === 'www.discordapp.com') return parts[0] === 'users' && Boolean(parts[1]);
   if (host === 'facebook.com' || host === 'www.facebook.com' || host === 'm.facebook.com') {
@@ -54,22 +56,50 @@ function detectType(input) {
   return 'message';
 }
 
-function wrapResponse(res, detectedType) {
-  const originalJson = res.json.bind(res);
-  res.json = function (body) {
-    if (body && typeof body === 'object' && !Array.isArray(body)) return originalJson({ detectedType, ...body });
-    return originalJson(body);
-  };
+function enrichBody(detectedType, originalInput, body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return body;
+  const base = { detectedType, ...body };
+  if (base.error) return base;
+  try {
+    return enrichScanResult({ detectedType, originalInput, body: base });
+  } catch (err) {
+    console.error('Mega Scanner enrichment failed', err);
+    return base;
+  }
+}
+
+function wrapResponse(res, detectedType, originalInput = '') {
+  const originalJson = typeof res.json === 'function' ? res.json.bind(res) : null;
+  const originalEnd = typeof res.end === 'function' ? res.end.bind(res) : null;
+  let insideJson = false;
+
+  if (originalJson) {
+    res.json = function (body) {
+      insideJson = true;
+      try { return originalJson(enrichBody(detectedType, originalInput, body)); }
+      finally { insideJson = false; }
+    };
+  }
+
+  if (originalEnd) {
+    res.end = function (payload, encoding, callback) {
+      if (insideJson || typeof payload !== 'string') return originalEnd(payload, encoding, callback);
+      try {
+        const parsed = JSON.parse(payload);
+        const enriched = enrichBody(detectedType, originalInput, parsed);
+        return originalEnd(JSON.stringify(enriched), encoding, callback);
+      } catch (_) {
+        return originalEnd(payload, encoding, callback);
+      }
+    };
+  }
   return res;
 }
 
 function decodeHtml(value) {
   return String(value || '')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
+    .replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
     .replace(/&#(\d+);/g, (_, n) => { try { return String.fromCodePoint(Number(n)); } catch { return ''; } })
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => { try { return String.fromCodePoint(parseInt(n, 16)); } catch { return ''; } });
 }
@@ -119,12 +149,10 @@ async function fetchSocialAvatar(profileUrl) {
     let response = null;
     for (let hop = 0; hop < 3; hop++) {
       response = await fetch(current.toString(), {
-        redirect: 'manual',
-        signal: controller.signal,
+        redirect: 'manual', signal: controller.signal,
         headers: {
-          'user-agent': 'Mozilla/5.0 (compatible; CanIShareThis/1.0; +https://canisharethis.com)',
-          'accept': 'text/html,application/xhtml+xml',
-          'accept-language': 'en-US,en;q=0.8'
+          'user-agent': 'Mozilla/5.0 (compatible; CanIShareThis/2.0; +https://canisharethis.com)',
+          'accept': 'text/html,application/xhtml+xml', 'accept-language': 'en-US,en;q=0.8'
         }
       });
       if (response.status >= 300 && response.status < 400) {
@@ -149,27 +177,20 @@ async function fetchSocialAvatar(profileUrl) {
   }
 }
 
-function wrapSocialResponse(res, detectedType, avatarPromise) {
-  const originalJson = res.json.bind(res);
-  res.json = function (body) {
-    if (!body || typeof body !== 'object' || Array.isArray(body)) return originalJson(body);
-    const base = { detectedType, ...body };
-    if (!body.socialProfile) return originalJson(base);
-    return Promise.resolve(avatarPromise).then(avatarUrl => {
-      return originalJson({
-        ...base,
-        socialProfile: {
-          ...body.socialProfile,
-          avatarUrl: avatarUrl || null,
-          avatarState: avatarUrl ? 'available' : 'unavailable'
-        }
-      });
-    }).catch(() => originalJson({
-      ...base,
+function wrapSocialResponse(res, detectedType, originalInput, avatarPromise) {
+  const out = wrapResponse(res, detectedType, originalInput);
+  const baseJson = out.json.bind(out);
+  out.json = function (body) {
+    if (!body || typeof body !== 'object' || Array.isArray(body) || !body.socialProfile) return baseJson(body);
+    return Promise.resolve(avatarPromise).then(avatarUrl => baseJson({
+      ...body,
+      socialProfile: { ...body.socialProfile, avatarUrl: avatarUrl || null, avatarState: avatarUrl ? 'available' : 'unavailable' }
+    })).catch(() => baseJson({
+      ...body,
       socialProfile: { ...body.socialProfile, avatarUrl: null, avatarState: 'unavailable' }
     }));
   };
-  return res;
+  return out;
 }
 
 module.exports = async function handler(req, res) {
@@ -183,22 +204,21 @@ module.exports = async function handler(req, res) {
 
   if (typeof body.image === 'string' && body.image.startsWith('data:image/')) {
     req.body = { image: body.image };
-    return imageHandler(req, wrapResponse(res, 'image'));
+    return imageHandler(req, wrapResponse(res, 'image', ''));
   }
 
   const original = String(body.input || body.url || body.email || body.address || body.message || '').trim();
   if (!original) return res.status(400).json({ error: 'Input required', detectedType: 'unknown' });
-
   const detectedType = detectType(original);
 
   if (detectedType === 'social-profile') {
     const profileUrl = leadingUrl(original);
     const avatarPromise = profileUrl && isSocialProfileUrl(profileUrl) ? fetchSocialAvatar(profileUrl) : Promise.resolve(null);
     req.body = { input: original };
-    return socialProfileHandler(req, wrapSocialResponse(res, detectedType, avatarPromise));
+    return socialProfileHandler(req, wrapSocialResponse(res, detectedType, original, avatarPromise));
   }
 
-  const out = wrapResponse(res, detectedType);
+  const out = wrapResponse(res, detectedType, original);
   if (detectedType === 'url') {
     req.body = { url: original };
     return checkHandler(req, out);
