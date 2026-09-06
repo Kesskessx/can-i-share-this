@@ -1,7 +1,7 @@
 'use strict';
 
 const assert=require('node:assert');
-const { brandDomainStatus }=require('../lib/brand-registry');
+const { brandDomainStatus, detectBrandClaims }=require('../lib/brand-registry');
 const { analyzePhone }=require('../lib/phone-safety');
 const { analyzeUploadedFile }=require('../lib/file-safety');
 const { inspectHtml }=require('../lib/webpage-intelligence');
@@ -29,6 +29,12 @@ assert(candidates.some(x=>x.type==='crypto'),'crypto candidate missing');
 // 2. Brand registry must distinguish an official domain from a conflicting one.
 assert.equal(brandDomainStatus('PayPal','paypal.com').status,'confirmed');
 assert.equal(brandDomainStatus('PayPal','paypal-security-check.example').status,'conflict');
+
+// 2b. A casual brand mention is not an identity claim; support/security language is.
+assert.deepEqual(detectBrandClaims('I bought this on Amazon yesterday.'),[],'casual Amazon mention must not become an identity claim');
+assert(detectBrandClaims('Amazon Support: verify your account immediately.').includes('amazon'),'support context should become an identity claim');
+const casualAmazon=extractEvidence({detectedType:'message-url',originalInput:'I bought this on Amazon. See https://example.com/product',baseResult:{message:{urls:[],emails:[],phones:[]}}});
+assert(!casualAmazon.claimedBrands.includes('amazon'),'universal extraction must preserve casual-brand false-positive protection');
 
 // 3. Phone country mismatch is context, not owner identification.
 const phone=analyzePhone('+234 801 234 5678','I am your French bank in France. Contact me on WhatsApp now.');
