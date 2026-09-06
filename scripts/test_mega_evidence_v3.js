@@ -7,6 +7,17 @@ const { canonicalSocial, extractDomainsFromText } = require('../lib/evidence-rel
 
 function ok(name, fn) { fn(); console.log(`Mega V3 test passed: ${name}`); }
 
+ok('primary verdict survives universal aggregation and empty evidence stays unknown', () => {
+  for (const status of ['unknown', 'low', 'caution', 'high']) {
+    const out = upgradeMegaResult({detectedType:'message', safety:{status}, correlations:[], crossChecks:[]});
+    assert.equal(out.megaScanner.finalRisk,status);
+    assert.equal(out.explanation.verdict,status);
+    assert.equal(out.shareSummary.verdict,status);
+  }
+  assert.equal(upgradeMegaResult({}).megaScanner.finalRisk,'unknown');
+  assert.equal(upgradeMegaResult({analysis:{risk:'low'},technicalCheck:{safety:{status:'high'}}}).megaScanner.finalRisk,'high');
+});
+
 ok('extract all useful screenshot elements', () => {
   const data = extractEvidence({ analysis: {
     urls: ['https://example.com/login'],
