@@ -51,7 +51,7 @@ SCRIPT = r'''
   var rail=document.getElementById('cist-daily-rail'),form=document.getElementById('scan-form'),card=document.getElementById('result-card');
   var scans=document.getElementById('cist-daily-scans'),warnings=document.getElementById('cist-daily-warnings'),average=document.getElementById('cist-daily-average'),typeEl=document.getElementById('cist-daily-type'),live=document.getElementById('cist-daily-live');
   if(!rail||!form||!card||!scans)return;
-  var startedAt=0,metricsSent=true,refreshTimer=0;
+  var startedAt=0,metricsSent=true,refreshTimer=0,pollTimer=0,requestRunning=false;
   var typeLabels={link:'URL',qr:'QR code',email:'Email',file:'File',shortlink:'Short link',crypto:'Crypto',message:'Message',social:'Social profile',other:'Other'};
 
   function status(){if(card.classList.contains('status-high'))return'high';if(card.classList.contains('status-caution'))return'caution';if(card.classList.contains('status-low'))return'low';return'unknown'}
@@ -61,16 +61,30 @@ SCRIPT = r'''
     var d=data&&data.daily||{};scans.textContent=Number(d.total||0).toLocaleString();warnings.textContent=Number(d.warnings||0).toLocaleString();average.textContent=formatTime(d.averageMs);typeEl.textContent=topType(d.byType||{});live.textContent=data&&data.persistent===false?'Session':'Live';
   }
   function request(options){var controller=new AbortController(),timer=setTimeout(function(){controller.abort()},1800),opts=options||{};opts.signal=controller.signal;return fetch('/api/counter',opts).then(function(r){clearTimeout(timer);if(!r.ok)throw new Error('stats');return r.json()}).catch(function(e){clearTimeout(timer);throw e})}
-  function refresh(delay){clearTimeout(refreshTimer);refreshTimer=setTimeout(function(){request({cache:'no-store'}).then(render).catch(function(){live.textContent='Unavailable'})},delay||0)}
+  function refresh(delay){
+    clearTimeout(refreshTimer);
+    refreshTimer=setTimeout(function(){
+      if(document.hidden||requestRunning)return;
+      requestRunning=true;
+      request({cache:'no-store'}).then(function(data){render(data);live.textContent=data&&data.persistent===false?'Session':'Live'}).catch(function(){live.textContent='Reconnecting…'}).finally(function(){requestRunning=false});
+    },delay||0)
+  }
   function finishMetrics(){
     if(metricsSent||!startedAt||!document.body.classList.contains('cist-compact-result-active'))return;
     metricsSent=true;var duration=Math.max(1,Date.now()-startedAt),s=status();
     request({method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({metricsOnly:true,warning:s==='high'||s==='caution',durationMs:duration})}).then(function(data){render(data);refresh(250)}).catch(function(){refresh(300)});
   }
+  function startPolling(){
+    clearInterval(pollTimer);
+    pollTimer=setInterval(function(){if(!document.hidden)refresh(0)},15000);
+  }
   form.addEventListener('submit',function(){startedAt=Date.now();metricsSent=false},true);
   document.addEventListener('cist:result-updated',function(){setTimeout(finishMetrics,40)});
   new MutationObserver(function(){finishMetrics()}).observe(document.body,{attributes:true,attributeFilter:['class']});
-  refresh(0);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh(0)});
+  window.addEventListener('focus',function(){refresh(0)});
+  window.addEventListener('online',function(){refresh(0)});
+  refresh(0);startPolling();
 })();
 </script>
 '''
@@ -88,12 +102,12 @@ def main():
     source=source.replace('</head>',STYLE+'\n</head>',1)
     source=source.replace('<main',BLOCK+'\n<main',1)
     source=source.replace('</body>',SCRIPT+'\n</body>',1)
-    required=['Scans today','Warnings detected','Average scan time','Most checked type','metricsOnly:true','min-width:1320px','Anonymous aggregate statistics only']
+    required=['Scans today','Warnings detected','Average scan time','Most checked type','metricsOnly:true','min-width:1320px','Anonymous aggregate statistics only','setInterval','visibilitychange','15000']
     for token in required:
         if token not in source:
             raise RuntimeError(f'Desktop daily rail guard failed: missing {token}')
     HOME.write_text(source,encoding='utf-8')
-    print('Applied desktop-only anonymous daily statistics rail')
+    print('Applied desktop-only automatic live daily statistics rail')
 
 if __name__=='__main__':
     main()
