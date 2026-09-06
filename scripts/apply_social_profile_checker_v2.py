@@ -11,8 +11,11 @@ body.cist-social-profile-result #cist-compact-result .cist-key-grid{grid-templat
 body.cist-social-profile-result #cist-compact-result .cist-key-item{min-height:58px}
 body.cist-social-profile-result #cist-compact-result .cist-compact-why{border-left-color:color-mix(in srgb,var(--cist-accent,#788ff7) 68%,var(--line))}
 body.cist-social-profile-result #technical{display:none!important}
+.cist-social-profile-verdict{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:11px 13px;border:1px solid color-mix(in srgb,var(--cist-accent,#788ff7) 26%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--cist-accent,#788ff7) 6%,var(--card));color:var(--text);font-size:12px;font-weight:850;line-height:1.35}
+.cist-social-profile-verdict small{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+.cist-social-profile-summary{margin:-4px 0 12px;color:var(--muted);font-size:10px;line-height:1.45}
 .cist-social-profile-limit{margin-top:9px;color:var(--muted);font-size:9px;line-height:1.4}
-@media(max-width:700px){body.cist-social-profile-result #cist-compact-result .cist-key-grid{grid-template-columns:1fr}}
+@media(max-width:700px){body.cist-social-profile-result #cist-compact-result .cist-key-grid{grid-template-columns:1fr}.cist-social-profile-verdict{align-items:flex-start;flex-direction:column}}
 </style>
 '''
 
@@ -21,7 +24,7 @@ SCRIPT = r'''
 (function(){
   var input=document.getElementById('url'),card=document.getElementById('result-card'),result=document.getElementById('result');
   if(!input||!card||!result)return;
-  var last=null,applying=false;
+  var last=null,renderTimer=null,finalTimer=null;
 
   function clean(v){return String(v||'').replace(/\s+/g,' ').trim()}
   function route(resource){try{return new URL(typeof resource==='string'?resource:(resource&&resource.url)||'',location.href).pathname}catch(e){return''}}
@@ -35,37 +38,65 @@ SCRIPT = r'''
   function externalLabel(p){var d=p&&p.profileData||{},n=Number(d.externalLinkCount||0),short=Number(d.shortLinkCount||0);if(short)return n+' external · '+short+' shortened';return n?n+' external link'+(n===1?'':'s'):'None detected'}
   function reasons(d){var sig=d&&d.safety&&Array.isArray(d.safety.signals)?d.safety.signals:[];if(!sig.length)return clean(d.summary)||'No obvious impersonation or scam pattern was detected in the information available to this scan.';return sig.slice(0,2).map(function(s){return clean(s.title)+(s.detail?' — '+clean(s.detail):'')}).join(' · ')}
   function setDetected(){var el=document.querySelector('.cist-detected-type');if(el&&last)el.innerHTML='Detected automatically: <strong>Social profile</strong>'}
-  function apply(){
-    if(applying||!last||result.classList.contains('hidden'))return;
-    var panel=document.getElementById('cist-compact-result');if(!panel){setTimeout(apply,60);return}
-    applying=true;
-    try{
-      document.body.classList.add('cist-social-profile-result','cist-compact-result-active');
-      setDetected();
-      var d=last,p=d.socialProfile||{},s=d.safety||{};
-      var verdict=document.getElementById('verdict'),summary=document.getElementById('summary'),badge=document.getElementById('cist-compact-confidence');
-      if(verdict)verdict.textContent=s.verdict||'Social profile analysis';
-      if(summary)summary.textContent=d.summary||'';
-      if(badge){badge.textContent='Profile analysis';badge.style.display='inline-flex'}
-      panel.innerHTML='';
-      var action=document.createElement('div');action.className='cist-compact-action';var label=document.createElement('span');label.className='cist-compact-label';label.textContent='What you should do';var parts=actionParts(d.recommendedAction||'Verify the exact handle independently before trusting the account.');var strong=document.createElement('strong');strong.textContent=parts[0];action.appendChild(label);action.appendChild(strong);if(parts[1]){var note=document.createElement('p');note.textContent=parts[1];action.appendChild(note)}panel.appendChild(action);
-      var title=document.createElement('div');title.className='cist-key-title';title.textContent='Profile checks';panel.appendChild(title);var grid=document.createElement('div');grid.className='cist-key-grid';panel.appendChild(grid);
-      item(grid,'Platform',p.platform||'Social platform');item(grid,'Profile',p.username?'@'+p.username:'Could not isolate');item(grid,'Public profile data',publicLabel(p));item(grid,'Impersonation',impersonationLabel(p));item(grid,'Bio / contact',bioLabel(p));item(grid,'External links',externalLabel(p));
-      var why=document.createElement('div');why.className='cist-compact-why';var lead=document.createElement('strong');lead.textContent='Why this verdict: ';why.appendChild(lead);why.appendChild(document.createTextNode(reasons(d)));panel.appendChild(why);
-      var lim=document.createElement('div');lim.className='cist-social-profile-limit';lim.textContent=clean(d.limitations);panel.appendChild(lim);
-      var technical=document.getElementById('technical');if(technical)technical.open=false;
-    }finally{applying=false}
+  function isOurPanel(panel){return !!(panel&&panel.querySelector('.cist-social-profile-rendered'))}
+
+  function apply(force){
+    if(!last||result.classList.contains('hidden'))return false;
+    var panel=document.getElementById('cist-compact-result');
+    if(!panel)return false;
+    if(!force&&isOurPanel(panel))return true;
+
+    var d=last,p=d.socialProfile||{},s=d.safety||{};
+    document.body.classList.add('cist-social-profile-result','cist-compact-result-active');
+    setDetected();
+
+    var badge=document.getElementById('cist-compact-confidence');
+    if(badge){badge.textContent='Profile analysis';badge.style.display='inline-flex'}
+
+    panel.innerHTML='';
+    var marker=document.createElement('div');marker.className='cist-social-profile-rendered';marker.hidden=true;panel.appendChild(marker);
+
+    var verdictBox=document.createElement('div');verdictBox.className='cist-social-profile-verdict';
+    var verdictText=document.createElement('span');verdictText.textContent=clean(s.verdict)||'Social profile analysis';
+    var verdictTag=document.createElement('small');verdictTag.textContent='Social profile';
+    verdictBox.appendChild(verdictText);verdictBox.appendChild(verdictTag);panel.appendChild(verdictBox);
+
+    var summaryText=clean(d.summary);
+    if(summaryText){var summaryBox=document.createElement('div');summaryBox.className='cist-social-profile-summary';summaryBox.textContent=summaryText;panel.appendChild(summaryBox)}
+
+    var action=document.createElement('div');action.className='cist-compact-action';var label=document.createElement('span');label.className='cist-compact-label';label.textContent='What you should do';var parts=actionParts(d.recommendedAction||'Verify the exact handle independently before trusting the account.');var strong=document.createElement('strong');strong.textContent=parts[0];action.appendChild(label);action.appendChild(strong);if(parts[1]){var note=document.createElement('p');note.textContent=parts[1];action.appendChild(note)}panel.appendChild(action);
+
+    var title=document.createElement('div');title.className='cist-key-title';title.textContent='Profile checks';panel.appendChild(title);var grid=document.createElement('div');grid.className='cist-key-grid';panel.appendChild(grid);
+    item(grid,'Platform',p.platform||'Social platform');item(grid,'Profile',p.username?'@'+p.username:'Could not isolate');item(grid,'Public profile data',publicLabel(p));item(grid,'Impersonation',impersonationLabel(p));item(grid,'Bio / contact',bioLabel(p));item(grid,'External links',externalLabel(p));
+
+    var why=document.createElement('div');why.className='cist-compact-why';var lead=document.createElement('strong');lead.textContent='Why this verdict: ';why.appendChild(lead);why.appendChild(document.createTextNode(reasons(d)));panel.appendChild(why);
+    var lim=document.createElement('div');lim.className='cist-social-profile-limit';lim.textContent=clean(d.limitations);panel.appendChild(lim);
+    var technical=document.getElementById('technical');if(technical)technical.open=false;
+    return true;
   }
-  function reset(){last=null;document.body.classList.remove('cist-social-profile-result')}
+
+  function schedule(){
+    clearTimeout(renderTimer);clearTimeout(finalTimer);
+    renderTimer=setTimeout(function(){
+      if(!apply(false)){renderTimer=setTimeout(function(){apply(false)},90)}
+    },140);
+    finalTimer=setTimeout(function(){
+      var panel=document.getElementById('cist-compact-result');
+      if(last&&panel&&!isOurPanel(panel))apply(true);
+    },420);
+  }
+
+  function reset(){
+    clearTimeout(renderTimer);clearTimeout(finalTimer);last=null;window.cistSocialProfileResultData=null;document.body.classList.remove('cist-social-profile-result')
+  }
 
   var originalFetch=window.fetch;
   if(typeof originalFetch==='function')window.fetch=function(resource,options){var path=route(resource);return originalFetch.apply(this,arguments).then(function(response){
-    if(path==='/api/analyze')response.clone().json().then(function(data){if(socialData(data)){last=data;window.cistSocialProfileResultData=data;setTimeout(apply,50)}}).catch(function(){});return response;
+    if(path==='/api/analyze')response.clone().json().then(function(data){if(socialData(data)){last=data;window.cistSocialProfileResultData=data;schedule()}}).catch(function(){});return response;
   });};
 
   input.addEventListener('input',reset);
-  document.addEventListener('cist:result-updated',function(){setTimeout(apply,90)});
-  new MutationObserver(function(m){if(!last||applying)return;for(var i=0;i<m.length;i++){var t=m[i].target;if(t&&t.closest&&t.closest('#cist-compact-result'))continue;setTimeout(apply,45);break}}).observe(card,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
+  document.addEventListener('cist:result-updated',function(){if(last)schedule()});
 })();
 </script>
 '''
@@ -100,12 +131,12 @@ def main():
         raise RuntimeError('Invalid homepage HTML')
     source = source.replace('</head>', STYLE+'\n</head>', 1)
     source = source.replace('</body>', SCRIPT+'\n</body>', 1)
-    required = ['Profile checks','Public profile data','Impersonation','Bio / contact','External links','cist-social-profile-result',"social:'Social profiles'","return 'social'"]
+    required = ['Profile checks','Public profile data','Impersonation','Bio / contact','External links','cist-social-profile-result',"social:'Social profiles'","return 'social'",'cist-social-profile-rendered']
     for token in required:
         if token not in source:
             raise RuntimeError(f'Social profile V2 guard failed: missing {token}')
     HOME.write_text(source,encoding='utf-8')
-    print('Applied useful social profile result UI and social usage counter type')
+    print('Applied stable social profile result UI and social usage counter type')
 
 if __name__=='__main__':
     main()
