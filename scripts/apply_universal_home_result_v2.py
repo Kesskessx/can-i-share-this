@@ -180,7 +180,7 @@ def main():
         'Check it before you trust it.',
         'Paste a link, email, message, social profile or crypto address',
         'Detected automatically:',
-        'id="cist-result-v2"',
+        "panel.id='cist-result-v2'",
         'Confidence',
         'What to do',
         'What we found',
