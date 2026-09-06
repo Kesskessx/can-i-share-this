@@ -5,6 +5,16 @@ const { collectEvidence, brandRelations }=require('../lib/universal-evidence-orc
 const { analyzeEml, analyzeFile }=require('../lib/file-safety');
 const { analyzePhone }=require('../lib/phone-context');
 const { buildConfidence }=require('../lib/confidence-engine');
+const analyzeHandler=require('../api/analyze');
+
+function callAnalyze(body){
+  return new Promise((resolve,reject)=>{
+    let done=false;
+    const finish=(status,payload)=>{if(done)return;done=true;resolve({status,body:payload})};
+    const res={statusCode:200,headers:{},setHeader(k,v){this.headers[String(k).toLowerCase()]=v;return this},status(c){this.statusCode=c;return this},json(p){finish(this.statusCode,p);return this},end(p){let x=p;try{if(typeof p==='string')x=JSON.parse(p)}catch(_){}finish(this.statusCode,x);return this}};
+    Promise.resolve(analyzeHandler({method:'POST',body},res)).then(()=>{if(!done)finish(res.statusCode,null)}).catch(reject);
+  });
+}
 
 (async()=>{
   const msg='PayPal security: urgent. Visit https://paypal-security-check.example/login and https://example.org/help. Reply support@paypal-security-check.example or WhatsApp +234 812 345 6789. Send BTC to bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq.';
@@ -26,7 +36,8 @@ const { buildConfidence }=require('../lib/confidence-engine');
   assert.ok(eml.warnings.some(x=>x.code==='reply-to-mismatch'));
   assert.ok(eml.warnings.some(x=>x.code==='dmarc-fail'));
 
-  const file=await analyzeFile({name:'invoice.pdf.exe',mime:'application/pdf',data:Buffer.from('MZ powershell cmd.exe').toString('base64')});
+  const dangerousFile={name:'invoice.pdf.exe',mime:'application/pdf',data:Buffer.from('MZ powershell cmd.exe').toString('base64')};
+  const file=await analyzeFile(dangerousFile);
   assert.equal(file.safety.status,'high');
   assert.ok(file.safety.signals.some(x=>x.code==='double-extension'));
   assert.equal(file.file.detectedMime,'application/x-dosexec');
@@ -45,6 +56,13 @@ const { buildConfidence }=require('../lib/confidence-engine');
   assert.ok(confidence.coverage.total>=4);
   assert.ok(confidence.coverage.completed>=3);
   assert.ok(['low','medium','high'].includes(confidence.confidence.level));
+
+  const integrated=await callAnalyze({file:dangerousFile});
+  assert.equal(integrated.status,200);
+  assert.equal(integrated.body.detectedType,'file');
+  assert.equal(integrated.body.megaScanner.finalRisk,'high');
+  assert.ok(integrated.body.megaScanner.coverage.completed>=1);
+  assert.ok(integrated.body.fileAnalysis.file.sha256);
 
   console.log('Universal Evidence Engine tests passed');
 })().catch(err=>{console.error(err);process.exit(1)});
