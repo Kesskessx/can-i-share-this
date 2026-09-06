@@ -9,7 +9,8 @@
     {"source": "/check-google-drive-link", "destination": "/google-drive-link-checker", "permanent": true},
     {"source": "/google-drive-share-link-test", "destination": "/google-drive-link-checker", "permanent": true},
     {"source": "/check-dropbox-link", "destination": "/dropbox-link-checker", "permanent": true},
-    {"source": "/will-my-dropbox-link-work", "destination": "/dropbox-link-checker", "permanent": true}
+    {"source": "/will-my-dropbox-link-work", "destination": "/dropbox-link-checker", "permanent": true},
+    {"source": "/how-to-check-a-link-without-clicking-it", "destination": "/how-to-check-if-a-link-is-safe", "permanent": true}
   ],
   "headers": [
     {"source": "/(.*)", "headers": [
