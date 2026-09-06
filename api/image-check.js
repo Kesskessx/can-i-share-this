@@ -1,5 +1,12 @@
+const checkHandler = require('./check');
+const emailHandler = require('./email-check');
+const cryptoHandler = require('./crypto-check');
+const socialProfileHandler = require('../lib/social-profile-safety');
+
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const MAX_CROSS_CHECKS = 3;
+const RISK_ORDER = { unknown: 0, low: 1, caution: 2, high: 3 };
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -63,6 +70,155 @@ function cleanJsonText(text) {
   return String(text || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
 }
 
+function normalizeRisk(value) {
+  const risk = String(value || '').toLowerCase();
+  return Object.prototype.hasOwnProperty.call(RISK_ORDER, risk) ? risk : 'unknown';
+}
+
+function riskFromBody(body) {
+  if (!body || typeof body !== 'object') return 'unknown';
+  const values = [
+    body.safety && body.safety.status,
+    body.analysis && body.analysis.risk,
+    body.risk,
+    body.profileRisk,
+    body.socialProfile && body.socialProfile.risk,
+    body.socialProfile && body.socialProfile.riskLevel
+  ];
+  for (const value of values) {
+    const risk = normalizeRisk(value);
+    if (risk !== 'unknown') return risk;
+  }
+  return 'unknown';
+}
+
+function captureHandler(handler, body) {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (status, payload) => {
+      if (done) return;
+      done = true;
+      resolve({ status, body: payload });
+    };
+    const res = {
+      statusCode: 200,
+      headers: {},
+      setHeader(key, value) { this.headers[String(key).toLowerCase()] = value; return this; },
+      status(code) { this.statusCode = code; return this; },
+      json(payload) { finish(this.statusCode, payload); return this; },
+      end(payload) {
+        let parsed = payload;
+        if (typeof payload === 'string') {
+          try { parsed = JSON.parse(payload); } catch (_) {}
+        }
+        finish(this.statusCode, parsed);
+        return this;
+      }
+    };
+    const req = { method: 'POST', body };
+    Promise.resolve(handler(req, res)).catch(err => finish(500, { error: err && err.message ? err.message : 'Check failed' }));
+  });
+}
+
+function socialProfileTarget(profile) {
+  if (!profile || typeof profile !== 'object') return '';
+  const username = safeText(profile.username, 120).replace(/^@/, '').trim();
+  if (!username) return '';
+  const platform = safeText(profile.platform, 80).toLowerCase();
+  if (platform.includes('instagram')) return `https://www.instagram.com/${username}/`;
+  if (platform.includes('tiktok')) return `https://www.tiktok.com/@${username}`;
+  if (platform === 'x' || platform.includes('twitter')) return `https://x.com/${username}`;
+  if (platform.includes('facebook')) return `https://www.facebook.com/${username}`;
+  if (platform.includes('telegram')) return `https://t.me/${username}`;
+  return `@${username}`;
+}
+
+function looksCrypto(value) {
+  const v = String(value || '').trim();
+  return /^0x[a-fA-F0-9]{40}$/.test(v) ||
+    /^bc1[ac-hj-np-z02-9]{11,87}$/i.test(v) ||
+    /^ltc1[ac-hj-np-z02-9]{11,87}$/i.test(v) ||
+    /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(v) ||
+    /^[13LMDA9][1-9A-HJ-NP-Za-km-z]{25,44}$/.test(v);
+}
+
+function evidenceCandidates(analysis) {
+  const out = [];
+  const seen = new Set();
+  const add = (type, value, source) => {
+    const cleaned = String(value || '').trim().slice(0, 1200);
+    if (!cleaned) return;
+    const key = `${type}:${cleaned.toLowerCase()}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ type, value: cleaned, source });
+  };
+  for (const url of analysis.urls || []) add('url', url, 'screenshot');
+  for (const qr of analysis.qr_values || []) {
+    if (/^https?:\/\//i.test(qr)) add('url', qr, 'qr');
+    else if (looksCrypto(qr)) add('crypto', qr, 'qr');
+  }
+  for (const email of analysis.emails || []) add('email', email, 'screenshot');
+  const social = socialProfileTarget(analysis.social_profile);
+  if (social) add('social-profile', social, 'screenshot');
+  const visible = String(analysis.visible_text || '');
+  for (const token of visible.split(/\s+/)) {
+    const cleaned = token.replace(/^[('"\[]+|[)'",.;!?\]]+$/g, '');
+    if (looksCrypto(cleaned)) add('crypto', cleaned, 'screenshot-text');
+  }
+  return out.slice(0, MAX_CROSS_CHECKS);
+}
+
+async function runCandidate(candidate) {
+  if (candidate.type === 'url') return captureHandler(checkHandler, { url: candidate.value });
+  if (candidate.type === 'email') return captureHandler(emailHandler, { input: candidate.value });
+  if (candidate.type === 'crypto') return captureHandler(cryptoHandler, { input: candidate.value });
+  if (candidate.type === 'social-profile') return captureHandler(socialProfileHandler, { input: candidate.value });
+  return { status: 200, body: {} };
+}
+
+function childSummary(candidate, result) {
+  const body = result && result.body && typeof result.body === 'object' ? result.body : {};
+  const risk = riskFromBody(body);
+  const summary = safeText(
+    body.summary ||
+    (body.safety && body.safety.summary) ||
+    (body.socialProfile && body.socialProfile.summary),
+    260
+  );
+  return {
+    type: candidate.type,
+    source: candidate.source,
+    value: safeText(candidate.value, 220),
+    risk,
+    status: result.status,
+    summary
+  };
+}
+
+async function crossCheckAnalysis(analysis) {
+  const candidates = evidenceCandidates(analysis);
+  if (!candidates.length) return { analysis, checks: [] };
+  const results = await Promise.all(candidates.map(runCandidate));
+  const checks = results.map((result, i) => childSummary(candidates[i], result));
+  const strongest = checks.reduce((best, item) => RISK_ORDER[item.risk] > RISK_ORDER[best.risk] ? item : best, { risk: 'unknown' });
+  const currentRisk = normalizeRisk(analysis.risk);
+  if (strongest.risk && RISK_ORDER[strongest.risk] > RISK_ORDER[currentRisk]) {
+    const merged = { ...analysis, risk: strongest.risk };
+    merged.summary = strongest.risk === 'high'
+      ? 'A high-risk indicator was found when the screenshot evidence was cross-checked.'
+      : 'Additional checks found evidence that should be verified before continuing.';
+    merged.recommended_action = strongest.risk === 'high'
+      ? 'Do not click, reply, pay or sign in. Verify the sender or service through an official channel.'
+      : 'Verify the sender, destination or request independently before continuing.';
+    const signals = Array.isArray(merged.suspicious_signals) ? [...merged.suspicious_signals] : [];
+    signals.unshift({ type: 'cross_check', detail: `A detected ${strongest.type} returned a ${strongest.risk}-risk result.` });
+    merged.suspicious_signals = signals.slice(0, 8);
+    return { analysis: merged, checks };
+  }
+  return { analysis, checks };
+}
+
 async function callGemini({ key, model, image, prompt, signal }) {
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST',
@@ -124,7 +280,16 @@ module.exports = async function handler(req, res) {
         lastMessage = 'Unreadable JSON response';
         continue;
       }
-      return json(res, 200, { ok: true, analysis: normalizeOutput(parsed), provider: 'gemini', model });
+      const normalized = normalizeOutput(parsed);
+      const enriched = await crossCheckAnalysis(normalized);
+      return json(res, 200, {
+        ok: true,
+        analysis: enriched.analysis,
+        crossChecks: enriched.checks,
+        orchestrated: true,
+        provider: 'gemini',
+        model
+      });
     }
 
     return json(res, lastStatus === 401 || lastStatus === 403 ? 503 : 502, {
