@@ -11,11 +11,30 @@ body.cist-social-profile-result #cist-compact-result .cist-key-grid{grid-templat
 body.cist-social-profile-result #cist-compact-result .cist-key-item{min-height:58px}
 body.cist-social-profile-result #cist-compact-result .cist-compact-why{border-left-color:color-mix(in srgb,var(--cist-accent,#788ff7) 68%,var(--line))}
 body.cist-social-profile-result #technical{display:none!important}
-.cist-social-profile-verdict{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:11px 13px;border:1px solid color-mix(in srgb,var(--cist-accent,#788ff7) 26%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--cist-accent,#788ff7) 6%,var(--card));color:var(--text);font-size:12px;font-weight:850;line-height:1.35}
+.cist-social-profile-verdict{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;padding:11px 13px;border:1px solid color-mix(in srgb,var(--cist-accent,#788ff7) 26%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--cist-accent,#788ff7) 6%,var(--card));color:var(--text);font-size:12px;font-weight:850;line-height:1.35}
 .cist-social-profile-verdict small{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
-.cist-social-profile-summary{margin:-4px 0 12px;color:var(--muted);font-size:10px;line-height:1.45}
-.cist-social-profile-limit{margin-top:9px;color:var(--muted);font-size:9px;line-height:1.4}
-@media(max-width:700px){body.cist-social-profile-result #cist-compact-result .cist-key-grid{grid-template-columns:1fr}.cist-social-profile-verdict{align-items:flex-start;flex-direction:column}}
+.cist-social-profile-summary{margin:0 0 12px;color:var(--muted);font-size:10px;line-height:1.45}
+.cist-social-identity{display:grid;grid-template-columns:60px minmax(0,1fr);gap:13px;align-items:center;margin:0 0 15px;padding:13px;border:1px solid color-mix(in srgb,var(--cist-accent,#788ff7) 20%,var(--line));border-radius:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--cist-accent,#788ff7) 7%,var(--card)),color-mix(in srgb,var(--soft) 58%,var(--card)))}
+.cist-social-avatar{position:relative;width:58px;height:58px;border-radius:50%;overflow:hidden;border:1px solid color-mix(in srgb,var(--cist-accent,#788ff7) 32%,var(--line));background:var(--soft);box-shadow:0 0 0 4px color-mix(in srgb,var(--cist-accent,#788ff7) 6%,transparent)}
+.cist-social-avatar-fallback{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:23px}
+.cist-social-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .16s ease;background:var(--soft)}
+.cist-social-avatar.is-loaded img{opacity:1}
+.cist-social-identity-copy{min-width:0}
+.cist-social-display-name{display:block;color:var(--text);font-size:14px;font-weight:900;line-height:1.25;overflow-wrap:anywhere}
+.cist-social-handle{display:block;margin-top:2px;color:var(--muted);font-size:11px;font-weight:750;line-height:1.3;overflow-wrap:anywhere}
+.cist-social-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cist-social-pill{display:inline-flex;align-items:center;min-height:22px;padding:3px 7px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--soft) 72%,transparent);color:var(--muted);font-size:8px;font-weight:850;letter-spacing:.025em}
+.cist-social-pill.is-platform{color:var(--text)}
+.cist-social-photo-note{margin-top:6px;color:var(--muted);font-size:8px;line-height:1.35}
+.cist-social-profile-limit{margin-top:10px;padding-top:9px;border-top:1px solid color-mix(in srgb,var(--line) 78%,transparent);color:var(--muted);font-size:9px;line-height:1.45}
+.cist-social-profile-limit strong{color:var(--text);font-weight:850}
+@media(max-width:700px){
+ body.cist-social-profile-result #cist-compact-result .cist-key-grid{grid-template-columns:1fr}
+ .cist-social-profile-verdict{align-items:flex-start;flex-direction:column}
+ .cist-social-identity{grid-template-columns:52px minmax(0,1fr);padding:12px;gap:11px}
+ .cist-social-avatar{width:50px;height:50px}
+ .cist-social-display-name{font-size:13px}
+}
 </style>
 '''
 
@@ -29,16 +48,35 @@ SCRIPT = r'''
   function clean(v){return String(v||'').replace(/\s+/g,' ').trim()}
   function route(resource){try{return new URL(typeof resource==='string'?resource:(resource&&resource.url)||'',location.href).pathname}catch(e){return''}}
   function socialData(d){return d&&typeof d==='object'&&(d.detectedType==='social-profile'||d.inputType==='social-profile')&&d.socialProfile}
-  function icon(label){var l=String(label).toLowerCase();if(l.indexOf('platform')>=0)return'◎';if(l.indexOf('profile')>=0)return'👤';if(l.indexOf('public')>=0)return'◉';if(l.indexOf('imperson')>=0)return'🎭';if(l.indexOf('bio')>=0||l.indexOf('content')>=0)return'💬';if(l.indexOf('external')>=0)return'↗';return'✓'}
+  function icon(label){var l=String(label).toLowerCase();if(l.indexOf('imperson')>=0)return'🎭';if(l.indexOf('credential')>=0||l.indexOf('money')>=0)return'🔐';if(l.indexOf('contact')>=0)return'💬';if(l.indexOf('external')>=0)return'↗';return'✓'}
   function item(grid,label,value){if(!value)return;var box=document.createElement('div');box.className='cist-key-item';var ic=document.createElement('span');ic.className='cist-key-icon';ic.setAttribute('aria-hidden','true');ic.textContent=icon(label);var cp=document.createElement('div');cp.className='cist-key-copy';var sm=document.createElement('small');sm.textContent=label;var st=document.createElement('strong');st.textContent=value;cp.appendChild(sm);cp.appendChild(st);box.appendChild(ic);box.appendChild(cp);grid.appendChild(box)}
-  function actionParts(text){text=clean(text);var m=text.match(/^(.+?[.!?])(?:\s+)(.+)$/);return m?[m[1],m[2]]:[text,'']}
-  function publicLabel(p){var d=p&&p.profileData||{};if(d.publicMetadataRead&&d.suppliedContextAnalyzed)return'Public metadata + supplied text';if(d.publicMetadataRead)return'Public metadata read';if(d.suppliedContextAnalyzed)return'Supplied profile text';if(d.state==='blocked')return'Blocked by platform';if(d.state==='limited')return'Limited metadata';return'Identifier only'}
-  function bioLabel(p){var c=p&&p.categories||{},n=Number(c.credentialSignals||0)+Number(c.moneySignals||0)+Number(c.contactSignals||0);return n?String(n)+' warning signal'+(n===1?'':'s'):'No obvious warning wording'}
+  function publicLabel(p){var d=p&&p.profileData||{};if(d.publicMetadataRead&&d.suppliedContextAnalyzed)return'Public data + supplied text';if(d.publicMetadataRead)return'Public data available';if(d.suppliedContextAnalyzed)return'Supplied profile text';if(d.state==='blocked')return'Blocked by platform';if(d.state==='limited')return'Limited public data';return'Identifier only'}
   function impersonationLabel(p){var n=Number(p&&p.categories&&p.categories.impersonationSignals||0);return n?String(n)+' signal'+(n===1?'':'s')+' found':'No obvious impersonation signal'}
+  function scamWordingLabel(p){var c=p&&p.categories||{},n=Number(c.credentialSignals||0)+Number(c.moneySignals||0);return n?String(n)+' warning signal'+(n===1?'':'s'):'No credential / money warning'}
+  function contactLabel(p){var n=Number(p&&p.categories&&p.categories.contactSignals||0);return n?String(n)+' pressure/contact signal'+(n===1?'':'s'):'No obvious pressure signal'}
   function externalLabel(p){var d=p&&p.profileData||{},n=Number(d.externalLinkCount||0),short=Number(d.shortLinkCount||0);if(short)return n+' external · '+short+' shortened';return n?n+' external link'+(n===1?'':'s'):'None detected'}
   function reasons(d){var sig=d&&d.safety&&Array.isArray(d.safety.signals)?d.safety.signals:[];if(!sig.length)return clean(d.summary)||'No obvious impersonation or scam pattern was detected in the information available to this scan.';return sig.slice(0,2).map(function(s){return clean(s.title)+(s.detail?' — '+clean(s.detail):'')}).join(' · ')}
   function setDetected(){var el=document.querySelector('.cist-detected-type');if(el&&last)el.innerHTML='Detected automatically: <strong>Social profile</strong>'}
   function isOurPanel(panel){return !!(panel&&panel.querySelector('.cist-social-profile-rendered'))}
+  function safeAvatar(value){try{var u=new URL(String(value||''));return u.protocol==='https:'?u.toString():''}catch(e){return''}}
+
+  function identityCard(p){
+    var box=document.createElement('section');box.className='cist-social-identity';box.setAttribute('aria-label','Public profile summary');
+    var avatar=document.createElement('div');avatar.className='cist-social-avatar';
+    var fallback=document.createElement('span');fallback.className='cist-social-avatar-fallback';fallback.setAttribute('aria-hidden','true');fallback.textContent='👤';avatar.appendChild(fallback);
+    var avatarUrl=safeAvatar(p&&p.avatarUrl);
+    if(avatarUrl){var img=document.createElement('img');img.alt='Public profile photo';img.decoding='async';img.referrerPolicy='no-referrer';img.src=avatarUrl;img.addEventListener('load',function(){avatar.classList.add('is-loaded')},{once:true});img.addEventListener('error',function(){img.remove();avatar.classList.remove('is-loaded')},{once:true});avatar.appendChild(img)}
+    box.appendChild(avatar);
+
+    var copy=document.createElement('div');copy.className='cist-social-identity-copy';
+    var name=document.createElement('strong');name.className='cist-social-display-name';name.textContent=clean(p&&p.displayName)||'Display name unavailable';copy.appendChild(name);
+    var handle=document.createElement('span');handle.className='cist-social-handle';handle.textContent=p&&p.username?'@'+p.username:'Profile handle unavailable';copy.appendChild(handle);
+    var meta=document.createElement('div');meta.className='cist-social-meta';
+    var platform=document.createElement('span');platform.className='cist-social-pill is-platform';platform.textContent=clean(p&&p.platform)||'Social platform';meta.appendChild(platform);
+    var data=document.createElement('span');data.className='cist-social-pill';data.textContent=publicLabel(p);meta.appendChild(data);copy.appendChild(meta);
+    var photo=document.createElement('div');photo.className='cist-social-photo-note';photo.textContent=avatarUrl?'Public profile photo · not proof of identity':'Profile photo not publicly available';copy.appendChild(photo);
+    box.appendChild(copy);return box;
+  }
 
   function apply(force){
     if(!last||result.classList.contains('hidden'))return false;
@@ -64,13 +102,13 @@ SCRIPT = r'''
     var summaryText=clean(d.summary);
     if(summaryText){var summaryBox=document.createElement('div');summaryBox.className='cist-social-profile-summary';summaryBox.textContent=summaryText;panel.appendChild(summaryBox)}
 
-    var action=document.createElement('div');action.className='cist-compact-action';var label=document.createElement('span');label.className='cist-compact-label';label.textContent='What you should do';var parts=actionParts(d.recommendedAction||'Verify the exact handle independently before trusting the account.');var strong=document.createElement('strong');strong.textContent=parts[0];action.appendChild(label);action.appendChild(strong);if(parts[1]){var note=document.createElement('p');note.textContent=parts[1];action.appendChild(note)}panel.appendChild(action);
+    panel.appendChild(identityCard(p));
 
     var title=document.createElement('div');title.className='cist-key-title';title.textContent='Profile checks';panel.appendChild(title);var grid=document.createElement('div');grid.className='cist-key-grid';panel.appendChild(grid);
-    item(grid,'Platform',p.platform||'Social platform');item(grid,'Profile',p.username?'@'+p.username:'Could not isolate');item(grid,'Public profile data',publicLabel(p));item(grid,'Impersonation',impersonationLabel(p));item(grid,'Bio / contact',bioLabel(p));item(grid,'External links',externalLabel(p));
+    item(grid,'Impersonation',impersonationLabel(p));item(grid,'Credential / money',scamWordingLabel(p));item(grid,'Contact behavior',contactLabel(p));item(grid,'External links',externalLabel(p));
 
     var why=document.createElement('div');why.className='cist-compact-why';var lead=document.createElement('strong');lead.textContent='Why this verdict: ';why.appendChild(lead);why.appendChild(document.createTextNode(reasons(d)));panel.appendChild(why);
-    var lim=document.createElement('div');lim.className='cist-social-profile-limit';lim.textContent=clean(d.limitations);panel.appendChild(lim);
+    var lim=document.createElement('div');lim.className='cist-social-profile-limit';var limLead=document.createElement('strong');limLead.textContent='Limitations: ';lim.appendChild(limLead);lim.appendChild(document.createTextNode(clean(d.limitations)));panel.appendChild(lim);
     var technical=document.getElementById('technical');if(technical)technical.open=false;
     return true;
   }
@@ -131,12 +169,12 @@ def main():
         raise RuntimeError('Invalid homepage HTML')
     source = source.replace('</head>', STYLE+'\n</head>', 1)
     source = source.replace('</body>', SCRIPT+'\n</body>', 1)
-    required = ['Profile checks','Public profile data','Impersonation','Bio / contact','External links','cist-social-profile-result',"social:'Social profiles'","return 'social'",'cist-social-profile-rendered']
+    required = ['Public profile summary','Public profile photo','Display name unavailable','Profile checks','Credential / money','Contact behavior','External links','Why this verdict:','Limitations:','cist-social-profile-result',"social:'Social profiles'","return 'social'",'cist-social-profile-rendered']
     for token in required:
         if token not in source:
             raise RuntimeError(f'Social profile V2 guard failed: missing {token}')
     HOME.write_text(source,encoding='utf-8')
-    print('Applied stable social profile result UI and social usage counter type')
+    print('Applied social profile identity summary with avatar and stable risk checks')
 
 if __name__=='__main__':
     main()
