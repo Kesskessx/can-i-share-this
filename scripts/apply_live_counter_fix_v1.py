@@ -141,7 +141,7 @@ if '</body>' not in s:
     raise RuntimeError('Invalid homepage HTML')
 s = s.replace('</body>', SCRIPT + '\n</body>', 1)
 
-for token in ['cist-live-counter-fix-v1-script', "document.addEventListener('cist:mega-result'", "signal:phishing", "metricsOnly:true"]:
+for token in ['cist-live-counter-fix-v1-script', "document.addEventListener('cist:mega-result'", "cist-signal-phishing", "metricsOnly:true"]:
     if token not in s:
         raise RuntimeError('Live counter fix guard failed: ' + token)
 
