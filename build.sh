@@ -100,9 +100,11 @@ python3 scripts/apply_mega_scanner_v4.py
 python3 scripts/apply_mega_scanner_v5.py
 python3 scripts/apply_unified_home_scanner_v1.py
 python3 scripts/apply_live_counter_fix_v1.py
+python3 scripts/apply_universal_evidence_ui_v1.py
 node scripts/test_mega_evidence.js
 node scripts/test_mega_evidence_v3.js
 node scripts/test_mega_evidence_v5.js
+node scripts/test_universal_evidence_v4.js
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
