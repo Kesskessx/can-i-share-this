@@ -7,7 +7,7 @@ if 'id="homepage-declutter-v1"' in s: raise SystemExit('already applied')
 css=r'''<style id="homepage-declutter-v1">
 /* Compact homepage: one scanner, four balanced capability cards, no duplicate CTAs. */
 #capability-strip,.capability-strip,.cist-capabilities,.unified-scanner-label,.scanner-proof,#scanner-proof,#cist-stats,.cist-stats,.trust-row,.signals-strip,.checks-available,.checks-panel{display:none!important}
-#scan-form button[type="submit"]{font-size:0!important}#scan-form button[type="submit"]:after{content:'Analyze';font-size:16px}
+#scan-form button[type="submit"]{font-size:16px!important}
 .image-note{font-size:11px!important}.image-note:after{content:none!important;display:none!important}
 .hero .eyebrow{display:none!important}
 .footer-resource-links a[href="/safe-link-checker"],.footer-resource-links a[href="/google-drive-link-checker"],.footer-resource-links a[href="/dropbox-link-checker"],.footer-resource-links a[href="/scam-prevention"],.footer-resource-links a[href="/scan-examples"]{display:none!important}
