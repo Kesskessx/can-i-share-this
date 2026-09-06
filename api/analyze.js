@@ -13,6 +13,8 @@ const SOCIAL_HOSTS = new Set([
   't.me', 'telegram.me', 'www.telegram.me',
   'discord.com', 'www.discord.com', 'discordapp.com', 'www.discordapp.com'
 ]);
+const SOCIAL_AVATAR_CACHE = new Map();
+const SOCIAL_AVATAR_TTL_MS = 10 * 60 * 1000;
 
 function leadingUrl(value) {
   const match = String(value || '').trim().match(/^https?:\/\/[^\s<>"']+/i);
@@ -61,6 +63,115 @@ function wrapResponse(res, detectedType) {
   return res;
 }
 
+function decodeHtml(value) {
+  return String(value || '')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&#(\d+);/g, (_, n) => { try { return String.fromCodePoint(Number(n)); } catch { return ''; } })
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => { try { return String.fromCodePoint(parseInt(n, 16)); } catch { return ''; } });
+}
+
+function htmlAttr(tag, name) {
+  const match = String(tag || '').match(new RegExp('\\b' + name + '\\s*=\\s*(["\\\'])([\\s\\S]*?)\\1', 'i'));
+  return match ? decodeHtml(match[2]).trim() : '';
+}
+
+function avatarFromHtml(html, baseUrl) {
+  const tags = String(html || '').slice(0, 350000).match(/<meta\b[^>]*>/gi) || [];
+  const wanted = new Set(['og:image', 'og:image:secure_url', 'twitter:image', 'twitter:image:src']);
+  for (const tag of tags) {
+    const key = (htmlAttr(tag, 'property') || htmlAttr(tag, 'name')).toLowerCase();
+    if (!wanted.has(key)) continue;
+    const content = htmlAttr(tag, 'content');
+    if (!content) continue;
+    try {
+      const image = new URL(content, baseUrl);
+      if (image.protocol === 'https:') return image.toString();
+    } catch (_) {}
+  }
+  return null;
+}
+
+function cacheAvatar(key, value) {
+  if (SOCIAL_AVATAR_CACHE.size >= 100) {
+    const first = SOCIAL_AVATAR_CACHE.keys().next().value;
+    if (first) SOCIAL_AVATAR_CACHE.delete(first);
+  }
+  SOCIAL_AVATAR_CACHE.set(key, { value, expiresAt: Date.now() + SOCIAL_AVATAR_TTL_MS });
+  return value;
+}
+
+async function fetchSocialAvatar(profileUrl) {
+  if (!profileUrl || !isSocialProfileUrl(profileUrl)) return null;
+  const cached = SOCIAL_AVATAR_CACHE.get(profileUrl);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  if (cached) SOCIAL_AVATAR_CACHE.delete(profileUrl);
+
+  let current;
+  try { current = new URL(profileUrl); } catch (_) { return null; }
+  if (current.protocol !== 'https:') current.protocol = 'https:';
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 1200);
+  try {
+    let response = null;
+    for (let hop = 0; hop < 3; hop++) {
+      response = await fetch(current.toString(), {
+        redirect: 'manual',
+        signal: controller.signal,
+        headers: {
+          'user-agent': 'Mozilla/5.0 (compatible; CanIShareThis/1.0; +https://canisharethis.com)',
+          'accept': 'text/html,application/xhtml+xml',
+          'accept-language': 'en-US,en;q=0.8'
+        }
+      });
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('location');
+        if (!location) break;
+        const next = new URL(location, current);
+        if (!SOCIAL_HOSTS.has(next.hostname.toLowerCase())) return cacheAvatar(profileUrl, null);
+        current = next;
+        continue;
+      }
+      break;
+    }
+    if (!response || !response.ok) return cacheAvatar(profileUrl, null);
+    const type = String(response.headers.get('content-type') || '').toLowerCase();
+    if (type && !type.includes('text/html') && !type.includes('application/xhtml+xml')) return cacheAvatar(profileUrl, null);
+    const html = await response.text();
+    return cacheAvatar(profileUrl, avatarFromHtml(html, current));
+  } catch (_) {
+    return cacheAvatar(profileUrl, null);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function wrapSocialResponse(res, detectedType, avatarPromise) {
+  const originalJson = res.json.bind(res);
+  res.json = function (body) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return originalJson(body);
+    const base = { detectedType, ...body };
+    if (!body.socialProfile) return originalJson(base);
+    return Promise.resolve(avatarPromise).then(avatarUrl => {
+      return originalJson({
+        ...base,
+        socialProfile: {
+          ...body.socialProfile,
+          avatarUrl: avatarUrl || null,
+          avatarState: avatarUrl ? 'available' : 'unavailable'
+        }
+      });
+    }).catch(() => originalJson({
+      ...base,
+      socialProfile: { ...body.socialProfile, avatarUrl: null, avatarState: 'unavailable' }
+    }));
+  };
+  return res;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -79,12 +190,15 @@ module.exports = async function handler(req, res) {
   if (!original) return res.status(400).json({ error: 'Input required', detectedType: 'unknown' });
 
   const detectedType = detectType(original);
-  const out = wrapResponse(res, detectedType);
 
   if (detectedType === 'social-profile') {
+    const profileUrl = leadingUrl(original);
+    const avatarPromise = profileUrl && isSocialProfileUrl(profileUrl) ? fetchSocialAvatar(profileUrl) : Promise.resolve(null);
     req.body = { input: original };
-    return socialProfileHandler(req, out);
+    return socialProfileHandler(req, wrapSocialResponse(res, detectedType, avatarPromise));
   }
+
+  const out = wrapResponse(res, detectedType);
   if (detectedType === 'url') {
     req.body = { url: original };
     return checkHandler(req, out);
