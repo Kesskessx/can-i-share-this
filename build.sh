@@ -89,6 +89,7 @@ python3 scripts/apply_desktop_daily_stats_rail_visibility_fix.py
 python3 scripts/apply_desktop_scam_signals_rail.py
 python3 scripts/apply_scam_signals_activity_state.py
 python3 scripts/apply_desktop_sidebars_polish_v1.py
+python3 scripts/apply_brand_depth_polish_v1.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
