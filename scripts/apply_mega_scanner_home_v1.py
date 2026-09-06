@@ -54,16 +54,12 @@ def main():
     source = re.sub(r'\s*<style id="cist-mega-scanner-home-v1-style">.*?</style>', '', source, count=1, flags=re.S)
     source = re.sub(r'\s*<script id="cist-mega-scanner-home-v1-script">.*?</script>', '', source, count=1, flags=re.S)
 
-    # Route every homepage scan through the orchestrator after all legacy-routing passes.
-    source = source.replace("fetch('/api/analyze'", "fetch('/api/mega-scan'")
-    source = source.replace('fetch("/api/analyze"', 'fetch("/api/mega-scan"')
-
-    # Screenshot evidence is now cross-checked server-side; avoid automatically starting a second scan.
+    # Screenshot evidence is cross-checked inside the existing image scanner; avoid a duplicate second scan.
     source = source.replace('Running it through the existing safety scanner…', 'Cross-checked with the relevant safety scanners.')
     source = source.replace("box.classList.remove('hidden');runTarget(target)", "box.classList.remove('hidden')", 1)
 
-    if '/api/mega-scan' not in source:
-        raise RuntimeError('Mega Scanner endpoint was not wired into the homepage')
+    if '/api/analyze' not in source:
+        raise RuntimeError('Universal analyze endpoint missing from homepage')
     if '</head>' not in source or '</body>' not in source:
         raise RuntimeError('Invalid homepage HTML')
 
@@ -74,7 +70,7 @@ def main():
         'cist-mega-scanner-home-v1-style',
         'Upload screenshot',
         'Paste anything suspicious to check',
-        '/api/mega-scan',
+        '/api/analyze',
         '#cist-check-selector',
         'or analyze a screenshot'
     ]
