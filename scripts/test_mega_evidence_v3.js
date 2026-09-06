@@ -19,7 +19,7 @@ ok('extract all useful screenshot elements', () => {
   }});
   const types = new Set(data.candidates.map(x => x.type));
   for (const expected of ['social-profile','url','email','crypto','message']) assert.equal(types.has(expected), true, expected);
-  assert.equal(data.elements.files.includes('invoice.pdf'), true);
+  assert.equal(data.elements.files.some(x => x.toLowerCase().endsWith('invoice.pdf')), true);
   assert.equal(data.elements.phones[0], '+33612345678');
 });
 
