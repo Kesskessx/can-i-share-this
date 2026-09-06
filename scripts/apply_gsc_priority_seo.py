@@ -46,48 +46,24 @@ STYLE = r"""
 
 def route_file(route: str) -> Path | None:
     rel = route.strip("/")
-    candidates = [
-        DIST / rel,
-        DIST / f"{rel}.html",
-        DIST / rel / "index.html",
-    ]
-    if route == "/":
-        candidates = [DIST / "index.html"]
+    candidates = [DIST / rel, DIST / f"{rel}.html", DIST / rel / "index.html"]
+    if route == "/": candidates = [DIST / "index.html"]
     for path in candidates:
-        if path.is_file():
-            return path
+        if path.is_file(): return path
     return None
 
 
 def set_title(doc: str, title: str) -> str:
     escaped = html.escape(title)
     doc = re.sub(r"<title>.*?</title>", f"<title>{escaped}</title>", doc, count=1, flags=re.I | re.S)
-    doc = re.sub(
-        r'(<meta\s+property=["\']og:title["\']\s+content=["\'])[^"\']*(["\'])',
-        lambda m: m.group(1) + html.escape(title, quote=True) + m.group(2),
-        doc,
-        count=1,
-        flags=re.I,
-    )
+    doc = re.sub(r'(<meta\s+property=["\']og:title["\']\s+content=["\'])[^"\']*(["\'])', lambda m: m.group(1) + html.escape(title, quote=True) + m.group(2), doc, count=1, flags=re.I)
     return doc
 
 
 def set_description(doc: str, description: str) -> str:
     value = html.escape(description, quote=True)
-    doc = re.sub(
-        r'(<meta\s+name=["\']description["\']\s+content=["\'])[^"\']*(["\'])',
-        lambda m: m.group(1) + value + m.group(2),
-        doc,
-        count=1,
-        flags=re.I,
-    )
-    doc = re.sub(
-        r'(<meta\s+property=["\']og:description["\']\s+content=["\'])[^"\']*(["\'])',
-        lambda m: m.group(1) + value + m.group(2),
-        doc,
-        count=1,
-        flags=re.I,
-    )
+    doc = re.sub(r'(<meta\s+name=["\']description["\']\s+content=["\'])[^"\']*(["\'])', lambda m: m.group(1) + value + m.group(2), doc, count=1, flags=re.I)
+    doc = re.sub(r'(<meta\s+property=["\']og:description["\']\s+content=["\'])[^"\']*(["\'])', lambda m: m.group(1) + value + m.group(2), doc, count=1, flags=re.I)
     return doc
 
 
@@ -97,41 +73,29 @@ def set_first_h1(doc: str, h1: str) -> str:
 
 
 def ensure_style(doc: str) -> str:
-    if 'id="gsc-priority-seo-style"' in doc:
-        return doc
-    if "</head>" in doc:
-        return doc.replace("</head>", STYLE + "\n</head>", 1)
+    if 'id="gsc-priority-seo-style"' in doc: return doc
+    if "</head>" in doc: return doc.replace("</head>", STYLE + "\n</head>", 1)
     return STYLE + doc
 
 
 def inject(doc: str, content: str) -> str:
-    doc = re.sub(
-        re.escape(START) + r".*?" + re.escape(END),
-        "",
-        doc,
-        flags=re.S,
-    )
+    doc = re.sub(re.escape(START) + r".*?" + re.escape(END), "", doc, flags=re.S)
     block = f"\n{START}\n<section class=\"gsc-seo\" aria-label=\"Detailed guidance\">\n{content}\n</section>\n{END}\n"
     if "</main>" in doc:
         head, tail = doc.rsplit("</main>", 1)
         return head + block + "</main>" + tail
-    if "</body>" in doc:
-        return doc.replace("</body>", block + "</body>", 1)
+    if "</body>" in doc: return doc.replace("</body>", block + "</body>", 1)
     return doc + block
 
 
 def patch(route: str, content: str, *, title: str | None = None, description: str | None = None, h1: str | None = None) -> None:
     path = route_file(route)
-    if not path:
-        raise RuntimeError(f"Missing generated route: {route}")
+    if not path: raise RuntimeError(f"Missing generated route: {route}")
     doc = path.read_text(encoding="utf-8")
     doc = ensure_style(doc)
-    if title:
-        doc = set_title(doc, title)
-    if description:
-        doc = set_description(doc, description)
-    if h1:
-        doc = set_first_h1(doc, h1)
+    if title: doc = set_title(doc, title)
+    if description: doc = set_description(doc, description)
+    if h1: doc = set_first_h1(doc, h1)
     doc = inject(doc, content)
     path.write_text(doc, encoding="utf-8")
     print(f"GSC SEO patched {route}")
@@ -139,17 +103,11 @@ def patch(route: str, content: str, *, title: str | None = None, description: st
 
 def remove_redirects_from_sitemap() -> None:
     path = DIST / "sitemap.xml"
-    if not path.exists():
-        return
+    if not path.exists(): return
     text = path.read_text(encoding="utf-8")
     for route in REDIRECTED_ROUTES:
         absolute = f"https://canisharethis.com{route}"
-        text = re.sub(
-            rf"<url>\s*<loc>{re.escape(absolute)}</loc>.*?</url>\s*",
-            "",
-            text,
-            flags=re.I | re.S,
-        )
+        text = re.sub(rf"<url>\s*<loc>{re.escape(absolute)}</loc>.*?</url>\s*", "", text, flags=re.I | re.S)
     path.write_text(text, encoding="utf-8")
     print("Removed redirected duplicate URLs from sitemap")
 
@@ -225,155 +183,29 @@ EMAIL = r"""
 """
 
 HOW_SCANNING = r"""
-<div class="gsc-card">
-  <h2>What happens when CanIShareThis scans a link</h2>
-  <ol>
-    <li><strong>Normalize the input.</strong> The scanner parses the submitted URL and identifies the hostname, protocol, path, query parameters, and recognizable platform patterns.</li>
-    <li><strong>Inspect the URL structure.</strong> It looks for suspicious formatting, deceptive hostname patterns, unusual encodings, risky parameters, and other structural warning signals.</li>
-    <li><strong>Follow destination signals.</strong> When a network check is available, the scanner evaluates redirects and exposes the final destination so a shortened or wrapped link is easier to understand.</li>
-    <li><strong>Evaluate domain context.</strong> Domain and reputation signals are combined with the URL structure rather than treated as a single yes/no blacklist result.</li>
-    <li><strong>Inspect content context when supported.</strong> Download links, cloud-sharing links, social profiles, and other recognizable inputs can receive additional checks relevant to that type.</li>
-    <li><strong>Return a risk-oriented result.</strong> The result summarizes the strongest signals and a recommended action instead of claiming that a link is guaranteed safe.</li>
-  </ol>
-</div>
-<div class="gsc-card">
-  <h2>Signals are combined, not treated as proof</h2>
-  <p>No single signal is sufficient on its own. HTTPS does not prove legitimacy. A new domain is not automatically malicious. A clean reputation lookup does not guarantee that a page is harmless. Redirects are not inherently dangerous. The scanner combines available evidence and keeps uncertainty visible.</p>
-  <div class="gsc-grid">
-    <div class="gsc-mini"><h3>URL structure</h3><p>Hostname, subdomains, encoding, suspicious terms, sensitive parameters, and recognizable destination patterns.</p></div>
-    <div class="gsc-mini"><h3>Redirects</h3><p>Intermediate and final destinations when they can be resolved safely.</p></div>
-    <div class="gsc-mini"><h3>Reputation</h3><p>External or internal reputation signals when configured and available.</p></div>
-    <div class="gsc-mini"><h3>Lookalikes</h3><p>Domain patterns that can resemble known brands or expected destinations.</p></div>
-    <div class="gsc-mini"><h3>Privacy</h3><p>Tracking and sensitive URL parameters that may expose unnecessary information.</p></div>
-    <div class="gsc-mini"><h3>Type-specific checks</h3><p>Additional logic for supported link contexts rather than a one-size-fits-all verdict.</p></div>
-  </div>
-</div>
-<div class="gsc-card">
-  <h2>Limits of a link scanner</h2>
-  <p>A website can change after a scan, serve different content to different visitors, or use legitimate infrastructure for malicious purposes. Some pages also require authentication and cannot be fully inspected from outside the recipient’s account.</p>
-  <p class="gsc-note">The scanner is decision support, not a guarantee. If a result conflicts with the context of a message, payment request, login prompt, or unexpected contact, verify through an independent trusted channel.</p>
-  <p>See also <a href="/methodology">Methodology</a>, <a href="/security">Security</a>, <a href="/privacy">Privacy</a>, and <a href="/supported-checks">Supported checks</a>.</p>
-</div>
+<div class="gsc-card"><h2>What happens when CanIShareThis scans a link</h2><ol><li><strong>Normalize the input.</strong> The scanner parses the submitted URL and identifies the hostname, protocol, path, query parameters, and recognizable platform patterns.</li><li><strong>Inspect the URL structure.</strong> It looks for suspicious formatting, deceptive hostname patterns, unusual encodings, risky parameters, and other structural warning signals.</li><li><strong>Follow destination signals.</strong> When a network check is available, the scanner evaluates redirects and exposes the final destination so a shortened or wrapped link is easier to understand.</li><li><strong>Evaluate domain context.</strong> Domain and reputation signals are combined with the URL structure rather than treated as a single yes/no blacklist result.</li><li><strong>Inspect content context when supported.</strong> Download links, cloud-sharing links, social profiles, and other recognizable inputs can receive additional checks relevant to that type.</li><li><strong>Return a risk-oriented result.</strong> The result summarizes the strongest signals and a recommended action instead of claiming that a link is guaranteed safe.</li></ol></div>
+<div class="gsc-card"><h2>Signals are combined, not treated as proof</h2><p>No single signal is sufficient on its own. HTTPS does not prove legitimacy. A new domain is not automatically malicious. A clean reputation lookup does not guarantee that a page is harmless. Redirects are not inherently dangerous. The scanner combines available evidence and keeps uncertainty visible.</p></div>
 """
 
-SCAM_SIGNS = r"""
-<div class="gsc-card">
-  <h2>Scam warning signs that matter across channels</h2>
-  <div class="gsc-grid">
-    <div class="gsc-mini"><h3>Unexpected contact</h3><p>A message, call, social profile, or email arrives without a normal reason for the contact.</p></div>
-    <div class="gsc-mini"><h3>Artificial urgency</h3><p>You are pushed to act immediately, keep the conversation secret, or avoid checking the story independently.</p></div>
-    <div class="gsc-mini"><h3>Impersonation</h3><p>The sender claims to be a bank, government agency, employer, celebrity, support agent, friend, or family member.</p></div>
-    <div class="gsc-mini"><h3>Unusual payment method</h3><p>Gift cards, cryptocurrency, wire transfers, cash, or payment apps are demanded because reversal is difficult.</p></div>
-    <div class="gsc-mini"><h3>Account or identity pressure</h3><p>The message says your account is locked, compromised, suspended, or must be “verified” through a supplied link.</p></div>
-    <div class="gsc-mini"><h3>Too-good-to-be-true offer</h3><p>A prize, job, investment return, refund, giveaway, or opportunity requires money or sensitive data first.</p></div>
-    <div class="gsc-mini"><h3>Suspicious destination</h3><p>The visible brand and the actual domain do not match, or a shortened/redirected link hides the real destination.</p></div>
-    <div class="gsc-mini"><h3>Move off-platform</h3><p>A seller, recruiter, romantic contact, or support account insists on moving to another channel to avoid platform protections.</p></div>
-  </div>
-</div>
-<div class="gsc-card">
-  <h2>A safer verification rule</h2>
-  <p>Do not verify a suspicious contact using the phone number, reply address, profile link, QR code, or website supplied by that same contact. Find the organization independently and use contact information you already trust.</p>
-  <p class="gsc-source">Official references: <a href="https://consumer.ftc.gov/articles/how-avoid-scam" rel="noopener noreferrer">FTC — How to avoid a scam</a> and <a href="https://www.cisa.gov/secure-our-world" rel="noopener noreferrer">CISA — Secure Our World</a>.</p>
-</div>
-"""
-
-CLICKED_PHISHING = r"""
-<div class="gsc-card">
-  <h2>What to do after clicking a phishing link</h2>
-  <ol>
-    <li><strong>Close the page.</strong> Do not continue entering information or approving prompts.</li>
-    <li><strong>If you entered a password, change it from the real website or app.</strong> If that password was reused elsewhere, change those accounts too.</li>
-    <li><strong>Enable multi-factor authentication.</strong> Prefer an authenticator app, passkey, or security key when the service supports it.</li>
-    <li><strong>Review active sessions and recent account activity.</strong> Sign out unknown sessions and revoke suspicious connected apps.</li>
-    <li><strong>If you downloaded or opened a file, update security software and run a scan.</strong></li>
-    <li><strong>If you entered payment or banking information, contact the financial institution using an official number.</strong> Ask about card replacement, transaction monitoring, or account protection.</li>
-    <li><strong>If personal identity information was exposed, follow the relevant identity-theft recovery process in your country.</strong></li>
-    <li><strong>Preserve evidence and report the phishing attempt.</strong> Keep screenshots, sender details, URLs, transaction references, and timestamps where useful.</li>
-  </ol>
-</div>
-<div class="gsc-card">
-  <h2>The action depends on what happened</h2>
-  <div class="gsc-grid">
-    <div class="gsc-mini"><h3>Only opened the page</h3><p>Risk is usually lower than if credentials, payment data, permissions, or a downloaded file were involved. Close it and inspect the device/browser for anything unexpected.</p></div>
-    <div class="gsc-mini"><h3>Entered a password</h3><p>Treat the password as compromised. Change it on the legitimate service and review sessions and recovery settings.</p></div>
-    <div class="gsc-mini"><h3>Entered card or bank data</h3><p>Contact the financial institution promptly through a trusted channel and follow its fraud procedures.</p></div>
-    <div class="gsc-mini"><h3>Downloaded a file</h3><p>Do not reopen it. Run current security scans and investigate any unusual device behavior.</p></div>
-  </div>
-  <p class="gsc-source">Official reference: <a href="https://consumer.ftc.gov/articles/how-recognize-avoid-phishing-scams" rel="noopener noreferrer">FTC — What to do if you responded to a phishing email</a>.</p>
-</div>
-"""
-
-SAFE_LINK = r"""
-<div class="gsc-card">
-  <h2>Use this page when you already have a link to inspect</h2>
-  <p>This is the transactional checker: paste the URL and review the destination, structural warning signs, redirects, reputation context, and other available signals. It is intentionally different from the manual safety guide.</p>
-  <p>For a step-by-step process you can follow yourself, use <a href="/how-to-check-if-a-link-is-safe">How to check if a link is safe</a>. For phishing-specific URL indicators, use <a href="/how-to-tell-if-a-link-is-phishing">How to tell if a link is phishing</a>.</p>
-</div>
-"""
-
-MANUAL_GUIDE = r"""
-<div class="gsc-card">
-  <h2>Manual pre-click link safety workflow</h2>
-  <ol>
-    <li>Read the actual hostname from right to left and identify the registrable domain.</li>
-    <li>Check for misspellings, extra brand words, misleading subdomains, punycode, or unusual URL encoding.</li>
-    <li>Do not treat HTTPS or a padlock as proof that the site is legitimate.</li>
-    <li>Expand or inspect shortened links before opening them when the destination is unclear.</li>
-    <li>Consider the context: unexpected urgency, login requests, payments, downloads, and identity claims increase the need for independent verification.</li>
-    <li>When possible, navigate to the organization through a known official app, bookmark, or manually typed domain instead of the supplied link.</li>
-  </ol>
-  <p>For an automated check, use the <a href="/safe-link-checker">Safe Link Checker</a>. This guide remains informational so the two pages target different search intent.</p>
-</div>
-"""
+SCAM_SIGNS = r"""<div class="gsc-card"><h2>Common scam warning signs</h2><p>Urgency, unexpected requests for money or credentials, identity claims that do not match the sender or destination, unusual payment methods, secrecy, and attempts to move conversations off-platform are recurring scam signals.</p></div>"""
+CLICKED_PHISHING = r"""<div class="gsc-card"><h2>Prioritize what was exposed</h2><p>If you entered a password, payment detail, downloaded a file, or shared identity information after clicking a phishing link, act on that exposed item first and use official account or provider channels.</p></div>"""
+SAFE_LINK = r"""<div class="gsc-card"><h2>Use this page when you already have a link to inspect</h2><p>This is the transactional checker: paste the URL and review the destination, structural warning signs, redirects, reputation context, and other available signals. It is intentionally different from the manual safety guide.</p></div>"""
+MANUAL_GUIDE = r"""<div class="gsc-card"><h2>Manual pre-click link safety workflow</h2><ol><li>Read the actual hostname from right to left and identify the registrable domain.</li><li>Check for misspellings, extra brand words, misleading subdomains, punycode, or unusual URL encoding.</li><li>Do not treat HTTPS or a padlock as proof that the site is legitimate.</li><li>Expand or inspect shortened links before opening them when the destination is unclear.</li><li>Consider the context: unexpected urgency, login requests, payments, downloads, and identity claims increase the need for independent verification.</li><li>When possible, navigate to the organization through a known official app, bookmark, or manually typed domain instead of the supplied link.</li></ol></div>"""
 
 
 def main() -> None:
     patch(
         "/google-drive-link-checker",
         GOOGLE_DRIVE,
-        description="Check a Google Drive link before sharing it. Review recipient access, permission walls, sign-in requirements, broken-link causes, and destination signals.",
+        description="Check a Google Drive link before you share it. See whether a recipient is likely to open it, hit a permission wall, or need to sign in.",
     )
-    patch(
-        "/remove-tracking-from-url",
-        REMOVE_TRACKING,
-        title="Remove Tracking From URL — Clean UTM & Click Parameters",
-        description="Remove common tracking parameters such as UTM tags, fbclid and ad click IDs while preserving URL parameters that may be required for the destination.",
-        h1="Remove Tracking From a URL",
-    )
-    patch(
-        "/email-safety-checker",
-        EMAIL,
-        title="Email Safety Checker — Check Sender & Domain Warning Signs",
-        description="Check an email address for domain, MX, SPF, DMARC, lookalike, disposable-domain and registration-age warning signals. No identity guarantee.",
-        h1="Email Safety Checker",
-    )
-    patch(
-        "/how-link-scanning-works",
-        HOW_SCANNING,
-        title="How Link Scanning Works — What CanIShareThis Checks",
-        description="See how CanIShareThis evaluates URL structure, redirects, domain context, reputation, lookalikes, privacy signals and supported link types—and where scanning has limits.",
-        h1="How CanIShareThis Scans a Link",
-    )
-    patch(
-        "/scam-warning-signs",
-        SCAM_SIGNS,
-        description="Learn the scam warning signs that repeat across email, text, social media, marketplaces, crypto, payments and impersonation attempts, with official safety references.",
-    )
-    patch(
-        "/what-to-do-after-clicking-a-phishing-link",
-        CLICKED_PHISHING,
-        description="Clicked a phishing link? Follow prioritized steps for exposed passwords, account sessions, downloads, payment details and identity information.",
-    )
-    patch(
-        "/safe-link-checker",
-        SAFE_LINK,
-        description="Paste a URL into the Safe Link Checker to inspect destination, redirects, structural warning signs, reputation context and other available safety signals.",
-    )
-    patch(
-        "/how-to-check-if-a-link-is-safe",
-        MANUAL_GUIDE,
-        description="Use a manual pre-click workflow to inspect a URL, identify the real domain, recognize deceptive formatting and verify suspicious context independently.",
-    )
+    patch("/remove-tracking-from-url", REMOVE_TRACKING, title="Remove Tracking From URL — Clean UTM & Click Parameters", description="Remove common tracking parameters such as UTM tags, fbclid and ad click IDs while preserving URL parameters that may be required for the destination.", h1="Remove Tracking From a URL")
+    patch("/email-safety-checker", EMAIL, title="Email Safety Checker — Check Sender & Domain Warning Signs", description="Check an email address for domain, MX, SPF, DMARC, lookalike, disposable-domain and registration-age warning signals. No identity guarantee.", h1="Email Safety Checker")
+    patch("/how-link-scanning-works", HOW_SCANNING, title="How Link Scanning Works — What CanIShareThis Checks", description="See how CanIShareThis evaluates URL structure, redirects, domain context, reputation, lookalikes, privacy signals and supported link types—and where scanning has limits.", h1="How CanIShareThis Scans a Link")
+    patch("/scam-warning-signs", SCAM_SIGNS, description="Learn the scam warning signs that repeat across email, text, social media, marketplaces, crypto, payments and impersonation attempts, with official safety references.")
+    patch("/what-to-do-after-clicking-a-phishing-link", CLICKED_PHISHING, description="Clicked a phishing link? Follow prioritized steps for exposed passwords, account sessions, downloads, payment details and identity information.")
+    patch("/safe-link-checker", SAFE_LINK, description="Paste a URL into the Safe Link Checker to inspect destination, redirects, structural warning signs, reputation context and other available safety signals.")
+    patch("/how-to-check-if-a-link-is-safe", MANUAL_GUIDE, description="Use a manual pre-click workflow to inspect a URL, identify the real domain, recognize deceptive formatting and verify suspicious context independently.")
     remove_redirects_from_sitemap()
 
 
