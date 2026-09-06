@@ -1,8 +1,19 @@
 const TYPES = new Set(['link','qr','email','file','shortlink','crypto','message','social','other']);
 const memory = { total: 0, byType: Object.create(null), daily: Object.create(null) };
 
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+function parisDayKey() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(new Date());
+  const get = type => parts.find(p => p.type === type)?.value || '';
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+
+function normalizeType(value) {
+  const raw = String(value || '').toLowerCase();
+  if (raw === 'url') return 'link';
+  if (raw === 'social-profile') return 'social';
+  return TYPES.has(raw) ? raw : 'other';
 }
 
 function durationBucket(value) {
@@ -64,7 +75,7 @@ async function supabase(path, options = {}) {
   const cfg = supabaseConfig();
   if (!cfg) return null;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 1500);
+  const timer = setTimeout(() => controller.abort(), 1800);
   try {
     const headers = {
       apikey: cfg.key,
@@ -72,18 +83,14 @@ async function supabase(path, options = {}) {
       ...(options.headers || {})
     };
     if (!cfg.key.startsWith('sb_secret_')) headers.authorization = `Bearer ${cfg.key}`;
-    const r = await fetch(`${cfg.url}${path}`, {
-      ...options,
-      headers,
-      signal: controller.signal
-    });
-    if (!r.ok) {
+    const response = await fetch(`${cfg.url}${path}`, { ...options, headers, signal: controller.signal });
+    if (!response.ok) {
       let detail = '';
-      try { detail = await r.text(); } catch (_) {}
-      throw new Error(`Supabase counter error ${r.status}${detail ? `: ${detail.slice(0, 180)}` : ''}`);
+      try { detail = await response.text(); } catch (_) {}
+      throw new Error(`Supabase counter error ${response.status}${detail ? `: ${detail.slice(0, 180)}` : ''}`);
     }
-    if (r.status === 204) return null;
-    return r.json();
+    if (response.status === 204) return null;
+    return response.json();
   } finally {
     clearTimeout(timer);
   }
@@ -94,37 +101,45 @@ async function supabaseRows() {
   return Array.isArray(rows) ? rows : [];
 }
 
-function supabaseSnapshotFromRows(rows) {
+function supabaseSnapshot(rows, day) {
   const byType = emptyByType();
   let total = 0;
   for (const row of rows) {
     if (row.scan_type === 'total') total = Number(row.count || 0);
     else if (TYPES.has(row.scan_type)) byType[row.scan_type] = Number(row.count || 0);
   }
-  return { total, byType, persistent: true };
+  return {
+    total,
+    byType,
+    persistent: true,
+    daily: buildDaily(day, rows.map(row => [row.scan_type, row.count]))
+  };
 }
 
-function supabaseDailyFromRows(rows, day) {
-  return buildDaily(day, rows.map(row => [row.scan_type, row.count]));
-}
-
-async function incrementSupabase(type) {
+async function incrementSupabaseGlobal(type) {
   await supabase('/rest/v1/rpc/increment_scan_counter', {
     method: 'POST',
     body: JSON.stringify({ p_type: type })
   });
 }
 
+async function incrementSupabaseDailyKey(key) {
+  await supabase('/rest/v1/rpc/increment_daily_scan_counter', {
+    method: 'POST',
+    body: JSON.stringify({ p_key: key })
+  });
+}
+
 async function incrementSupabaseDaily({ day, type, metricsOnly, warning, durationMs }) {
-  const tasks = [];
+  const keys = [];
   if (!metricsOnly) {
-    tasks.push(incrementSupabase(`day:${day}:total`));
-    tasks.push(incrementSupabase(`day:${day}:type:${type}`));
+    keys.push(`day:${day}:total`);
+    keys.push(`day:${day}:type:${type}`);
   }
-  if (metricsOnly && warning) tasks.push(incrementSupabase(`day:${day}:warnings`));
+  if (metricsOnly && warning) keys.push(`day:${day}:warnings`);
   const bucket = metricsOnly ? durationBucket(durationMs) : null;
-  if (bucket) tasks.push(incrementSupabase(`day:${day}:duration:${bucket}`));
-  if (tasks.length) await Promise.all(tasks);
+  if (bucket) keys.push(`day:${day}:duration:${bucket}`);
+  if (keys.length) await Promise.all(keys.map(incrementSupabaseDailyKey));
 }
 
 function redisConfig() {
@@ -137,16 +152,16 @@ async function redis(command) {
   const cfg = redisConfig();
   if (!cfg) return null;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 1200);
+  const timer = setTimeout(() => controller.abort(), 1500);
   try {
-    const r = await fetch(cfg.url, {
+    const response = await fetch(cfg.url, {
       method: 'POST',
       headers: { authorization: `Bearer ${cfg.token}`, 'content-type': 'application/json' },
       body: JSON.stringify(command),
       signal: controller.signal
     });
-    if (!r.ok) throw new Error(`Counter storage error ${r.status}`);
-    const data = await r.json();
+    if (!response.ok) throw new Error(`Counter storage error ${response.status}`);
+    const data = await response.json();
     return data.result;
   } finally {
     clearTimeout(timer);
@@ -156,20 +171,29 @@ async function redis(command) {
 async function redisEntries() {
   const rows = await redis(['HGETALL', 'cist:scan-counts']);
   const entries = [];
-  if (Array.isArray(rows)) for (let i = 0; i < rows.length; i += 2) entries.push([rows[i], Number(rows[i + 1] || 0)]);
+  if (Array.isArray(rows)) {
+    for (let i = 0; i < rows.length; i += 2) entries.push([rows[i], Number(rows[i + 1] || 0)]);
+  }
   return entries;
 }
 
-function redisSnapshotFromEntries(entries) {
+function redisSnapshot(entries, day) {
   const obj = Object.create(null);
   for (const [key, value] of entries) obj[key] = Number(value || 0);
   const byType = emptyByType();
   for (const type of TYPES) byType[type] = Number(obj[`type:${type}`] || 0);
-  return { total: Number(obj.total || 0), byType, persistent: true };
+  return {
+    total: Number(obj.total || 0),
+    byType,
+    persistent: true,
+    daily: buildDaily(day, entries)
+  };
 }
 
-async function incrementRedisDaily({ day, type, metricsOnly, warning, durationMs }) {
+async function incrementRedis({ day, type, metricsOnly, warning, durationMs }) {
   if (!metricsOnly) {
+    await redis(['HINCRBY', 'cist:scan-counts', 'total', 1]);
+    await redis(['HINCRBY', 'cist:scan-counts', `type:${type}`, 1]);
     await redis(['HINCRBY', 'cist:scan-counts', `day:${day}:total`, 1]);
     await redis(['HINCRBY', 'cist:scan-counts', `day:${day}:type:${type}`, 1]);
   }
@@ -179,39 +203,34 @@ async function incrementRedisDaily({ day, type, metricsOnly, warning, durationMs
 }
 
 function memoryDay(day) {
-  if (!memory.daily[day]) memory.daily[day] = { total: 0, warnings: 0, byType: emptyByType(), durations: Object.create(null) };
+  if (!memory.daily[day]) {
+    memory.daily[day] = { total: 0, warnings: 0, byType: emptyByType(), durations: Object.create(null) };
+  }
   return memory.daily[day];
 }
 
-function incrementMemory(type) {
-  memory.total += 1;
-  memory.byType[type] = (memory.byType[type] || 0) + 1;
-}
-
-function incrementMemoryDaily({ day, type, metricsOnly, warning, durationMs }) {
-  const d = memoryDay(day);
+function incrementMemory({ day, type, metricsOnly, warning, durationMs }) {
+  const daily = memoryDay(day);
   if (!metricsOnly) {
-    d.total += 1;
-    d.byType[type] = (d.byType[type] || 0) + 1;
+    memory.total += 1;
+    memory.byType[type] = (memory.byType[type] || 0) + 1;
+    daily.total += 1;
+    daily.byType[type] = (daily.byType[type] || 0) + 1;
   }
-  if (metricsOnly && warning) d.warnings += 1;
+  if (metricsOnly && warning) daily.warnings += 1;
   const bucket = metricsOnly ? durationBucket(durationMs) : null;
-  if (bucket) d.durations[bucket] = (d.durations[bucket] || 0) + 1;
-}
-
-function memoryDailySnapshot(day) {
-  const d = memoryDay(day);
-  const entries = [
-    [`day:${day}:total`, d.total],
-    [`day:${day}:warnings`, d.warnings],
-    ...Object.entries(d.byType).map(([type, count]) => [`day:${day}:type:${type}`, count]),
-    ...Object.entries(d.durations).map(([bucket, count]) => [`day:${day}:duration:${bucket}`, count])
-  ];
-  return buildDaily(day, entries);
+  if (bucket) daily.durations[bucket] = (daily.durations[bucket] || 0) + 1;
 }
 
 function memorySnapshot(day) {
-  return { total: memory.total, byType: memory.byType, persistent: false, daily: memoryDailySnapshot(day) };
+  const daily = memoryDay(day);
+  const entries = [
+    [`day:${day}:total`, daily.total],
+    [`day:${day}:warnings`, daily.warnings],
+    ...Object.entries(daily.byType).map(([type, count]) => [`day:${day}:type:${type}`, count]),
+    ...Object.entries(daily.durations).map(([bucket, count]) => [`day:${day}:duration:${bucket}`, count])
+  ];
+  return { total: memory.total, byType: memory.byType, persistent: false, daily: buildDaily(day, entries) };
 }
 
 module.exports = async function handler(req, res) {
@@ -219,7 +238,7 @@ module.exports = async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const day = todayKey();
+  const day = parisDayKey();
   let type = 'other';
   let metricsOnly = false;
   let warning = false;
@@ -228,7 +247,7 @@ module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-      type = TYPES.has(String(body.type || '')) ? String(body.type) : 'other';
+      type = normalizeType(body.type);
       metricsOnly = body.metricsOnly === true;
       warning = body.warning === true;
       durationMs = Number(body.durationMs);
@@ -237,35 +256,23 @@ module.exports = async function handler(req, res) {
 
   if (supabaseConfig()) {
     try {
-      if (req.method === 'POST' && !metricsOnly) await incrementSupabase(type);
-      if (req.method === 'POST') {
-        try { await incrementSupabaseDaily({ day, type, metricsOnly, warning, durationMs }); }
-        catch (e) { console.error('[cist-counter-supabase-daily]', e && e.message ? e.message : e); }
-      }
-      const rows = await supabaseRows();
-      return res.status(200).json({ ...supabaseSnapshotFromRows(rows), daily: supabaseDailyFromRows(rows, day) });
-    } catch (e) {
-      console.error('[cist-counter-supabase-fallback]', e && e.message ? e.message : e);
+      if (req.method === 'POST' && !metricsOnly) await incrementSupabaseGlobal(type);
+      if (req.method === 'POST') await incrementSupabaseDaily({ day, type, metricsOnly, warning, durationMs });
+      return res.status(200).json(supabaseSnapshot(await supabaseRows(), day));
+    } catch (error) {
+      console.error('[cist-counter-supabase-fallback]', error && error.message ? error.message : error);
     }
   }
 
   if (redisConfig()) {
     try {
-      if (req.method === 'POST' && !metricsOnly) {
-        await redis(['HINCRBY', 'cist:scan-counts', 'total', 1]);
-        await redis(['HINCRBY', 'cist:scan-counts', `type:${type}`, 1]);
-      }
-      if (req.method === 'POST') await incrementRedisDaily({ day, type, metricsOnly, warning, durationMs });
-      const entries = await redisEntries();
-      return res.status(200).json({ ...redisSnapshotFromEntries(entries), daily: buildDaily(day, entries) });
-    } catch (e) {
-      console.error('[cist-counter-redis-fallback]', e && e.message ? e.message : e);
+      if (req.method === 'POST') await incrementRedis({ day, type, metricsOnly, warning, durationMs });
+      return res.status(200).json(redisSnapshot(await redisEntries(), day));
+    } catch (error) {
+      console.error('[cist-counter-redis-fallback]', error && error.message ? error.message : error);
     }
   }
 
-  if (req.method === 'POST') {
-    if (!metricsOnly) incrementMemory(type);
-    incrementMemoryDaily({ day, type, metricsOnly, warning, durationMs });
-  }
+  if (req.method === 'POST') incrementMemory({ day, type, metricsOnly, warning, durationMs });
   return res.status(200).json(memorySnapshot(day));
 };
