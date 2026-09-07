@@ -44,7 +44,7 @@ for name,m in mats.items():
  pbr={'metallicFactor':0,'roughnessFactor':0.8}
  mat={'name':name,'pbrMetallicRoughness':pbr,'doubleSided':True}
  if 'texture' in m:
-  im=Image.open(src/'Van Car 1.fbm'/m['texture']).convert('RGB');buf=io.BytesIO();im.save(buf,format='JPEG',quality=95,optimize=True)
+  im=Image.open(src/'Van Car 1.fbm'/m['texture']).convert('RGB');buf=io.BytesIO();im.save(buf,format='JPEG',quality=85,optimize=True)
   g['images'].append({'name':m['texture'],'bufferView':view(buf.getvalue()),'mimeType':'image/jpeg'})
   g['textures'].append({'source':len(g['images'])-1,'sampler':0});pbr['baseColorTexture']={'index':len(g['textures'])-1}
  else:
