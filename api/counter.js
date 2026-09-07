@@ -20,7 +20,7 @@ function normalizeType(value) {
 function durationBucket(value) {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return null;
-  return Math.max(250, Math.min(15000, Math.round(n / 250) * 250));
+  return Math.max(250, Math.min(60000, Math.round(n / 250) * 250));
 }
 
 function emptyByType() {
