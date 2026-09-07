@@ -101,10 +101,12 @@ python3 scripts/apply_mega_scanner_v5.py
 python3 scripts/apply_unified_home_scanner_v1.py
 python3 scripts/apply_live_counter_fix_v1.py
 python3 scripts/apply_universal_evidence_ui_v1.py
+python3 scripts/apply_scanner_unification.py
 node scripts/test_mega_evidence.js
 node scripts/test_mega_evidence_v3.js
 node scripts/test_mega_evidence_v5.js
 node scripts/test_universal_evidence_v4.js
+node tests/unified-scanner.cjs
 # Late page generators can recreate aliases removed by apply_seo_registry.
 # Keep the final output consistent with the permanent redirects before auditing.
 python3 - <<'PY'

@@ -121,17 +121,18 @@ SCRIPT = r'''
     var sl=document.getElementById('cist-signal-live');if(sl)sl.textContent=data.persistent===false?'Session':'Today';
   }
   async function record(d){
-    if(!d||d.error||recording)return;
-    var now=Date.now();if(now-lastRecordedAt<300)return;lastRecordedAt=now;recording=true;
+    if(!d||d.error||d.counterSkip)return;
+    recording=true;
     var type=resultType(d),risk=resultRisk(d),f=signalFlags(d);
     var end=(window.performance&&performance.now)?performance.now():Date.now();
-    var duration=startedAt?Math.max(1,end-startedAt):250;
+    var duration=Number(d.scanDurationMs)>0?Number(d.scanDurationMs):(startedAt?Math.max(1,end-startedAt):null);
     try{
       var first=await request({type:type});paint(first);
       var second=await request({metricsOnly:true,warning:risk==='high'||risk==='caution',durationMs:duration,redirected:f.redirected,phishing:f.phishing,lookalike:f.lookalike,riskyDownload:f.riskyDownload});paint(second);
     }catch(e){}finally{startedAt=0;recording=false}
   }
-  document.addEventListener('cist:mega-result',function(e){record(e.detail||{})});
+  var recordQueue=Promise.resolve();
+  document.addEventListener('cist:mega-result',function(e){var data=e.detail||{};recordQueue=recordQueue.then(function(){return record(data)}).catch(function(){})});
   // Legacy runScan uses a variable endpoint, so the build's literal fetch
   // replacement does not route these requests through the Mega result event.
   // Observe successful primary responses only; enrichment requests do not count.
