@@ -132,6 +132,23 @@ SCRIPT = r'''
     }catch(e){}finally{startedAt=0;recording=false}
   }
   document.addEventListener('cist:mega-result',function(e){record(e.detail||{})});
+  // Legacy runScan uses a variable endpoint, so the build's literal fetch
+  // replacement does not route these requests through the Mega result event.
+  // Observe successful primary responses only; enrichment requests do not count.
+  var previousCounterFetch=window.fetch.bind(window);
+  window.fetch=async function(resource,options){
+    var target=typeof resource==='string'?resource:resource&&resource.url;
+    var path='';try{var parsed=new URL(target,location.href);if(parsed.origin===location.origin)path=parsed.pathname}catch(_){}
+    var legacyTypes={'/api/check':'link','/api/email-check':'email','/api/crypto-check':'crypto','/api/image-check':'image'};
+    var response=await previousCounterFetch.apply(window,arguments);
+    if(legacyTypes[path]&&response.ok){
+      response.clone().json().then(function(data){
+        if(!data||data.error)return;
+        record(Object.assign({},data,{detectedType:data.detectedType||legacyTypes[path]}));
+      }).catch(function(){});
+    }
+    return response;
+  };
   request().then(paint).catch(function(){});
 })();
 </script>
