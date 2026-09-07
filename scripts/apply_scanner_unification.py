@@ -36,14 +36,14 @@ script=r'''<script id="cist-unified-controller-script">
     var url;try{url=new URL(typeof resource==='string'?resource:resource.url,location.href)}catch(_){return original.apply(window,arguments)}
     if(url.origin!==location.origin||url.pathname!=='/api/analyze')return original.apply(window,arguments);
     if(busy)throw new Error('An analysis is already running.');
-    busy=true;clear();status.textContent='Analyzing the available evidence…';label();
+    busy=true;clear();var detected=document.querySelector('.cist-detected-type');if(detected)detected.textContent='Analyzing submitted content';status.textContent='Analyzing the available evidence…';label();
     var opts=Object.assign({},options||{}),controller=new AbortController(),timer=setTimeout(function(){controller.abort()},45000);
     var parentSignal=opts.signal,onAbort=function(){controller.abort()};if(parentSignal){if(parentSignal.aborted)controller.abort();else parentSignal.addEventListener('abort',onAbort,{once:true})}opts.signal=controller.signal;
     try{var response=await original(resource,opts);var data=await response.clone().json();
       if(!response.ok||data.error)throw new Error(response.status===429?'Analysis temporarily rate-limited. Please try again later.':data.error||'The analysis could not complete.');
       status.textContent='';return response;
     }catch(e){panel.classList.remove('cist-show');status.textContent=e.name==='AbortError'?'Analysis timed out. No safety conclusion is available.':e.message||'Analysis unavailable. No safety conclusion is available.';throw e}
-    finally{clearTimeout(timer);if(parentSignal)parentSignal.removeEventListener('abort',onAbort);busy=false;label()}
+    finally{clearTimeout(timer);if(parentSignal)parentSignal.removeEventListener('abort',onAbort);busy=false;label();setTimeout(function(){var box=document.getElementById('image-analysis');if(box)box.classList.add('hidden');var upload=document.getElementById('choose-image');if(upload&&!upload.disabled)upload.textContent='＋ Upload';var note=document.getElementById('cist-unified-home-note');if(note)note.textContent='Private by design · No account required · Automatic type detection';if(status.textContent&&detected)detected.textContent='Analysis incomplete';},0)}
   };
   document.addEventListener('cist:mega-result',function(e){if(!e.detail||e.detail.error)return;var old=document.getElementById('image-analysis');if(old)old.classList.add('hidden');var detected=document.querySelector('.cist-detected-type');if(detected){var names={'url':'URL','email':'Email','message':'Message','message-url':'Message','message-email':'Message','social-profile':'Social profile','crypto':'Crypto','file':'File','image':'Image / screenshot'};detected.textContent='Detected automatically: '+(names[e.detail.detectedType]||'Content')}setTimeout(label,0)});
 })();
