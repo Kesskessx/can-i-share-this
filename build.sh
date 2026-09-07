@@ -105,6 +105,20 @@ node scripts/test_mega_evidence.js
 node scripts/test_mega_evidence_v3.js
 node scripts/test_mega_evidence_v5.js
 node scripts/test_universal_evidence_v4.js
+# Late page generators can recreate aliases removed by apply_seo_registry.
+# Keep the final output consistent with the permanent redirects before auditing.
+python3 - <<'PY'
+import json
+from pathlib import Path
+registry = json.loads(Path('seo/SEO_ROUTE_MANIFEST.json').read_text())
+for redirect in registry['redirects']:
+    route = redirect['from'].strip('/')
+    if not route or '..' in Path(route).parts:
+        raise RuntimeError('Invalid redirect source')
+    target = Path('dist') / (route + '.html')
+    if target.is_file():
+        target.unlink()
+PY
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
