@@ -59,10 +59,12 @@ js = r'''
     try{
       var qrPromise=decodeQr(f),dataUrl;
       try{dataUrl=await prepareImage(f)}catch(_){dataUrl=await new Promise(function(resolve,reject){var rr=new FileReader();rr.onload=function(){resolve(rr.result)};rr.onerror=reject;rr.readAsDataURL(f)})}
-      var r=await fetch('/api/image-check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({image:dataUrl})});
+      var localQr=await qrPromise;
+      var r=await fetch('/api/image-check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(localQr?{input:localQr,inputSource:'qr'}:{image:dataUrl})});
       var data=await r.json().catch(function(){return {}}),localQr=await qrPromise;
+      if(data.megaScanner&&r.ok){box.classList.add('hidden');return}
       if(!r.ok||!data.analysis){if(localQr&&/^https?:\/\//i.test(localQr)){box.className='image-analysis caution';box.innerHTML='<div class="image-analysis-head"><div class="image-analysis-icon">QR</div><div><h3>QR code detected</h3><p>The QR destination was decoded locally. Running the destination through the safety scanner…</p></div></div><div class="image-detected"><strong>Detected:</strong> '+esc(localQr)+'</div>';box.classList.remove('hidden');runTarget(localQr);return}if(r.status===413)throw new Error('The image upload was too large. Please try a smaller image.');throw new Error(data.error||('Image analysis failed (HTTP '+r.status+').'))}
-      render(data.analysis,localQr)
+      if(data.megaScanner){box.classList.add('hidden')}else render(data.analysis,localQr)
     }catch(e){renderError(e&&e.message?e.message:'The image could not be analyzed.')}finally{setBusy(false);URL.revokeObjectURL(preview);file.value='';cameraFile.value=''}
   }
   choose.addEventListener('click',function(){file.click()});camera.addEventListener('click',function(){cameraFile.click()});file.addEventListener('change',function(){analyzeImage(file.files&&file.files[0])});cameraFile.addEventListener('change',function(){analyzeImage(cameraFile.files&&cameraFile.files[0])});

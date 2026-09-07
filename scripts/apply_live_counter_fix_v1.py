@@ -108,6 +108,7 @@ SCRIPT = r'''
     if(!data)return;var d=data.daily||{},by=d.byType||{},ss=d.signals||{};
     var set=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v};
     set('cist-daily-scans',Number(d.total||0).toLocaleString());
+    set('cist-signal-activity',Number(d.total||0).toLocaleString()+' scans analyzed today');
     set('cist-daily-warnings',Number(d.warnings||0).toLocaleString());
     set('cist-daily-average',formatTime(d.averageMs));
     set('cist-daily-type',topType(by));

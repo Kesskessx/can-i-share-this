@@ -45,7 +45,7 @@ script=r'''<script id="cist-unified-controller-script">
     }catch(e){panel.classList.remove('cist-show');status.textContent=e.name==='AbortError'?'Analysis timed out. No safety conclusion is available.':e.message||'Analysis unavailable. No safety conclusion is available.';throw e}
     finally{clearTimeout(timer);if(parentSignal)parentSignal.removeEventListener('abort',onAbort);busy=false;label()}
   };
-  document.addEventListener('cist:mega-result',function(e){if(!e.detail||e.detail.error)return;var old=document.getElementById('image-analysis');if(old)old.classList.add('hidden');setTimeout(label,0)});
+  document.addEventListener('cist:mega-result',function(e){if(!e.detail||e.detail.error)return;var old=document.getElementById('image-analysis');if(old)old.classList.add('hidden');var detected=document.querySelector('.cist-detected-type');if(detected){var names={'url':'URL','email':'Email','message':'Message','message-url':'Message','message-email':'Message','social-profile':'Social profile','crypto':'Crypto','file':'File','image':'Image / screenshot'};detected.textContent='Detected automatically: '+(names[e.detail.detectedType]||'Content')}setTimeout(label,0)});
 })();
 </script>'''
 s=s.replace('</head>',style+'\n</head>',1).replace('</body>',script+'\n</body>',1)
