@@ -1,0 +1,130 @@
+name: Build Brand My Van real GLB
+
+on:
+  push:
+    branches: [brandmyvan-real-deploy]
+    paths:
+      - '.github/workflows/build-brandmyvan-real.yml'
+      - 'brandmyvan-assets/hd*.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-real-van:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: brandmyvan-real-deploy
+          fetch-depth: 0
+
+      - name: Reconstruct and extract textured GLB
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, gzip, re, json, struct, hashlib
+
+          parts=[]
+          for i in range(1,5):
+              p=Path(f'brandmyvan-assets/hd0{i}.txt')
+              if not p.exists():
+                  raise SystemExit(f'Missing {p}')
+              parts.append(''.join(p.read_text().split()))
+          joined=''.join(parts)
+          raw=base64.b64decode(joined, validate=True)
+          print('Work archive bytes:', len(raw), 'sha256:', hashlib.sha256(raw).hexdigest())
+          try:
+              payload=gzip.decompress(raw)
+              print('Gzip payload bytes:', len(payload), 'prefix:', payload[:40])
+          except Exception as e:
+              payload=raw
+              print('Not gzip:', e)
+
+          def glb_meta(buf):
+              if len(buf)<20 or buf[:4] != b'glTF': return None
+              try:
+                  magic,version,total=struct.unpack_from('<4sII',buf,0)
+                  if total>len(buf): return None
+                  off=12
+                  js=None
+                  while off+8<=total:
+                      ln,typ=struct.unpack_from('<II',buf,off); off+=8
+                      chunk=buf[off:off+ln]; off+=ln
+                      if typ==0x4E4F534A:
+                          js=json.loads(chunk.rstrip(b' \t\r\n\x00').decode('utf-8'))
+                          break
+                  if not js: return None
+                  return {
+                      'size': total,
+                      'images': len(js.get('images',[])),
+                      'materials': len(js.get('materials',[])),
+                      'meshes': len(js.get('meshes',[])),
+                      'material_names':[m.get('name','') for m in js.get('materials',[])],
+                      'mesh_names':[m.get('name','') for m in js.get('meshes',[])],
+                  }
+              except Exception:
+                  return None
+
+          candidates=[]
+          def add_candidate(b, source):
+              m=glb_meta(b)
+              if m:
+                  candidates.append((b[:m['size']],source,m))
+                  print('GLB candidate',source,m)
+
+          add_candidate(payload,'payload')
+
+          text=payload.decode('utf-8','ignore')
+          # Find large base64 strings in standalone HTML/JS.
+          for n,s in enumerate(re.findall(r'[A-Za-z0-9+/]{20000,}={0,2}', text)):
+              try:
+                  b=base64.b64decode(s)
+              except Exception:
+                  continue
+              add_candidate(b,f'base64#{n}')
+              try:
+                  add_candidate(gzip.decompress(b),f'base64-gzip#{n}')
+              except Exception:
+                  pass
+
+          if not candidates:
+              raise SystemExit('No GLB candidate found inside merged Work assets')
+
+          # Prefer candidates that demonstrably contain original texture images/materials.
+          def score(item):
+              _,_,m=item
+              names=' '.join(m['material_names']+m['mesh_names']).lower()
+              original=sum(k in names for k in ['textures_body_1','textures_body_2','textures_wheel','texture_inside'])
+              return (m['images']>=3, original, m['images'], m['materials'], m['meshes'], m['size'])
+          candidates.sort(key=score, reverse=True)
+          glb,source,meta=candidates[0]
+          names=' '.join(meta['material_names']+meta['mesh_names']).lower()
+          if meta['images'] < 3:
+              raise SystemExit(f'Best GLB is not textured enough: {meta}')
+          if not any(k in names for k in ['textures_body_1','textures_body_2','textures_wheel']):
+              raise SystemExit(f'Best GLB does not look like original van materials: {meta}')
+
+          out=Path('brandmyvan-real/models/van-realistic.glb')
+          out.parent.mkdir(parents=True, exist_ok=True)
+          out.write_bytes(glb)
+          print('SELECTED:',source)
+          print('FINAL GLB:',meta,'sha256:',hashlib.sha256(glb).hexdigest())
+          PY
+
+      - name: Commit real GLB
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add brandmyvan-real/models/van-realistic.glb
+          if git diff --cached --quiet; then
+            echo 'No GLB change to commit'
+          else
+            git commit -m 'Build real textured Brand My Van GLB'
+            git push origin HEAD:brandmyvan-real-deploy
+          fi
