@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Brand My Van — Sponsor-ready 3D test</title>
+<style>
+:root{--bg:#f4f1e8;--ink:#111;--lime:#dcff29;--line:#181818}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}.top{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--line)}.brand{font-weight:950;font-size:24px}.brand b{background:var(--lime);padding:5px 8px}.badge{background:#111;color:#fff;padding:10px 12px;font-size:11px;font-weight:900;letter-spacing:1px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;min-height:calc(100vh - 67px)}.stage{position:relative;border-right:1px solid var(--line);min-height:650px}canvas{width:100%;height:100%;min-height:650px;display:block;touch-action:none}.status{position:absolute;left:18px;top:18px;background:#111;color:#fff;padding:10px 12px;font-size:11px;font-weight:900;z-index:2}.tools{position:absolute;left:18px;top:64px;display:flex;gap:8px;z-index:2}.tools button{border:1px solid var(--line);background:rgba(244,241,232,.95);padding:10px 12px;font-weight:900;cursor:pointer}.side{padding:28px 24px}.eyebrow{font-size:10px;font-weight:900;letter-spacing:2px}.side h1{font-size:48px;line-height:.9;letter-spacing:-3px;margin:12px 0 20px}.side p{line-height:1.5;color:#444}.zonegrid{display:grid;gap:10px;margin:22px 0}.zone{border:1px solid var(--line);background:#fff0;padding:14px;text-align:left;cursor:pointer}.zone.active{background:var(--lime)}.zone b{display:block;font-size:18px}.zone small{display:block;margin-top:5px;color:#555}.upload{border-top:1px solid var(--line);padding-top:20px;margin-top:22px}.upload input{width:100%;margin-top:10px}.row{display:flex;gap:8px;margin-top:12px}.row button{flex:1;border:1px solid var(--line);padding:12px;font-weight:900;cursor:pointer}.primary{background:var(--lime)}.secondary{background:#fff}.diag{margin-top:18px;border:1px solid var(--line);padding:12px;font:12px/1.45 monospace;background:#faf9f5;white-space:pre-wrap}.note{margin-top:18px;padding:12px;background:#111;color:#fff;font-size:12px;line-height:1.5}.live{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}.live strong{display:block;margin-bottom:5px}@media(max-width:900px){.layout{display:block}.stage{min-height:520px;border-right:0;border-bottom:1px solid var(--line)}canvas{min-height:520px;height:520px}.side h1{font-size:42px}}
+</style>
+<script type="importmap">{"imports":{"three":"../vendor/build/three.module.js"}}</script>
+</head>
+<body>
+<div class="top"><div class="brand">BRAND <b>MYVAN</b></div><div class="badge">SPONSOR-READY GLB TEST</div></div>
+<div class="layout">
+  <section class="stage">
+    <div class="status" id="status">LOADING VAN + PREBUILT SPONSOR SURFACES…</div>
+    <div class="tools"><button id="reset">RESET VIEW</button><button id="rotate">AUTO ROTATE</button><button id="guides">HIDE FREE GUIDES</button></div>
+    <canvas id="c"></canvas>
+  </section>
+  <aside class="side">
+    <div class="eyebrow">OFFLINE-FITTED SURFACES</div>
+    <h1>Logo meshes,<br>not decals.</h1>
+    <p>The three test areas are already fitted to the van before the page loads. The browser only changes their texture.</p>
+    <div class="zonegrid">
+      <button class="zone active" data-id="1"><b>01 · Driver door</b><small>Small / standard — prebuilt mesh</small></button>
+      <button class="zone" data-id="3"><b>03 · Left cargo panel</b><small>Large / premium — prebuilt mesh</small></button>
+      <button class="zone" data-id="5"><b>05 · Rear left door</b><small>Medium — prebuilt mesh</small></button>
+    </div>
+    <div class="upload">
+      <div class="eyebrow">LOCAL LOGO TEST</div>
+      <p>Select a zone, choose any PNG/JPG/WebP and it is applied directly to that mesh. Nothing is uploaded.</p>
+      <input type="file" id="file" accept="image/png,image/jpeg,image/webp">
+      <div class="row"><button class="primary" id="apply">APPLY LOGO</button><button class="secondary" id="restore">RESTORE GUIDE</button></div>
+    </div>
+    <div class="live"><strong id="liveStatus">Checking live sponsors…</strong><span id="liveText">—</span></div>
+    <div class="diag" id="diag">Waiting for GLB…</div>
+    <div class="note">Prototype rule: no runtime raycast, no DecalGeometry, no panel-coordinate patch. The 3D sponsor surfaces are only ~123 KB.</div>
+  </aside>
+</div>
+<script type="module" src="./viewer.js"></script>
+</body>
+</html>
