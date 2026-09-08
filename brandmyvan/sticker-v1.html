@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f1e8">
+<meta name="brandmyvan-build" content="CLICKABLE-STICKERS-V1">
+<title>Brand My Van — Pick Your Sticker Spot</title>
+<style>
+:root{--bg:#f4f1e8;--ink:#111;--lime:#dcff29;--line:#181818;--muted:#5b584f;--panel:#efede5;--white:#faf9f5}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}button,input{font:inherit}button{cursor:pointer}.brand{font-weight:950;font-size:24px;letter-spacing:-1px}.brand b{background:var(--lime);padding:5px 8px}.eyebrow{font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase}
+header{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 3vw;gap:18px}.badge{background:#111;color:#fff;padding:11px 13px;font-size:10px;font-weight:900;letter-spacing:1px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);background:var(--lime);border-bottom:1px solid var(--line)}.metric{padding:15px 3vw;border-right:1px solid var(--line)}.metric:last-child{border-right:0}.metric small{display:block;font-size:9px;font-weight:900;letter-spacing:1.5px}.metric strong{display:block;font-size:24px;margin-top:4px}
+.hero{display:grid;grid-template-columns:minmax(330px,.72fr) minmax(0,1.28fr);min-height:720px;border-bottom:1px solid var(--line)}.copy{padding:50px 3vw;border-right:1px solid var(--line)}.copy h1{font-size:clamp(54px,5.5vw,88px);line-height:.86;letter-spacing:-5px;margin:16px 0 24px}.copy h1 em{font-family:Georgia,serif;font-weight:400}.lead{font-size:18px;line-height:1.5;color:#38352f;max-width:610px}.steps{display:grid;gap:0;border:1px solid var(--line);margin:28px 0}.step{display:grid;grid-template-columns:48px 1fr;gap:12px;padding:15px;border-bottom:1px solid var(--line);background:var(--white)}.step:last-child{border-bottom:0}.step b{font-size:22px}.step span{font-size:13px;line-height:1.45;color:#45423b}.notice{border:1px solid var(--line);padding:13px 14px;background:#111;color:#fff;font-size:12px;line-height:1.45}
+.viewer-wrap{position:relative;min-height:720px;background:var(--panel);overflow:hidden}.viewer-wrap canvas{width:100%;height:720px;display:block;touch-action:none;background:radial-gradient(circle at 50% 58%,#fff 0,#f2f0e9 58%,#e4e0d5 100%)}.viewer-label{position:absolute;top:18px;left:18px;z-index:8;background:#111;color:#fff;padding:10px 12px;font-size:10px;font-weight:900;letter-spacing:1px}.viewer-tools{position:absolute;top:60px;left:18px;z-index:9;display:flex;gap:8px;flex-wrap:wrap}.viewer-tools button{border:1px solid var(--line);background:rgba(244,241,232,.96);padding:10px 12px;font-size:10px;font-weight:900}.viewer-tools button.active{background:var(--lime)}.placement-pill{position:absolute;left:18px;right:18px;bottom:18px;z-index:9;border:1px solid var(--line);background:rgba(244,241,232,.96);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:14px}.placement-pill strong{font-size:14px}.placement-pill span{font-size:11px;color:#555}.placement-pill .price{font-size:23px;font-weight:950;color:#111}
+.builder{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}.builder>section{padding:46px 3vw}.builder>section:first-child{border-right:1px solid var(--line)}.builder h2{font-size:clamp(38px,4vw,58px);letter-spacing:-3px;margin:10px 0 18px}.uploadbox{border:1px solid var(--line);background:var(--white);padding:18px;margin-top:20px}.uploadbox input{width:100%;margin-top:10px}.previewrow{display:flex;align-items:center;gap:16px;margin-top:16px}.logo-preview{width:86px;height:86px;object-fit:contain;border:1px solid var(--line);background:#fff;padding:8px}.hint{font-size:12px;line-height:1.5;color:var(--muted)}.shape-row{display:flex;gap:8px;margin-top:14px}.shape-row button{border:1px solid var(--line);padding:11px 14px;background:var(--white);font-size:11px;font-weight:900}.shape-row button.active{background:var(--lime)}
+.reserve-card{border:1px solid var(--line);background:var(--white);padding:18px;margin-top:18px}.reserve-card label{display:block;font-size:10px;font-weight:900;letter-spacing:1px;margin-bottom:12px}.reserve-card input{display:block;width:100%;border:1px solid var(--line);padding:12px;margin-top:6px;background:#fff}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.reserve{width:100%;border:1px solid var(--line);background:var(--lime);padding:15px;font-weight:950;margin-top:4px}.reserve:disabled{opacity:.45;cursor:not-allowed}.msg{font-size:12px;line-height:1.45;margin-top:12px;min-height:18px}.msg.ok{color:#245d14}.msg.err{color:#a11111}.trap{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+.premium{padding:52px 3vw;border-bottom:1px solid var(--line);background:#111;color:#fff}.premium h2{font-size:clamp(42px,5vw,70px);letter-spacing:-4px;margin:8px 0 14px}.premium p{font-size:16px;line-height:1.5;max-width:760px;color:#ddd}.premium .tag{display:inline-block;margin-top:18px;background:var(--lime);color:#111;padding:9px 11px;font-size:10px;font-weight:900;letter-spacing:1px}footer{display:flex;justify-content:space-between;gap:18px;padding:26px 3vw;font-size:11px}
+@media(max-width:900px){header{padding:0 20px}.metrics{grid-template-columns:1fr 1fr}.metric:nth-child(2){border-right:0}.metric:nth-child(-n+2){border-bottom:1px solid var(--line)}.hero{display:block}.copy{padding:38px 22px;border-right:0;border-bottom:1px solid var(--line)}.viewer-wrap{min-height:560px}.viewer-wrap canvas{height:560px}.builder{display:block}.builder>section{padding:38px 22px}.builder>section:first-child{border-right:0;border-bottom:1px solid var(--line)}.premium{padding:44px 22px}.placement-pill{left:12px;right:12px;bottom:12px}.viewer-label{left:12px;top:12px}.viewer-tools{left:12px;top:52px}}
+@media(max-width:520px){.badge{font-size:8px;padding:9px}.brand{font-size:20px}.metric{padding:13px 18px}.metric strong{font-size:20px}.copy h1{font-size:56px}.viewer-wrap{min-height:500px}.viewer-wrap canvas{height:500px}.row{grid-template-columns:1fr}.placement-pill{align-items:flex-start;flex-direction:column;gap:5px}.placement-pill .price{position:absolute;right:14px;top:12px}}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/build/three.module.js"}}</script>
+</head>
+<body>
+<header><div class="brand">BRAND <b>MYVAN</b></div><div class="badge">CLICKABLE STICKERS · LAUNCH V1</div></header>
+<div class="metrics">
+  <div class="metric"><small>STANDARD STICKER</small><strong>€49</strong></div>
+  <div class="metric"><small>REAL SIZE</small><strong>10 CM</strong></div>
+  <div class="metric"><small>PLACEMENT</small><strong>YOU CHOOSE</strong></div>
+  <div class="metric"><small>BIG WRAPS</small><strong>LATER</strong></div>
+</div>
+<section class="hero">
+  <div class="copy">
+    <div class="eyebrow">A SMALL REAL STICKER · YOUR EXACT POSITION</div>
+    <h1>Put your logo<br><em>where you want.</em></h1>
+    <p class="lead">Upload your logo, rotate the real van, then click directly on the bodywork. Your 10 cm sticker is previewed on the exact 3D surface you picked.</p>
+    <div class="steps">
+      <div class="step"><b>01</b><span><strong>Upload your logo.</strong><br>PNG, JPG or WebP. Transparent PNG works best.</span></div>
+      <div class="step"><b>02</b><span><strong>Choose the exact spot.</strong><br>Rotate the van and click on an allowed metal surface.</span></div>
+      <div class="step"><b>03</b><span><strong>Reserve it for €49.</strong><br>The 3D coordinates are saved with your reservation.</span></div>
+    </div>
+    <div class="notice">Windows, wheels, lights and obvious non-printable parts are blocked. Large full-panel advertising stays out of the launch version and returns later as a premium product.</div>
+  </div>
+  <div class="viewer-wrap" id="viewer">
+    <div class="viewer-label" id="viewerStatus">LOADING THE REAL VAN…</div>
+    <div class="viewer-tools"><button id="reset">RESET VIEW</button><button id="rotate">AUTO ROTATE</button><button id="undo">REMOVE STICKER</button></div>
+    <canvas id="vanCanvas"></canvas>
+    <div class="placement-pill"><div><strong id="placementTitle">Upload a logo, then click the van</strong><br><span id="placementInfo">No position selected yet.</span></div><div class="price">€49</div></div>
+  </div>
+</section>
+<section class="builder" id="builder">
+  <section>
+    <div class="eyebrow">01 / YOUR STICKER</div>
+    <h2>Preview the real result.</h2>
+    <p class="lead">The sticker stays attached to the body as the van rotates. This is the same placement coordinate that is stored with the reservation.</p>
+    <div class="uploadbox">
+      <label class="eyebrow">LOGO FILE<input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
+      <div class="previewrow"><img id="logoPreview" class="logo-preview" alt="Logo preview"><div><strong>10 cm sticker</strong><div class="hint">Small enough to fit naturally on doors, side panels and rear bodywork. The white border is only a print-style preview.</div></div></div>
+      <div class="shape-row"><button class="active" id="circle" type="button">CIRCLE</button><button id="square" type="button">SQUARE</button></div>
+    </div>
+  </section>
+  <section>
+    <div class="eyebrow">02 / RESERVE THE POSITION</div>
+    <h2>Your spot is part of the order.</h2>
+    <p class="lead">Once a valid point is selected, the exact 3D position and surface direction are attached to the reservation.</p>
+    <form class="reserve-card" id="reserveForm">
+      <div class="row"><label>COMPANY<input id="company" required maxlength="80" placeholder="Your brand"></label><label>EMAIL<input id="email" type="email" required maxlength="160" placeholder="you@company.com"></label></div>
+      <label>WEBSITE — OPTIONAL<input id="website" maxlength="240" placeholder="https://yourbrand.com"></label>
+      <input class="trap" id="websiteTrap" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="reserve" id="reserveBtn" type="submit" disabled>SELECT A POSITION FIRST</button>
+      <div class="msg" id="reserveMsg">Reservation status: waiting for a valid 3D placement.</div>
+    </form>
+  </section>
+</section>
+<section class="premium"><div class="eyebrow">PHASE 2 / PREMIUM</div><h2>Large panel wraps come later.</h2><p>Full rear-door, cargo-panel and hood advertising is intentionally removed from the launch version. Once the small-sticker system is proven, large custom-shaped wraps can return as limited premium inventory.</p><span class="tag">NOT FOR SALE IN V1</span></section>
+<footer><div class="brand">BRAND <b>MYVAN</b></div><div>REAL VAN · CLICK-TO-PLACE STICKERS · 10 CM</div><div>© 2026</div></footer>
+<script type="module" src="./sticker-placement.js"></script>
+</body>
+</html>
