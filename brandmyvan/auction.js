@@ -1,0 +1,123 @@
+const BMV_API='https://zzicsafjzmvbfrgaizot.supabase.co/functions/v1/brandmyvan-auction';
+const euro=new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+let bmvState=null, selectedSpot=null;
+
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+function safeUrl(v){try{const u=new URL(v);return /^https?:$/.test(u.protocol)?u.href:''}catch{return ''}}
+function currentTotal(){return (bmvState?.spots||[]).reduce((n,s)=>n+Number(s.current_bid||0),0)}
+function minimumFor(s){return Number(s.current_bid==null?s.start_price:Number(s.current_bid)+Number(s.min_increment))}
+
+async function loadAuction(silent=false){
+  try{
+    const r=await fetch(BMV_API,{cache:'no-store'});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    bmvState=await r.json();
+    renderAuction();
+  }catch(e){
+    console.error('Auction state error',e);
+    if(!silent){const x=$('#auction-status');if(x)x.textContent='LIVE DATA TEMPORARILY UNAVAILABLE';}
+  }
+}
+
+function renderAuction(){
+  if(!bmvState)return;
+  const a=bmvState.auction||{}, spots=bmvState.spots||[];
+  const total=currentTotal(), goal=Number(a.goal_eur||10000), pct=Math.min(100,goal?total/goal*100:0);
+  if($('#raised')) $('#raised').textContent=euro.format(total);
+  if($('#goal')) $('#goal').textContent=euro.format(goal);
+  if($('#fundbar')) $('#fundbar').style.width=`${pct}%`;
+  if($('#fundpct')) $('#fundpct').textContent=`${Math.round(pct)}% funded`;
+  if($('#auction-status')) $('#auction-status').textContent=a.is_live?'LIVE AUCTION':'AUCTION CLOSED';
+  if($('#bidtotal')) $('#bidtotal').textContent=spots.reduce((n,s)=>n+Number(s.bid_count||0),0);
+
+  const cards=$$('#grid .card');
+  spots.forEach((s,i)=>{
+    const card=cards[i];
+    if(card){
+      card.dataset.spotId=s.id;
+      let live=card.querySelector('.live-bid');
+      if(!live){live=document.createElement('div');live.className='live-bid';card.appendChild(live)}
+      live.innerHTML=s.current_bid!=null
+        ? `<span>LEADING BID</span><strong>${euro.format(Number(s.current_bid))}</strong><small>${esc(s.winner_company||'Sponsor')}</small>`
+        : `<span>STARTING BID</span><strong>${euro.format(Number(s.start_price))}</strong><small>Be the first sponsor</small>`;
+      let btn=card.querySelector('.bid-now');
+      if(!btn){btn=document.createElement('button');btn.type='button';btn.className='bid-now';btn.textContent='PLACE BID ↗';btn.addEventListener('click',ev=>{ev.stopPropagation();openBid(s.id)});card.appendChild(btn)}
+    }
+  });
+
+  const pins=$$('.pin');
+  spots.forEach((s,i)=>{
+    const p=pins[i]; if(!p)return;
+    p.dataset.spotId=s.id; p.title=`${s.name} — ${s.current_bid!=null?euro.format(Number(s.current_bid)):euro.format(Number(s.start_price))}`;
+    if(s.winner_logo_url){
+      const url=safeUrl(s.winner_logo_url);
+      if(url){p.classList.add('has-logo');p.innerHTML=`<img src="${esc(url)}" alt="${esc(s.winner_company||'Sponsor')} logo">`;}
+    } else {p.classList.remove('has-logo');p.textContent=String(s.id).padStart(2,'0')}
+    if(!p.dataset.bidBound){p.dataset.bidBound='1';p.addEventListener('dblclick',()=>openBid(s.id));}
+  });
+  renderActivity();
+  tickCountdown();
+}
+
+function renderActivity(){
+  const box=$('#activity-list'); if(!box||!bmvState)return;
+  const bids=(bmvState.recentBids||[]).slice(0,12);
+  if(!bids.length){box.innerHTML='<div class="activity-empty">No bids yet. Your logo could be first on the van.</div>';return}
+  box.innerHTML=bids.map(b=>{
+    const spot=(bmvState.spots||[]).find(s=>Number(s.id)===Number(b.spot_id));
+    const site=safeUrl(b.website||'');
+    const company=site?`<a href="${esc(site)}" target="_blank" rel="noopener noreferrer">${esc(b.company_name)}</a>`:esc(b.company_name);
+    return `<div class="activity-row"><span>${String(b.spot_id).padStart(2,'0')} · ${esc(spot?.name||'Spot')}</span><strong>${company}</strong><b>${euro.format(Number(b.amount))}</b></div>`
+  }).join('');
+}
+
+function tickCountdown(){
+  const el=$('#countdown'); if(!el||!bmvState?.auction)return;
+  const end=new Date(bmvState.auction.ends_at).getTime(), diff=Math.max(0,end-Date.now());
+  if(diff<=0){el.textContent='ENDED';return}
+  const d=Math.floor(diff/86400000),h=Math.floor(diff%86400000/3600000),m=Math.floor(diff%3600000/60000),s=Math.floor(diff%60000/1000);
+  el.textContent=`${d}D ${String(h).padStart(2,'0')}H ${String(m).padStart(2,'0')}M ${String(s).padStart(2,'0')}S`;
+}
+
+function openBid(id){
+  const s=(bmvState?.spots||[]).find(x=>Number(x.id)===Number(id));if(!s)return;
+  selectedSpot=s;
+  $('#modal-title').textContent=`Bid on ${String(s.id).padStart(2,'0')} · ${s.name}`;
+  $('#modal-current').textContent=s.current_bid!=null?`Current bid: ${euro.format(Number(s.current_bid))}`:`Starting bid: ${euro.format(Number(s.start_price))}`;
+  const min=minimumFor(s); $('#bid-amount').min=String(min);$('#bid-amount').value=String(min);
+  $('#bid-min').textContent=`Minimum bid: ${euro.format(min)}`;
+  $('#bid-error').textContent='';
+  $('#bid-modal').showModal();
+}
+
+async function submitBid(ev){
+  ev.preventDefault(); if(!selectedSpot)return;
+  const form=ev.currentTarget, btn=form.querySelector('button[type=submit]'), err=$('#bid-error');
+  const fd=new FormData(form);fd.set('spotId',String(selectedSpot.id));
+  btn.disabled=true;btn.textContent='PLACING BID…';err.textContent='';
+  try{
+    const r=await fetch(BMV_API,{method:'POST',body:fd});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok){
+      if(data.error==='BID_TOO_LOW'){await loadAuction(true);const fresh=(bmvState.spots||[]).find(s=>Number(s.id)===Number(selectedSpot.id));throw new Error(`Someone bid first. New minimum: ${euro.format(minimumFor(fresh))}`)}
+      if(data.error==='LOGO_TOO_LARGE')throw new Error('Logo must be under 2 MB.');
+      if(data.error==='INVALID_LOGO_TYPE')throw new Error('Use PNG, JPG or WebP for the logo.');
+      throw new Error(data.error||'Bid could not be placed.');
+    }
+    form.reset();$('#bid-modal').close();await loadAuction();
+    const toast=$('#bid-toast');toast.textContent=`Bid accepted — ${euro.format(Number(data.amount))} on spot ${String(data.spotId).padStart(2,'0')} 🎉`;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),5000);
+  }catch(e){err.textContent=e.message||'Bid could not be placed.'}
+  finally{btn.disabled=false;btn.textContent='PLACE LIVE BID ↗'}
+}
+
+function initAuction(){
+  $('#bid-form')?.addEventListener('submit',submitBid);
+  $('#bid-close')?.addEventListener('click',()=>$('#bid-modal').close());
+  $('#logo-input')?.addEventListener('change',e=>{const f=e.target.files?.[0],p=$('#logo-preview');if(!f){p.hidden=true;return}p.src=URL.createObjectURL(f);p.hidden=false});
+  loadAuction();setInterval(tickCountdown,1000);setInterval(()=>loadAuction(true),15000);
+  const mo=new MutationObserver(()=>{if(bmvState)renderAuction()}); const grid=$('#grid');if(grid)mo.observe(grid,{childList:true});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initAuction);else initAuction();
