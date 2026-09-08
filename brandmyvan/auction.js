@@ -26,7 +26,7 @@ function renderAuction(){
   if(!bmvState)return;
   const a=bmvState.auction||{}, spots=bmvState.spots||[];
   const total=currentTotal(), goal=Number(a.goal_eur||10000), pct=Math.min(100,goal?total/goal*100:0);
-  if($('#raised')) $('#raised').textContent=euro.format(total);
+  $$('#raised').forEach(el=>el.textContent=euro.format(total));
   if($('#goal')) $('#goal').textContent=euro.format(goal);
   if($('#fundbar')) $('#fundbar').style.width=`${pct}%`;
   if($('#fundpct')) $('#fundpct').textContent=`${Math.round(pct)}% funded`;
@@ -118,6 +118,9 @@ function initAuction(){
   $('#bid-close')?.addEventListener('click',()=>$('#bid-modal').close());
   $('#logo-input')?.addEventListener('change',e=>{const f=e.target.files?.[0],p=$('#logo-preview');if(!f){p.hidden=true;return}p.src=URL.createObjectURL(f);p.hidden=false});
   loadAuction();setInterval(tickCountdown,1000);setInterval(()=>loadAuction(true),15000);
-  const mo=new MutationObserver(()=>{if(bmvState)renderAuction()}); const grid=$('#grid');if(grid)mo.observe(grid,{childList:true});
+  const rerender=()=>{if(bmvState)renderAuction()};
+  const grid=$('#grid'),hotspots=$('#hotspots');
+  if(grid)new MutationObserver(rerender).observe(grid,{childList:true});
+  if(hotspots)new MutationObserver(rerender).observe(hotspots,{childList:true});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initAuction);else initAuction();
