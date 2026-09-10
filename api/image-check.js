@@ -1,11 +1,9 @@
+'use strict';
+
 const checkHandler = require('./check');
 const emailHandler = require('./email-check');
 const cryptoHandler = require('./crypto-check');
-const socialProfileHandler = require('../lib/social-profile-safety');
 
-const MAX_BYTES = 4 * 1024 * 1024;
-const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const MAX_CROSS_CHECKS = 3;
 const RISK_ORDER = { unknown: 0, low: 1, caution: 2, high: 3 };
 
 function json(res, status, body) {
@@ -14,294 +12,125 @@ function json(res, status, body) {
   res.setHeader('cache-control', 'no-store, max-age=0');
   res.end(JSON.stringify(body));
 }
-
-function parseDataUrl(value) {
-  const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/i.exec(String(value || ''));
-  if (!match) return null;
-  const mimeType = match[1].toLowerCase();
-  if (!ALLOWED_MIME.has(mimeType)) return null;
-  const data = match[2];
-  let bytes;
-  try { bytes = Buffer.from(data, 'base64'); } catch (_) { return null; }
-  if (!bytes.length || bytes.length > MAX_BYTES) return null;
-  return { mimeType, data };
-}
-
-function safeText(v, max = 500) {
-  return typeof v === 'string' ? v.slice(0, max) : '';
-}
-
-function normalizeOutput(raw) {
-  const out = raw && typeof raw === 'object' ? raw : {};
-  const arr = (v, maxItems = 10, maxLen = 300) => Array.isArray(v)
-    ? v.filter(x => typeof x === 'string').slice(0, maxItems).map(x => x.slice(0, maxLen))
-    : [];
-  const signals = Array.isArray(out.suspicious_signals)
-    ? out.suspicious_signals.slice(0, 8).map(s => {
-        if (typeof s === 'string') return { type: 'signal', detail: s.slice(0, 300) };
-        if (!s || typeof s !== 'object') return null;
-        return { type: safeText(s.type, 80) || 'signal', detail: safeText(s.detail, 300) };
-      }).filter(Boolean)
-    : [];
-  const risk = ['low', 'caution', 'high', 'unknown'].includes(out.risk) ? out.risk : 'unknown';
-  const social = out.social_profile && typeof out.social_profile === 'object' ? out.social_profile : null;
-  return {
-    risk,
-    confidence: Number.isFinite(out.confidence) ? Math.max(0, Math.min(1, out.confidence)) : null,
-    summary: safeText(out.summary, 700),
-    recommended_action: safeText(out.recommended_action, 500),
-    visible_text: safeText(out.visible_text, 3500),
-    urls: arr(out.urls),
-    emails: arr(out.emails),
-    phones: arr(out.phones),
-    qr_values: arr(out.qr_values),
-    claimed_brands: arr(out.claimed_brands, 8, 120),
-    social_profile: social ? {
-      platform: safeText(social.platform, 80),
-      username: safeText(social.username, 120),
-      display_name: safeText(social.display_name, 160),
-      verification_evidence: safeText(social.verification_evidence, 240)
-    } : null,
-    suspicious_signals: signals
-  };
-}
-
-function cleanJsonText(text) {
-  return String(text || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-}
-
-function normalizeRisk(value) {
-  const risk = String(value || '').toLowerCase();
-  return Object.prototype.hasOwnProperty.call(RISK_ORDER, risk) ? risk : 'unknown';
-}
-
-function riskFromBody(body) {
-  if (!body || typeof body !== 'object') return 'unknown';
-  const values = [
-    body.safety && body.safety.status,
-    body.analysis && body.analysis.risk,
-    body.risk,
-    body.profileRisk,
-    body.socialProfile && body.socialProfile.risk,
-    body.socialProfile && body.socialProfile.riskLevel
-  ];
-  for (const value of values) {
-    const risk = normalizeRisk(value);
-    if (risk !== 'unknown') return risk;
-  }
-  return 'unknown';
-}
-
-function captureHandler(handler, body) {
-  return new Promise((resolve) => {
-    let done = false;
-    const finish = (status, payload) => {
-      if (done) return;
-      done = true;
-      resolve({ status, body: payload });
-    };
-    const res = {
-      statusCode: 200,
-      headers: {},
-      setHeader(key, value) { this.headers[String(key).toLowerCase()] = value; return this; },
-      status(code) { this.statusCode = code; return this; },
-      json(payload) { finish(this.statusCode, payload); return this; },
-      end(payload) {
-        let parsed = payload;
-        if (typeof payload === 'string') {
-          try { parsed = JSON.parse(payload); } catch (_) {}
-        }
-        finish(this.statusCode, parsed);
-        return this;
-      }
-    };
-    const req = { method: 'POST', body };
-    Promise.resolve(handler(req, res)).catch(err => finish(500, { error: err && err.message ? err.message : 'Check failed' }));
-  });
-}
-
-function socialProfileTarget(profile) {
-  if (!profile || typeof profile !== 'object') return '';
-  const username = safeText(profile.username, 120).replace(/^@/, '').trim();
-  if (!username) return '';
-  const platform = safeText(profile.platform, 80).toLowerCase();
-  if (platform.includes('instagram')) return `https://www.instagram.com/${username}/`;
-  if (platform.includes('tiktok')) return `https://www.tiktok.com/@${username}`;
-  if (platform === 'x' || platform.includes('twitter')) return `https://x.com/${username}`;
-  if (platform.includes('facebook')) return `https://www.facebook.com/${username}`;
-  if (platform.includes('telegram')) return `https://t.me/${username}`;
-  return `@${username}`;
-}
-
+function safeText(value, max = 12000) { return typeof value === 'string' ? value.slice(0, max) : ''; }
+function unique(values, max = 10) { return [...new Set((Array.isArray(values) ? values : []).map(v => String(v || '').trim()).filter(Boolean))].slice(0, max); }
+function extractUrls(text) { return unique((String(text || '').match(/https?:\/\/[^\s<>"')\]]+/gi) || []).map(v => v.replace(/[.,;!?]+$/g, ''))); }
+function extractEmails(text) { return unique(String(text || '').match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || []); }
+function extractPhones(text) { return unique(String(text || '').match(/(?:\+?\d[\d\s().-]{7,}\d)/g) || []); }
 function looksCrypto(value) {
   const v = String(value || '').trim();
-  return /^0x[a-fA-F0-9]{40}$/.test(v) ||
-    /^bc1[ac-hj-np-z02-9]{11,87}$/i.test(v) ||
-    /^ltc1[ac-hj-np-z02-9]{11,87}$/i.test(v) ||
-    /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(v) ||
-    /^[13LMDA9][1-9A-HJ-NP-Za-km-z]{25,44}$/.test(v);
+  return /^0x[a-fA-F0-9]{40}$/.test(v)
+    || /^bc1[ac-hj-np-z02-9]{11,87}$/i.test(v)
+    || /^ltc1[ac-hj-np-z02-9]{11,87}$/i.test(v)
+    || /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(v)
+    || /^[13LMDA9][1-9A-HJ-NP-Za-km-z]{25,44}$/.test(v)
+    || /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(v);
 }
+function extractCrypto(text) { return unique(String(text || '').split(/\s+/).map(v => v.replace(/^[('"\[]+|[)'",.;!?\]]+$/g, '')).filter(looksCrypto), 6); }
 
-function evidenceCandidates(analysis) {
-  const out = [];
-  const seen = new Set();
-  const add = (type, value, source) => {
-    const cleaned = String(value || '').trim().slice(0, 1200);
-    if (!cleaned) return;
-    const key = `${type}:${cleaned.toLowerCase()}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    out.push({ type, value: cleaned, source });
-  };
-  for (const url of analysis.urls || []) add('url', url, 'screenshot');
-  for (const qr of analysis.qr_values || []) {
-    if (/^https?:\/\//i.test(qr)) add('url', qr, 'qr');
-    else if (looksCrypto(qr)) add('crypto', qr, 'qr');
-  }
-  for (const email of analysis.emails || []) add('email', email, 'screenshot');
-  const social = socialProfileTarget(analysis.social_profile);
-  if (social) add('social-profile', social, 'screenshot');
-  const visible = String(analysis.visible_text || '');
-  for (const token of visible.split(/\s+/)) {
-    const cleaned = token.replace(/^[('"\[]+|[)'",.;!?\]]+$/g, '');
-    if (looksCrypto(cleaned)) add('crypto', cleaned, 'screenshot-text');
-  }
-  return out.slice(0, MAX_CROSS_CHECKS);
-}
-
-async function runCandidate(candidate) {
-  if (candidate.type === 'url') return captureHandler(checkHandler, { url: candidate.value });
-  if (candidate.type === 'email') return captureHandler(emailHandler, { input: candidate.value });
-  if (candidate.type === 'crypto') return captureHandler(cryptoHandler, { input: candidate.value });
-  if (candidate.type === 'social-profile') return captureHandler(socialProfileHandler, { input: candidate.value });
-  return { status: 200, body: {} };
-}
-
-function childSummary(candidate, result) {
-  const body = result && result.body && typeof result.body === 'object' ? result.body : {};
-  const risk = riskFromBody(body);
-  const summary = safeText(
-    body.summary ||
-    (body.safety && body.safety.summary) ||
-    (body.socialProfile && body.socialProfile.summary),
-    260
-  );
-  return {
-    type: candidate.type,
-    source: candidate.source,
-    value: safeText(candidate.value, 220),
-    risk,
-    status: result.status,
-    summary
-  };
-}
-
-async function crossCheckAnalysis(analysis) {
-  const candidates = evidenceCandidates(analysis);
-  if (!candidates.length) return { analysis, checks: [] };
-  const results = await Promise.all(candidates.map(runCandidate));
-  const checks = results.map((result, i) => childSummary(candidates[i], result));
-  const strongest = checks.reduce((best, item) => RISK_ORDER[item.risk] > RISK_ORDER[best.risk] ? item : best, { risk: 'unknown' });
-  const currentRisk = normalizeRisk(analysis.risk);
-  if (strongest.risk && RISK_ORDER[strongest.risk] > RISK_ORDER[currentRisk]) {
-    const merged = { ...analysis, risk: strongest.risk };
-    merged.summary = strongest.risk === 'high'
-      ? 'A high-risk indicator was found when the screenshot evidence was cross-checked.'
-      : 'Additional checks found evidence that should be verified before continuing.';
-    merged.recommended_action = strongest.risk === 'high'
-      ? 'Do not click, reply, pay or sign in. Verify the sender or service through an official channel.'
-      : 'Verify the sender, destination or request independently before continuing.';
-    const signals = Array.isArray(merged.suspicious_signals) ? [...merged.suspicious_signals] : [];
-    signals.unshift({ type: 'cross_check', detail: `A detected ${strongest.type} returned a ${strongest.risk}-risk result.` });
-    merged.suspicious_signals = signals.slice(0, 8);
-    return { analysis: merged, checks };
-  }
-  return { analysis, checks };
-}
-
-async function callGemini({ key, model, image, prompt, signal }) {
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'X-goog-api-key': key
-    },
-    body: JSON.stringify({
-      contents: [{ parts: [
-        { inline_data: { mime_type: image.mimeType, data: image.data } },
-        { text: prompt }
-      ] }],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 1400
-      }
-    }),
-    signal
+function captureHandler(handler, body) {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = (status, payload) => { if (!done) { done = true; resolve({ status, body: payload }); } };
+    const res = {
+      statusCode: 200, headers: {},
+      setHeader(k, v) { this.headers[String(k).toLowerCase()] = v; return this; },
+      status(code) { this.statusCode = code; return this; },
+      json(payload) { finish(this.statusCode, payload); return this; },
+      end(payload) { let parsed = payload; if (typeof payload === 'string') { try { parsed = JSON.parse(payload); } catch (_) {} } finish(this.statusCode, parsed); return this; }
+    };
+    Promise.resolve(handler({ method: 'POST', body }, res)).catch(err => finish(500, { error: err && err.message ? err.message : 'Check failed' }));
   });
-  const data = await r.json().catch(() => null);
-  return { r, data };
+}
+function childRisk(body) {
+  if (!body || typeof body !== 'object') return 'unknown';
+  const values = [body.risk, body.analysis && body.analysis.risk, body.safety && body.safety.status, body.profileRisk];
+  for (const v of values) if (Object.prototype.hasOwnProperty.call(RISK_ORDER, String(v || '').toLowerCase())) return String(v).toLowerCase();
+  return 'unknown';
+}
+function strongestRisk(items, fallback) { return items.reduce((best, item) => RISK_ORDER[item.risk] > RISK_ORDER[best] ? item.risk : best, fallback); }
+
+function keywordSignals(text) {
+  const raw = String(text || '');
+  const groups = [
+    ['credentials', /\b(password|passcode|verification code|security code|otp|2fa|login code|seed phrase|recovery phrase|mot de passe|code de verification|code de vérification|phrase de récupération)\b/i, 3, 'Requests credentials, verification codes or recovery information.'],
+    ['payment', /\b(pay now|payment required|send money|bank transfer|wire transfer|gift card|crypto payment|bitcoin payment|usdt|wallet address|payer maintenant|paiement requis|virement|carte cadeau)\b/i, 2, 'Requests payment or transfer of funds.'],
+    ['urgency', /\b(urgent|immediately|act now|within 24 hours|final warning|account suspended|account locked|limited time|immédiatement|compte suspendu|dernier avertissement)\b/i, 1, 'Uses urgency or account-threat language.'],
+    ['impersonation', /\b(customer support|support team|security team|fraud department|official support|administrator|service client|équipe de sécurité|support officiel)\b/i, 1, 'Claims to represent support, security or an administrator.'],
+    ['remote-access', /\b(anydesk|teamviewer|remote desktop|screen share|install this app|download this app|bureau à distance|partage d[’']écran)\b/i, 3, 'Requests remote access or software installation.'],
+    ['prize', /\b(you won|winner|prize|giveaway|claim your reward|lottery|vous avez gagné|gagnant|lotterie|récompense)\b/i, 2, 'Contains prize or reward language commonly used in scams.'],
+    ['move-channel', /\b(contact me on telegram|message me on whatsapp|move to telegram|move to whatsapp|contactez-moi sur telegram|écrivez-moi sur whatsapp)\b/i, 1, 'Attempts to move the conversation to another messaging service.']
+  ];
+  const signals = []; let score = 0;
+  for (const [type, re, weight, detail] of groups) if (re.test(raw)) { score += weight; signals.push({ type, detail }); }
+  if (/\b(dear customer|dear user|valued customer|cher client|chère cliente)\b/i.test(raw)) { score += 1; signals.push({ type: 'generic-greeting', detail: 'Uses a generic recipient greeting.' }); }
+  return { score, signals };
+}
+
+async function crossChecks(urls, emails, crypto) {
+  const tasks = [];
+  for (const url of urls.slice(0, 2)) tasks.push({ type: 'url', value: url, promise: captureHandler(checkHandler, { url }) });
+  for (const email of emails.slice(0, 1)) tasks.push({ type: 'email', value: email, promise: captureHandler(emailHandler, { input: email }) });
+  for (const address of crypto.slice(0, 1)) tasks.push({ type: 'crypto', value: address, promise: captureHandler(cryptoHandler, { input: address }) });
+  const settled = await Promise.all(tasks.map(async t => ({ type: t.type, value: t.value, result: await t.promise })));
+  return settled.map(x => ({ type: x.type, value: safeText(x.value, 220), risk: childRisk(x.result.body), status: x.result.status }));
 }
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
+  let body = req.body || {};
+  if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = {}; } }
 
-  const image = parseDataUrl(req.body && req.body.image);
-  if (!image) return json(res, 400, { error: 'Use a JPEG, PNG or WebP image up to 4 MB.' });
+  const visibleText = safeText(body.visibleText || body.extractedText || body.text || '').trim();
+  const qrValues = unique(body.qrValues || body.qr_values || (body.inputSource === 'qr' && body.input ? [body.input] : []), 6);
+  const rawImageOnly = typeof body.image === 'string' && body.image.startsWith('data:image/') && !visibleText && !qrValues.length;
 
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) return json(res, 503, { error: 'Image analysis is not configured yet.' });
-
-  const prompt = `You are a security extraction component for Can I Share This?. Analyze this screenshot or photo for scam, phishing and social-profile impersonation indicators. Do not claim certainty and do not identify a person biometrically. Extract only evidence visible in the image. Detect visible text, URLs, email addresses, phone numbers, QR-code contents if readable, brands or organizations being claimed, requests for login/payment/crypto/download, urgency, threats, impersonation, brand/domain mismatch, attempts to move the conversation to Telegram or WhatsApp, requests for passwords/codes/documents, and fake-looking verification symbols placed in a display name or biography. If a social profile or direct-message interface is visible, extract the platform, visible @username, display name and what visible evidence exists for verification; do not assume a checkmark is genuine platform verification. Return JSON only with this exact shape: {"risk":"low|caution|high|unknown","confidence":0.0,"summary":"short plain-language summary","recommended_action":"short action","visible_text":"important visible text","urls":[],"emails":[],"phones":[],"qr_values":[],"claimed_brands":[],"social_profile":{"platform":"","username":"","display_name":"","verification_evidence":""},"suspicious_signals":[{"type":"short_type","detail":"specific visible evidence"}]}. For a visible social profile, use cautious result language: no obvious impersonation signs, profile needs verification, or high impersonation risk. Never state that a profile is definitely fake. If the image is unrelated or unreadable, use risk unknown and social_profile null. Never invent a URL, email, phone number, QR value, brand, username or verification status.`;
-
-  const preferred = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-  const models = [...new Set([preferred, 'gemini-2.5-flash-lite'])];
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 30000);
-
-  try {
-    let lastStatus = 502;
-    let lastMessage = '';
-    for (const model of models) {
-      const { r, data } = await callGemini({ key, model, image, prompt, signal: controller.signal });
-      if (!r.ok) {
-        lastStatus = r.status;
-        lastMessage = data && data.error && data.error.message ? String(data.error.message) : '';
-        console.error('Gemini image check failed', model, r.status, lastMessage);
-        if (r.status === 429) return json(res, 429, { error: 'Image analysis quota is temporarily exhausted.' });
-        if (![400, 403, 404].includes(r.status)) break;
-        continue;
-      }
-
-      const text = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts
-        ? data.candidates[0].content.parts.map(p => p.text || '').join('') : '';
-      let parsed;
-      try { parsed = JSON.parse(cleanJsonText(text)); } catch (_) {
-        lastStatus = 502;
-        lastMessage = 'Unreadable JSON response';
-        continue;
-      }
-      const normalized = normalizeOutput(parsed);
-      const enriched = await crossCheckAnalysis(normalized);
-      return json(res, 200, {
-        ok: true,
-        analysis: enriched.analysis,
-        crossChecks: enriched.checks,
-        orchestrated: true,
-        provider: 'gemini',
-        model
-      });
-    }
-
-    return json(res, lastStatus === 401 || lastStatus === 403 ? 503 : 502, {
-      error: lastStatus === 401 || lastStatus === 403
-        ? 'Image analysis authentication is not available.'
-        : 'Image analysis is temporarily unavailable.'
+  if (rawImageOnly) {
+    return json(res, 422, {
+      ok: false,
+      error: 'Client-side extraction required',
+      code: 'IMAGE_EXTRACTION_REQUIRED',
+      requiresClientExtraction: true,
+      provider: 'local-rules',
+      analysis: {
+        risk: 'unknown', confidence: 0,
+        summary: 'Raw image bytes are not sent to an external AI provider. Extract text and QR data locally before analysis.',
+        recommended_action: 'Use the site image scanner so OCR and QR extraction can run in your browser.',
+        visible_text: '', urls: [], emails: [], phones: [], qr_values: [], claimed_brands: [], social_profile: null, suspicious_signals: []
+      },
+      crossChecks: [], orchestrated: true
     });
-  } catch (err) {
-    if (err && err.name === 'AbortError') return json(res, 504, { error: 'Image analysis timed out.' });
-    console.error('Image check error', err);
-    return json(res, 502, { error: 'Image analysis is temporarily unavailable.' });
-  } finally {
-    clearTimeout(timer);
   }
+
+  const combined = [visibleText, ...qrValues].join('\n');
+  const urls = unique([...extractUrls(combined), ...qrValues.filter(v => /^https?:\/\//i.test(v))]);
+  const emails = extractEmails(combined);
+  const phones = extractPhones(combined);
+  const crypto = extractCrypto(combined);
+
+  if (!visibleText && !qrValues.length) return json(res, 400, { error: 'Extracted text or QR value required', code: 'NO_EXTRACTED_EVIDENCE' });
+
+  const heuristics = keywordSignals(combined);
+  const checks = await crossChecks(urls, emails, crypto);
+  let risk = heuristics.score >= 5 ? 'high' : heuristics.score >= 2 ? 'caution' : 'low';
+  risk = strongestRisk(checks, risk);
+  if (!visibleText && qrValues.length && !checks.length) risk = 'unknown';
+
+  const signals = [...heuristics.signals];
+  checks.filter(c => c.risk === 'high' || c.risk === 'caution').forEach(c => signals.unshift({ type: 'cross-check', detail: `Detected ${c.type} returned ${c.risk} risk.` }));
+  const summary = risk === 'high' ? 'The locally extracted image evidence contains high-risk scam or phishing indicators.' : risk === 'caution' ? 'The locally extracted image evidence contains indicators that should be verified before continuing.' : risk === 'low' ? 'No obvious high-risk scam indicators were found in the extracted text and QR evidence.' : 'The extracted image evidence was too limited for a reliable conclusion.';
+  const recommended = risk === 'high' ? 'Do not click, reply, pay, sign in or share a code. Verify through an official channel.' : risk === 'caution' ? 'Verify the sender, destination and request independently before continuing.' : risk === 'low' ? 'Continue cautiously and independently verify unexpected requests.' : 'Check any visible link, sender or request separately before taking action.';
+
+  return json(res, 200, {
+    ok: true, provider: 'local-rules', model: null,
+    analysis: {
+      risk,
+      confidence: risk === 'unknown' ? 0.2 : Math.min(0.9, 0.5 + heuristics.score * 0.06 + checks.length * 0.05),
+      summary, recommended_action: recommended,
+      visible_text: visibleText, urls, emails, phones, qr_values: qrValues,
+      claimed_brands: [], social_profile: null, suspicious_signals: signals.slice(0, 10)
+    },
+    crossChecks: checks,
+    orchestrated: true
+  });
 };

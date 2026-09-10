@@ -102,6 +102,8 @@ python3 scripts/apply_unified_home_scanner_v1.py
 python3 scripts/apply_live_counter_fix_v1.py
 python3 scripts/apply_universal_evidence_ui_v1.py
 python3 scripts/apply_scanner_unification.py
+python3 scripts/apply_local_image_ocr.py
+python3 scripts/apply_gemini_free_transparency.py
 node scripts/test_mega_evidence.js
 node scripts/test_mega_evidence_v3.js
 node scripts/test_mega_evidence_v5.js
