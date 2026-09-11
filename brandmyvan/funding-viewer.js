@@ -58,14 +58,15 @@ controls.autoRotate=false;
 controls.minPolarAngle=Math.PI*.18;
 controls.maxPolarAngle=Math.PI*.82;
 
-scene.add(new THREE.HemisphereLight(0xffffff,0xb8b0a2,3.1));
+const hemi=new THREE.HemisphereLight(0xffffff,0xb8b0a2,3.1);scene.add(hemi);
 const key=new THREE.DirectionalLight(0xffffff,3.2);key.position.set(5,7,5);scene.add(key);
 const fill=new THREE.DirectionalLight(0xffffff,1.3);fill.position.set(-5,3,-4);scene.add(fill);
 const floor=new THREE.Mesh(new THREE.CircleGeometry(4.3,72),new THREE.MeshStandardMaterial({color:0xebe7dc,roughness:1,metalness:0}));
 floor.rotation.x=-Math.PI/2;floor.position.y=-.02;scene.add(floor);
 
 let model=null,modelBox=null,currentView='left',selectedId=null,tween=null;
-let longAxis='x',wideAxis='z';
+let longAxis='x',wideAxis='z',garageGroup=null;
+const garageLights=[];
 const viewGroups={left:null,right:null,rear:null};
 const viewSpotMeshes={left:[],right:[],rear:[]};
 const modelRaycaster=new THREE.Raycaster();
@@ -111,11 +112,102 @@ function updateTween(){
   camera.position.lerpVectors(tween.startPos,tween.pos,e);controls.target.lerpVectors(tween.startTarget,tween.target,e);if(t>=1)tween=null;
 }
 
+function makeGarageSignTexture(){
+  const c=document.createElement('canvas');c.width=1024;c.height=256;const ctx=c.getContext('2d');
+  ctx.fillStyle='#111315';ctx.fillRect(0,0,c.width,c.height);
+  ctx.fillStyle='#dcff29';ctx.font='900 92px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('BRAND MYVAN',512,105);
+  ctx.fillStyle='#ffffff';ctx.font='700 28px Arial';ctx.fillText('GARAGE · SPONSOR BUILD',512,184);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.needsUpdate=true;return t;
+}
+
+function buildGarage(){
+  if(!modelBox||garageGroup)return;
+  const size=modelBox.getSize(new THREE.Vector3());
+  const roomLong=Math.max(size[longAxis]*2.45,11);
+  const roomWide=Math.max(size[wideAxis]*3.8,8.2);
+  const roomHeight=Math.max(size.y*2.75,5.4);
+  const worldX=longAxis==='x'?roomLong:roomWide;
+  const worldZ=longAxis==='z'?roomLong:roomWide;
+  const backCoord=wideAxis==='z'?-worldZ/2:-worldX/2;
+  const insideBack=backCoord+.10;
+
+  garageGroup=new THREE.Group();garageGroup.name='garage-environment';scene.add(garageGroup);
+  const concrete=new THREE.MeshStandardMaterial({color:0x3e4247,roughness:.94,metalness:.02});
+  const wallMat=new THREE.MeshStandardMaterial({color:0x8c9094,roughness:.9,metalness:.01});
+  const darkMat=new THREE.MeshStandardMaterial({color:0x202327,roughness:.8,metalness:.08});
+  const doorMat=new THREE.MeshStandardMaterial({color:0x70757a,roughness:.72,metalness:.18});
+  const floorGarage=new THREE.Mesh(new THREE.PlaneGeometry(worldX,worldZ),concrete);floorGarage.rotation.x=-Math.PI/2;floorGarage.position.y=-.035;garageGroup.add(floorGarage);
+
+  const backWall=wideAxis==='z'
+    ?new THREE.Mesh(new THREE.BoxGeometry(worldX,roomHeight,.16),wallMat)
+    :new THREE.Mesh(new THREE.BoxGeometry(.16,roomHeight,worldZ),wallMat);
+  backWall.position.y=roomHeight/2-.02;backWall.position[wideAxis]=backCoord;garageGroup.add(backWall);
+
+  const sideGeom=longAxis==='x'?new THREE.BoxGeometry(.16,roomHeight,worldZ):new THREE.BoxGeometry(worldX,roomHeight,.16);
+  for(const sign of [-1,1]){
+    const wall=new THREE.Mesh(sideGeom,wallMat);wall.position.y=roomHeight/2-.02;
+    wall.position[longAxis]=sign*(roomLong/2);garageGroup.add(wall);
+  }
+
+  const lowerStripe=wideAxis==='z'
+    ?new THREE.Mesh(new THREE.BoxGeometry(worldX*.96,.42,.05),darkMat)
+    :new THREE.Mesh(new THREE.BoxGeometry(.05,.42,worldZ*.96),darkMat);
+  lowerStripe.position.y=.45;lowerStripe.position[wideAxis]=insideBack+.02;garageGroup.add(lowerStripe);
+
+  const doorW=Math.min(roomLong*.56,Math.max(size[longAxis]*1.45,5.2));
+  const doorH=Math.min(roomHeight*.64,Math.max(size.y*1.55,3.6));
+  const panelCount=6,panelH=doorH/panelCount;
+  for(let i=0;i<panelCount;i++){
+    const panel=wideAxis==='z'
+      ?new THREE.Mesh(new THREE.BoxGeometry(doorW,panelH-.025,.07),doorMat)
+      :new THREE.Mesh(new THREE.BoxGeometry(.07,panelH-.025,doorW),doorMat);
+    panel.position.y=.12+panelH*(i+.5);panel.position[wideAxis]=insideBack+.04;garageGroup.add(panel);
+  }
+
+  const signMat=new THREE.MeshBasicMaterial({map:makeGarageSignTexture(),toneMapped:false});
+  const signMesh=new THREE.Mesh(new THREE.PlaneGeometry(Math.min(4.2,roomLong*.42),1.0),signMat);
+  signMesh.position.y=Math.min(roomHeight-.8,doorH+1.05);signMesh.position[wideAxis]=insideBack+.09;
+  if(wideAxis==='x')signMesh.rotation.y=Math.PI/2;
+  garageGroup.add(signMesh);
+
+  const beamMat=new THREE.MeshStandardMaterial({color:0x2b2e32,roughness:.7,metalness:.35});
+  const lightMat=new THREE.MeshBasicMaterial({color:0xf7fbff,toneMapped:false});
+  const barLength=Math.min(roomLong*.48,5.8);
+  for(const w of [-roomWide*.18,roomWide*.18]){
+    const beam=longAxis==='x'?new THREE.Mesh(new THREE.BoxGeometry(barLength,.10,.20),beamMat):new THREE.Mesh(new THREE.BoxGeometry(.20,.10,barLength),beamMat);
+    beam.position.y=roomHeight-.52;beam.position[wideAxis]=w;garageGroup.add(beam);
+    const glow=longAxis==='x'?new THREE.Mesh(new THREE.BoxGeometry(barLength*.92,.035,.12),lightMat):new THREE.Mesh(new THREE.BoxGeometry(.12,.035,barLength*.92),lightMat);
+    glow.position.y=roomHeight-.58;glow.position[wideAxis]=w;garageGroup.add(glow);
+    const lamp=new THREE.PointLight(0xeef6ff,22,roomWide*1.45,2);lamp.position.y=roomHeight-.72;lamp.position[wideAxis]=w;garageGroup.add(lamp);garageLights.push(lamp);
+  }
+
+  const lineMat=new THREE.MeshBasicMaterial({color:0xc9bd70,toneMapped:false});
+  for(const sign of [-1,1]){
+    const line=longAxis==='x'?new THREE.Mesh(new THREE.BoxGeometry(roomLong*.45,.012,.035),lineMat):new THREE.Mesh(new THREE.BoxGeometry(.035,.012,roomLong*.45),lineMat);
+    line.position.y=.006;line.position[wideAxis]=sign*Math.max(size[wideAxis]*.72,.9);garageGroup.add(line);
+  }
+
+  const shadowMat=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.23,depthWrite:false});
+  const shadow=new THREE.Mesh(new THREE.CircleGeometry(1,72),shadowMat);shadow.rotation.x=-Math.PI/2;shadow.position.y=.008;shadow.scale.set(Math.max(size.x*.58,1.4),Math.max(size.z*.72,.8),1);garageGroup.add(shadow);
+  garageGroup.visible=false;
+}
+
+function setEnvironmentMode(garage){
+  if(garageGroup)garageGroup.visible=garage;
+  floor.visible=!garage;
+  scene.background.set(garage?0x1b1e22:0xf7f6f1);
+  hemi.intensity=garage?1.45:3.1;
+  key.intensity=garage?3.8:3.2;
+  fill.intensity=garage?1.8:1.3;
+  renderer.toneMappingExposure=garage?1.08:1.15;
+}
+
 function setGroupVisibility(view){
   for(const k of ['left','right','rear'])if(viewGroups[k])viewGroups[k].visible=(k===view);
 }
 function setFixedView(view,instant=false){
   if(!modelBox)return;currentView=view;
+  setEnvironmentMode(false);
   controls.enableRotate=false;controls.enableZoom=false;controls.enablePan=false;controls.autoRotate=false;
   freeMessage.style.display='none';zoneLayer.style.display='none';setGroupVisibility(view);
   const pose=cameraPose(view);if(instant){camera.position.copy(pose.pos);controls.target.copy(pose.target);controls.update()}else animateCamera(pose.pos,pose.target);
@@ -126,11 +218,13 @@ function setFixedView(view,instant=false){
   closePanel();
 }
 function setFreeView(){
-  currentView='free';zoneLayer.style.display='none';setGroupVisibility('none');viewLabel.style.display='none';
+  currentView='free';setEnvironmentMode(true);zoneLayer.style.display='none';setGroupVisibility('none');viewLabel.style.display='none';
   freeMessage.style.display='block';if(viewerTip)viewerTip.style.display='none';
   controls.enableRotate=true;controls.enableZoom=true;controls.enablePan=false;
-  const c=modelBox.getCenter(new THREE.Vector3()),d=fitDistance('left')*1.04,p=c.clone();p[wideAxis]+=d*.72;p[longAxis]+=d*.72;p.y+=modelBox.getSize(new THREE.Vector3()).y*.15;
-  animateCamera(p,c,420);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view==='free'));closePanel();
+  const c=modelBox.getCenter(new THREE.Vector3()),size=modelBox.getSize(new THREE.Vector3()),d=fitDistance('left')*1.18,p=c.clone();
+  p[wideAxis]+=d*.82;p[longAxis]+=d*.82;p.y+=size.y*.24;
+  controls.minDistance=d*.48;controls.maxDistance=d*1.65;
+  animateCamera(p,c,460);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view==='free'));closePanel();
 }
 
 function sampleSurface(view,u,v,{strict=true}={}){
@@ -260,7 +354,7 @@ async function boot(){
     const scale=4.75/Math.max(rawSize.x,rawSize.y,rawSize.z),origin=new THREE.Vector3(rawCenter.x,rawBox.min.y,rawCenter.z);
     model.scale.setScalar(scale);model.position.copy(origin).multiplyScalar(-scale);scene.add(model);scene.updateMatrixWorld(true);
     modelBox=new THREE.Box3().setFromObject(model);const size=modelBox.getSize(new THREE.Vector3());longAxis=size.x>=size.z?'x':'z';wideAxis=longAxis==='x'?'z':'x';
-    buildViewGroups();setFixedView('left',true);
+    buildGarage();buildViewGroups();setEnvironmentMode(false);setFixedView('left',true);
   }catch(err){console.error(err);viewLabel.textContent='3D MODEL UNAVAILABLE';zoneLayer.style.display='none'}
 }
 boot();
