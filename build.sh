@@ -4,8 +4,6 @@ rm -rf dist
 mkdir -p dist
 cat chunks/site.part* | base64 -d > /tmp/cist-site.tgz
 tar --no-same-owner -xzf /tmp/cist-site.tgz -C dist
-mkdir -p dist/brandmyvan
-cp -R brandmyvan/. dist/brandmyvan/
 python3 scripts/generate_priority_pages.py
 python3 scripts/enable_indexing.py
 python3 scripts/apply_seo_architecture.py
@@ -129,6 +127,8 @@ for redirect in registry['redirects']:
 PY
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
+mkdir -p dist/brandmyvan
+cp -R brandmyvan/. dist/brandmyvan/
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
 if [[ ! "$INDEXNOW_KEY" =~ ^[A-Za-z0-9-]{8,128}$ ]]; then
   echo "Invalid IndexNow key format" >&2
