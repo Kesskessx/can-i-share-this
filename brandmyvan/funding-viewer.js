@@ -15,6 +15,112 @@ const panelCopy = document.getElementById('spotPanelCopy');
 const panelClaim = document.getElementById('spotPanelClaim');
 const panelClose = document.getElementById('spotPanelClose');
 
+function applyHeroLayout() {
+  const hero = document.querySelector('.hero');
+  const viewer = hero?.querySelector('.viewer');
+  const copy = hero?.querySelector('.hero-copy');
+  if (!hero || !viewer || !copy || hero.querySelector('.hero-layout')) return;
+
+  const layout = document.createElement('div');
+  layout.className = 'hero-layout';
+  const stage = document.createElement('div');
+  stage.className = 'hero-stage';
+
+  hero.appendChild(layout);
+  layout.appendChild(copy);
+  layout.appendChild(stage);
+  stage.appendChild(viewer);
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .hero{
+      min-height:calc(100vh - 62px)!important;
+      padding:18px!important;
+      overflow:visible!important;
+      background:#ece9e0!important;
+    }
+    .hero-layout{
+      min-height:calc(100vh - 98px);
+      display:grid;
+      grid-template-columns:minmax(360px,500px) minmax(0,1fr);
+      gap:18px;
+      align-items:stretch;
+      width:100%;
+    }
+    .hero-copy{
+      position:relative!important;
+      left:auto!important;
+      bottom:auto!important;
+      width:auto!important;
+      max-width:none!important;
+      min-height:0;
+      align-self:center;
+      z-index:12;
+      padding:24px!important;
+      background:rgba(245,243,237,.96)!important;
+    }
+    .hero h1{
+      font-size:clamp(46px,5.7vw,78px)!important;
+      line-height:.88!important;
+      letter-spacing:-4px!important;
+    }
+    .hero-stage{
+      position:relative;
+      min-width:0;
+      min-height:610px;
+      overflow:visible;
+    }
+    .hero-stage .viewer{
+      position:relative!important;
+      inset:auto!important;
+      width:100%;
+      height:100%;
+      min-height:610px;
+      overflow:visible;
+    }
+    .hero-stage .viewer canvas{
+      width:100%!important;
+      height:100%!important;
+      display:block;
+    }
+    .hero-stage .spot-overlay{
+      overflow:visible!important;
+    }
+    .hero-stage .viewer-status{
+      left:14px!important;
+      top:14px!important;
+    }
+    .hero-stage .viewer-tools{
+      top:14px!important;
+      right:14px!important;
+    }
+    .hero-stage .rotate-hint{
+      right:14px!important;
+      bottom:14px!important;
+    }
+    @media(max-width:860px){
+      .hero{padding:12px!important;min-height:auto!important;}
+      .hero-layout{grid-template-columns:1fr;min-height:0;gap:12px;}
+      .hero-copy{order:1;align-self:auto;}
+      .hero-stage{order:2;min-height:470px;}
+      .hero-stage .viewer{min-height:470px;}
+      .hero h1{font-size:clamp(44px,12vw,64px)!important;}
+      .hero-stage .viewer-tools{top:48px!important;}
+      .spot-panel{top:92px!important;bottom:auto!important;right:12px!important;}
+    }
+    @media(max-width:520px){
+      .hero{padding:8px!important;}
+      .hero-copy{padding:18px!important;}
+      .hero-stage{min-height:410px;}
+      .hero-stage .viewer{min-height:410px;}
+      .hero-stage .rotate-hint{display:none!important;}
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+applyHeroLayout();
+
 const SPOTS = [
   { id:'S1', tier:'Signature', price:1500, kind:'side', side: 1, u:-0.12, y:.58, copy:'Prime side placement. One of only two founding sponsor positions.' },
   { id:'S2', tier:'Signature', price:1500, kind:'side', side:-1, u:-0.12, y:.58, copy:'Prime side placement. One of only two founding sponsor positions.' },
@@ -51,17 +157,15 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('#f5f3ed');
 
 const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 100);
-camera.position.set(4.7, 2.35, 5.8);
 
 const controls = new OrbitControls(camera, canvas);
-controls.target.set(0, 0.95, 0);
 controls.enableDamping = true;
 controls.enablePan = false;
-controls.minDistance = 3.2;
-controls.maxDistance = 9;
+controls.minDistance = 3.4;
+controls.maxDistance = 10;
 controls.maxPolarAngle = Math.PI / 2 - 0.02;
 controls.autoRotate = true;
-controls.autoRotateSpeed = 0.55;
+controls.autoRotateSpeed = 0.42;
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0xb7b0a4, 3.1));
 const key = new THREE.DirectionalLight(0xffffff, 3.2);
@@ -72,7 +176,7 @@ fill.position.set(-5, 3, -4);
 scene.add(fill);
 
 const floor = new THREE.Mesh(
-  new THREE.CircleGeometry(3.3, 64),
+  new THREE.CircleGeometry(3.6, 64),
   new THREE.MeshStandardMaterial({ color: 0xe8e4d9, roughness: 1, metalness: 0 })
 );
 floor.rotation.x = -Math.PI / 2;
@@ -81,14 +185,23 @@ scene.add(floor);
 
 let hotspotState = [];
 let selectedId = null;
+let modelRadius = 2.5;
 
 function money(value) {
   return `€${value.toLocaleString('en-US')}`;
 }
 
 function resetView() {
-  camera.position.set(4.7, 2.35, 5.8);
-  controls.target.set(0, 0.95, 0);
+  const mobile = window.innerWidth <= 860;
+  if (mobile) {
+    camera.position.set(5.2, 2.25, 6.6);
+    controls.target.set(0, 0.92, 0);
+  } else {
+    camera.position.set(5.8, 2.35, 7.2);
+    controls.target.set(0.15, 0.98, 0);
+  }
+  controls.minDistance = Math.max(3.5, modelRadius * 1.45);
+  controls.maxDistance = Math.max(9, modelRadius * 3.8);
   controls.update();
 }
 
@@ -177,7 +290,7 @@ function updateHotspots() {
     const toCamera = cameraDirection.copy(camera.position).sub(item.pos).normalize();
     const facingCamera = item.normal.dot(toCamera) > .08;
     const p = item.pos.clone().project(camera);
-    const onScreen = p.z > -1 && p.z < 1 && p.x > -1.08 && p.x < 1.08 && p.y > -1.08 && p.y < 1.08;
+    const onScreen = p.z > -1 && p.z < 1 && p.x > -.98 && p.x < .98 && p.y > -.96 && p.y < .96;
     const visible = facingCamera && onScreen;
 
     item.el.style.opacity = visible ? '1' : '0';
@@ -216,7 +329,9 @@ async function boot() {
     const box = new THREE.Box3().setFromObject(model);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    const scale = 4.15 / Math.max(size.x, size.y, size.z);
+    const mobile = window.innerWidth <= 860;
+    const fitSize = mobile ? 3.15 : 3.55;
+    const scale = fitSize / Math.max(size.x, size.y, size.z);
     const origin = new THREE.Vector3(center.x, box.min.y, center.z);
 
     model.scale.setScalar(scale);
@@ -225,12 +340,19 @@ async function boot() {
     scene.updateMatrixWorld(true);
 
     const worldBox = new THREE.Box3().setFromObject(model);
+    const sphere = worldBox.getBoundingSphere(new THREE.Sphere());
+    modelRadius = sphere.radius;
     buildHotspots(worldBox);
+    resetView();
     status.textContent = '20 clickable sponsor spots';
   } catch (error) {
     console.error(error);
     status.textContent = '3D model unavailable';
   }
 }
+
+window.addEventListener('resize', () => {
+  resetView();
+});
 
 boot();
