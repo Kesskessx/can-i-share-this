@@ -30,7 +30,7 @@ from http.server import BaseHTTPRequestHandler
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 from urllib.parse import parse_qsl, unquote, urlsplit
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 MAX_INPUT_CHARS = 50_000
 MAX_SIGNALS = 20
 MAX_ENTITIES = 30
@@ -586,26 +586,6 @@ def score_breakdown(signals: Sequence[Signal]) -> Dict[str, int]:
     return out
 
 
-def score_breakdown(signals: Sequence[Signal]) -> Dict[str, int]:
-    groups = {
-        "identity": {"brand_domain_mismatch", "brand_domain_lookalike", "brand_email_mismatch", "brand_email_lookalike", "email_disposable"},
-        "requestedAction": {"credentials", "payment", "crypto_context"},
-        "pressure": {"urgency", "threat", "secrecy"},
-        "scenario": {"delivery", "support", "investment", "prize", "job", "romance", "invoice", "impersonation", "offplatform"},
-        "technicalUrl": {"url_http", "url_ip", "url_private", "url_punycode", "url_shortener", "url_tld", "url_subdomains", "url_random", "url_sensitive_path", "url_encoding", "url_long", "url_userinfo", "url_redirect_param", "many_links"},
-    }
-    out: Dict[str, int] = {}
-    for name, ids in groups.items():
-        vals = sorted((s.weight for s in signals if s.id in ids), reverse=True)
-        if not vals:
-            out[name] = 0
-        elif name == "technicalUrl" and len(vals) > 1:
-            out[name] = int(round(vals[0] + vals[1] * 0.35))
-        else:
-            out[name] = vals[0]
-    return out
-
-
 def combined_risk(signals: Sequence[Signal], text: str) -> Tuple[int, str]:
     breakdown = score_breakdown(signals)
     # Evidence families are capped by taking their strongest signal. This keeps
@@ -627,6 +607,14 @@ def combined_risk(signals: Sequence[Signal], text: str) -> Tuple[int, str]:
         score += 12
     if "credentials" in ids and "support" in ids:
         score += 8
+
+    social_scenarios = {"prize", "job", "romance", "investment", "support", "impersonation", "invoice"}
+    if "offplatform" in ids and ids & social_scenarios:
+        score += 8
+    if "offplatform" in ids and ids & {"payment", "credentials", "urgency", "secrecy"}:
+        score += 6
+    if ids & social_scenarios and ids & {"payment", "credentials"} and ids & {"urgency", "secrecy", "threat"}:
+        score += 6
 
     score = int(round(clamp(score, 0, 100)))
     if not text.strip():
