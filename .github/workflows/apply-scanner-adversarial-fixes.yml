@@ -31,3 +31,5 @@ jobs:
           git add api/python_scan.py
           git commit -m "Fix adversarial scanner gaps"
           git push
+
+# Trigger after workflow creation.
