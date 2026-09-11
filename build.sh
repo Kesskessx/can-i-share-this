@@ -4,6 +4,8 @@ rm -rf dist
 mkdir -p dist
 cat chunks/site.part* | base64 -d > /tmp/cist-site.tgz
 tar --no-same-owner -xzf /tmp/cist-site.tgz -C dist
+mkdir -p dist/brandmyvan
+cp -R brandmyvan/. dist/brandmyvan/
 python3 scripts/generate_priority_pages.py
 python3 scripts/enable_indexing.py
 python3 scripts/apply_seo_architecture.py
