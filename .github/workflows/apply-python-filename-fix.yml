@@ -41,3 +41,5 @@ jobs:
           git add api/python_scan.py
           git commit -m "Fix file names being classified as URLs"
           git push origin HEAD:main
+
+# one-shot trigger
