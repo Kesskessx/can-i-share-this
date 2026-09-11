@@ -4,21 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f3ed">
-<title>Brand My Van — Pick a sponsor spot</title>
-<meta name="description" content="Pick one of 20 sponsor spots directly on the 3D van. 12 months from €200.">
+<title>Brand My Van — Pick your sponsor spot</title>
+<meta name="description" content="Choose one of 20 fixed sponsor zones on the van. 12 months from €200.">
 <style>
-:root{--bg:#f5f3ed;--ink:#111;--line:#191919;--lime:#dcff29;--muted:#68645c;--white:#fff;--soft:#ece9e0}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}.brand{font-size:21px;font-weight:950;letter-spacing:-1px;white-space:nowrap}.brand b{background:var(--lime);padding:5px 8px}.eyebrow{font-size:10px;font-weight:900;letter-spacing:1.7px;text-transform:uppercase}.lead{font-size:16px;line-height:1.5;color:#3f3c36;margin:0}.cta{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--lime);padding:14px 18px;font-size:11px;font-weight:950;text-transform:uppercase}.ghost{background:#fff}
-header{height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--line);background:rgba(245,243,237,.96);position:sticky;top:0;z-index:30;backdrop-filter:blur(14px)}.header-progress{display:flex;align-items:center;gap:9px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px}.header-progress span{padding:8px 10px;border:1px solid var(--line);background:#fff}.header-progress strong{padding:9px 11px;background:#111;color:#fff}
-.hero{min-height:calc(100vh - 62px);padding:18px;border-bottom:1px solid var(--line);background:#ece9e0}.hero-layout{min-height:calc(100vh - 98px);display:grid;grid-template-columns:minmax(330px,430px) minmax(0,1fr);gap:18px}.hero-copy{display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line);background:rgba(245,243,237,.97);padding:30px}.hero h1{font-size:clamp(54px,6vw,86px);line-height:.88;letter-spacing:-4.5px;margin:11px 0 18px}.hero h1 em{font-family:Georgia,serif;font-weight:400}.hero-sub{font-size:17px;line-height:1.45;color:#3d3932;max-width:430px}.hero-meta{display:flex;gap:7px;flex-wrap:wrap;margin:20px 0}.hero-meta span{border:1px solid var(--line);background:#fff;padding:8px 9px;font-size:9px;font-weight:900;text-transform:uppercase}.hero-actions{display:flex;gap:9px;flex-wrap:wrap}.hero-note{margin-top:16px;font-size:10px;color:var(--muted);line-height:1.45}
-.hero-stage{position:relative;min-width:0;min-height:620px}.viewer{position:relative;width:100%;height:100%;min-height:620px;background:#f5f3ed;overflow:visible}.viewer canvas{width:100%;height:100%;display:block;touch-action:none}.viewer-status{position:absolute;top:14px;left:14px;z-index:14;background:#111;color:#fff;padding:9px 11px;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase}.viewer-tools{position:absolute;top:14px;right:14px;z-index:14;display:flex;gap:7px}.viewer-tools button{border:1px solid var(--line);background:rgba(245,243,237,.95);padding:9px 11px;font-size:9px;font-weight:900;text-transform:uppercase}.rotate-hint{position:absolute;right:14px;bottom:14px;z-index:4;background:rgba(255,255,255,.9);border:1px solid var(--line);padding:8px 10px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px}.spot-overlay{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:visible}.van-spot{position:absolute;left:0;top:0;display:flex;align-items:center;gap:5px;border:1px solid #111;background:rgba(255,255,255,.96);color:#111;padding:5px 7px;min-width:56px;justify-content:center;box-shadow:0 2px 0 rgba(0,0,0,.16);font-size:9px;font-weight:950;line-height:1;pointer-events:auto;transition:opacity .12s ease,background .12s ease,color .12s ease,scale .12s ease}.van-spot span{font-size:7px;letter-spacing:.5px;color:#6a665d}.van-spot strong{font-size:9px;white-space:nowrap}.van-spot-signature{background:#111;color:#fff}.van-spot-signature span{color:#ccc}.van-spot:hover,.van-spot.selected{background:var(--lime);color:#111;scale:1.08}.van-spot:hover span,.van-spot.selected span{color:#111}
-.spot-panel{position:absolute;right:20px;bottom:58px;z-index:16;width:min(300px,calc(100% - 32px));border:1px solid var(--line);background:rgba(245,243,237,.98);padding:18px;box-shadow:0 12px 34px rgba(0,0,0,.18);backdrop-filter:blur(14px)}.spot-panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.spot-panel-head button{border:1px solid var(--line);background:#fff;width:28px;height:28px;font-weight:950}.spot-panel h3{font-size:21px;margin:9px 0 4px}.spot-panel-price{font-size:36px;font-weight:950;letter-spacing:-1.6px;margin:0 0 10px}.spot-panel p{font-size:11px;line-height:1.45;color:var(--muted);margin:0 0 14px}.spot-panel .cta{width:100%}
-.status-strip{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line);background:#fff}.status-strip div{padding:18px 24px;border-right:1px solid var(--line)}.status-strip div:last-child{border-right:0}.status-strip span{display:block;font-size:9px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}.status-strip strong{font-size:20px}
-.how{padding:58px 4vw;border-bottom:1px solid var(--line)}.how h2,.faq h2{font-size:clamp(42px,5vw,66px);line-height:.95;letter-spacing:-3.2px;margin:10px 0 22px}.steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);background:#fff}.step{padding:25px;border-right:1px solid var(--line)}.step:last-child{border-right:0}.step b{display:block;font-size:26px;margin-bottom:28px}.step strong{display:block;font-size:17px;margin-bottom:7px}.step span{font-size:12px;line-height:1.5;color:var(--muted)}
-.faq{padding:54px 4vw;border-bottom:1px solid var(--line)}.faq-list{border:1px solid var(--line);background:#fff;max-width:900px}.faq details{border-bottom:1px solid var(--line);padding:0 20px}.faq details:last-child{border-bottom:0}.faq summary{cursor:pointer;list-style:none;padding:18px 0;font-size:14px;font-weight:900}.faq summary::-webkit-details-marker{display:none}.faq details p{font-size:12px;line-height:1.55;color:var(--muted);margin:0 0 18px}
-.final{background:#111;color:#fff;padding:50px 4vw;display:flex;align-items:center;justify-content:space-between;gap:30px}.final h2{font-size:clamp(42px,5vw,66px);line-height:.93;letter-spacing:-3px;margin:7px 0}.final p{font-size:12px;line-height:1.5;color:#cfcfcf;max-width:500px}.final .cta{white-space:nowrap}footer{display:flex;justify-content:space-between;gap:18px;padding:20px 28px;font-size:9px;text-transform:uppercase;letter-spacing:1px}
-@media(max-width:860px){header{padding:0 14px}.header-progress span{display:none}.hero{min-height:auto;padding:12px}.hero-layout{min-height:0;grid-template-columns:1fr;gap:12px}.hero-copy{padding:22px}.hero h1{font-size:clamp(48px,12vw,66px)}.hero-stage,.viewer{min-height:500px}.viewer-tools{top:48px}.spot-panel{top:92px;bottom:auto;right:12px;width:250px}.status-strip{grid-template-columns:1fr 1fr}.status-strip div:nth-child(2){border-right:0}.status-strip div:nth-child(-n+2){border-bottom:1px solid var(--line)}.steps{grid-template-columns:1fr}.step{border-right:0;border-bottom:1px solid var(--line)}.step:last-child{border-bottom:0}.final{display:block}.final .cta{margin-top:20px}footer{flex-wrap:wrap;padding:18px 16px}}
-@media(max-width:520px){.brand{font-size:18px}.hero{padding:8px}.hero-copy{padding:18px}.hero-stage,.viewer{min-height:420px}.hero-meta{display:grid;grid-template-columns:1fr 1fr}.hero-meta span{text-align:center}.hero-actions{display:grid}.cta{width:100%}.rotate-hint{display:none}.van-spot{min-width:46px;padding:4px 5px}.van-spot span{display:none}.status-strip div{padding:15px}.how,.faq{padding:42px 18px}.final{padding:42px 18px}}
+:root{--bg:#f5f3ed;--ink:#111;--line:#1b1b1b;--lime:#dcff29;--red:#e53a3f;--muted:#6b675f;--white:#fff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}a{color:inherit;text-decoration:none}button{font:inherit}.brand{font-size:21px;font-weight:950;letter-spacing:-1px;white-space:nowrap}.brand b{background:var(--lime);padding:5px 8px}.eyebrow{font-size:10px;font-weight:900;letter-spacing:1.6px;text-transform:uppercase}.cta{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--lime);padding:13px 17px;font-size:11px;font-weight:950;text-transform:uppercase;cursor:pointer}.ghost{background:#fff}
+header{height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40;background:rgba(245,243,237,.96);backdrop-filter:blur(14px)}.header-progress{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px}.header-progress span{border:1px solid var(--line);background:#fff;padding:8px 10px}.header-progress strong{background:#111;color:#fff;padding:9px 11px}
+.hero{padding:18px;border-bottom:1px solid var(--line);background:#ece9e0}.hero-layout{min-height:calc(100vh - 98px);display:grid;grid-template-columns:minmax(315px,400px) minmax(0,1fr);gap:18px}.hero-copy{display:flex;flex-direction:column;justify-content:center;border:1px solid var(--line);background:rgba(245,243,237,.98);padding:28px}.hero h1{font-size:clamp(52px,5.6vw,82px);line-height:.88;letter-spacing:-4px;margin:10px 0 17px}.hero h1 em{font-family:Georgia,serif;font-weight:400}.hero-sub{font-size:16px;line-height:1.48;color:#3e3a34;margin:0}.hero-meta{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.hero-meta span{border:1px solid var(--line);background:#fff;padding:7px 9px;font-size:9px;font-weight:900;text-transform:uppercase}.hero-note{font-size:10px;line-height:1.45;color:var(--muted);margin-top:15px}
+.stage{position:relative;min-height:640px;border:1px solid var(--line);background:#f7f6f1;overflow:hidden}.viewer{position:absolute;inset:0}.viewer canvas{width:100%;height:100%;display:block;touch-action:none}.view-tabs{position:absolute;top:14px;left:14px;z-index:20;display:flex;gap:6px;flex-wrap:wrap}.view-tabs button{border:1px solid var(--line);background:#fff;padding:9px 12px;font-size:9px;font-weight:950;text-transform:uppercase;cursor:pointer}.view-tabs button.active{background:#111;color:#fff}.view-tabs button.free{background:var(--lime);color:#111}.view-tabs button.free.active{background:#111;color:#fff}.viewer-actions{position:absolute;top:14px;right:14px;z-index:20;display:flex;gap:6px}.viewer-actions button{border:1px solid var(--line);background:#fff;padding:9px 11px;font-size:9px;font-weight:900;text-transform:uppercase;cursor:pointer}.view-label{position:absolute;left:14px;bottom:14px;z-index:15;border:1px solid var(--line);background:rgba(255,255,255,.92);padding:8px 10px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+.zone-layer{position:absolute;inset:0;z-index:12;pointer-events:none}.zone{position:absolute;border:2px solid var(--red);background:rgba(229,58,63,.10);border-radius:5px;pointer-events:auto;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s ease,transform .12s ease,border-color .12s ease}.zone:hover,.zone.selected{background:rgba(220,255,41,.48);border-color:#111;transform:scale(1.025)}.zone.sold{background:rgba(229,58,63,.72);color:#fff;cursor:not-allowed}.zone-badge{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:42px;min-height:42px;border-radius:999px;background:#111;color:#fff;padding:7px 9px;box-shadow:0 2px 0 rgba(0,0,0,.18)}.zone-badge b{font-size:11px;line-height:1}.zone-badge span{font-size:8px;margin-top:3px;white-space:nowrap}.zone.signature .zone-badge{background:var(--lime);color:#111}.zone-price{position:absolute;bottom:5px;right:6px;font-size:8px;font-weight:950;background:#fff;border:1px solid #111;padding:4px 5px}.free-message{position:absolute;inset:auto 14px 14px auto;z-index:15;border:1px solid var(--line);background:#111;color:#fff;padding:9px 11px;font-size:9px;font-weight:900;text-transform:uppercase;display:none}
+.spot-panel{position:absolute;right:18px;bottom:18px;z-index:30;width:min(300px,calc(100% - 36px));border:1px solid var(--line);background:rgba(245,243,237,.98);padding:17px;box-shadow:0 12px 34px rgba(0,0,0,.18);backdrop-filter:blur(14px)}.spot-panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.spot-panel-head button{border:1px solid var(--line);background:#fff;width:28px;height:28px;font-weight:950;cursor:pointer}.spot-panel h3{font-size:21px;margin:9px 0 3px}.spot-panel-price{font-size:36px;font-weight:950;letter-spacing:-1.5px;margin-bottom:9px}.spot-panel p{font-size:11px;line-height:1.45;color:var(--muted);margin:0 0 13px}.spot-panel .cta{width:100%}
+.status-strip{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-bottom:1px solid var(--line)}.status-strip div{padding:18px 24px;border-right:1px solid var(--line)}.status-strip div:last-child{border-right:0}.status-strip span{display:block;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px}.status-strip strong{font-size:19px}
+.how{padding:52px 4vw;border-bottom:1px solid var(--line)}.how h2{font-size:clamp(40px,5vw,62px);line-height:.95;letter-spacing:-3px;margin:9px 0 20px}.steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);background:#fff}.step{padding:23px;border-right:1px solid var(--line)}.step:last-child{border-right:0}.step b{display:block;font-size:24px;margin-bottom:24px}.step strong{display:block;font-size:16px;margin-bottom:6px}.step span{font-size:12px;line-height:1.5;color:var(--muted)}
+.final{background:#111;color:#fff;padding:44px 4vw;display:flex;align-items:center;justify-content:space-between;gap:26px}.final h2{font-size:clamp(40px,5vw,60px);line-height:.93;letter-spacing:-3px;margin:6px 0}.final p{font-size:12px;color:#cfcfcf;margin:0}.final .cta{white-space:nowrap}footer{display:flex;justify-content:space-between;gap:18px;padding:19px 28px;font-size:9px;text-transform:uppercase;letter-spacing:1px}
+@media(max-width:900px){header{padding:0 14px}.header-progress span{display:none}.hero{padding:10px}.hero-layout{grid-template-columns:1fr;min-height:0;gap:10px}.hero-copy{padding:22px}.hero h1{font-size:clamp(48px,12vw,68px)}.stage{min-height:520px}.status-strip{grid-template-columns:1fr 1fr}.status-strip div:nth-child(2){border-right:0}.status-strip div:nth-child(-n+2){border-bottom:1px solid var(--line)}.steps{grid-template-columns:1fr}.step{border-right:0;border-bottom:1px solid var(--line)}.step:last-child{border-bottom:0}.final{display:block}.final .cta{margin-top:18px}footer{flex-wrap:wrap}}
+@media(max-width:560px){.brand{font-size:18px}.hero-copy{padding:18px}.stage{min-height:420px}.view-tabs{right:10px;left:10px;top:10px}.view-tabs button{padding:8px 9px}.viewer-actions{top:52px;right:10px}.view-label{left:10px;bottom:10px}.zone-badge{min-width:34px;min-height:34px;padding:5px 7px}.zone-badge b{font-size:10px}.zone-badge span{display:none}.zone-price{display:none}.spot-panel{right:10px;bottom:10px;width:calc(100% - 20px)}.status-strip div{padding:14px}.how{padding:40px 18px}.final{padding:38px 18px}.cta{width:100%}}
 </style>
 <script type="importmap">{"imports":{"three":"./vendor/build/three.module.js"}}</script>
 </head>
@@ -27,71 +27,57 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
   <a class="brand" href="#top">BRAND <b>MYVAN</b></a>
   <div class="header-progress"><span>0 / 20 claimed</span><strong>€0 / €10,000</strong></div>
 </header>
-
 <main id="top">
   <section class="hero">
     <div class="hero-layout">
       <div class="hero-copy">
-        <div class="eyebrow">20 sponsor spots · 12 months</div>
-        <h1>Put your brand<br><em>on my van.</em></h1>
-        <p class="hero-sub">Click a price directly on the van. Pick the exact sponsor position you want.</p>
-        <div class="hero-meta"><span>From €200</span><span>20 spots only</span><span>12 months</span><span>Exact position</span></div>
-        <div class="hero-actions"><a class="cta" href="#vanCanvas">Pick a spot</a><a class="cta ghost" href="#how">How it works</a></div>
-        <div class="hero-note">The €10,000 goal funds the van. Once the goal is reached, sponsor logos are installed and the 12-month campaign starts.</div>
+        <div class="eyebrow">20 fixed sponsor zones · 12 months</div>
+        <h1>Pick a zone.<br><em>Own the space.</em></h1>
+        <p class="hero-sub">Choose LEFT, RIGHT or REAR. Every red rectangle is one exact sponsor position on the van.</p>
+        <div class="hero-meta"><span>From €200</span><span>20 zones</span><span>Fixed position</span><span>12 months</span></div>
+        <a class="cta" href="#vanStage">Pick a sponsor zone</a>
+        <div class="hero-note">The clean fixed views are for choosing a sponsor position. Use Free 3D only to inspect the van.</div>
       </div>
-
-      <div class="hero-stage">
-        <div class="viewer">
-          <div class="viewer-status" id="viewerStatus">Loading the van…</div>
-          <div class="viewer-tools"><button id="rotateVan" type="button">Pause rotation</button><button id="resetVan" type="button">Reset view</button></div>
-          <canvas id="vanCanvas" aria-label="Interactive 3D van"></canvas>
-          <div class="spot-overlay" id="spotOverlay" aria-label="Clickable sponsor spots"></div>
-          <aside class="spot-panel" id="spotPanel" hidden>
-            <div class="spot-panel-head"><div class="eyebrow" id="spotPanelTier">Sponsor spot</div><button id="spotPanelClose" type="button" aria-label="Close">×</button></div>
-            <h3 id="spotPanelName">Sponsor spot</h3>
-            <div class="spot-panel-price" id="spotPanelPrice">€0</div>
-            <p id="spotPanelCopy"></p>
-            <a class="cta" id="spotPanelClaim" href="https://x.com/THEFOFOSHOW" target="_blank" rel="noopener">Reserve this spot</a>
-          </aside>
-          <div class="rotate-hint">Drag to rotate · Click a price</div>
+      <div class="stage" id="vanStage">
+        <div class="viewer"><canvas id="vanCanvas" aria-label="Interactive 3D van"></canvas></div>
+        <div class="view-tabs" role="tablist" aria-label="Van view">
+          <button class="active" data-view="left" type="button">Left · 7</button>
+          <button data-view="right" type="button">Right · 7</button>
+          <button data-view="rear" type="button">Rear · 6</button>
+          <button class="free" data-view="free" type="button">Free 3D</button>
         </div>
+        <div class="viewer-actions"><button id="resetVan" type="button">Reset view</button></div>
+        <div class="zone-layer" id="zoneLayer" aria-label="Sponsor zones"></div>
+        <div class="view-label" id="viewLabel">LEFT SIDE · 7 AVAILABLE ZONES</div>
+        <div class="free-message" id="freeMessage">Free 3D · choose a fixed view to buy</div>
+        <aside class="spot-panel" id="spotPanel" hidden>
+          <div class="spot-panel-head"><div class="eyebrow" id="spotPanelTier">Sponsor zone</div><button id="spotPanelClose" type="button" aria-label="Close">×</button></div>
+          <h3 id="spotPanelName">Zone</h3>
+          <div class="spot-panel-price" id="spotPanelPrice">€0</div>
+          <p id="spotPanelCopy"></p>
+          <a class="cta" id="spotPanelClaim" href="https://x.com/THEFOFOSHOW" target="_blank" rel="noopener">Reserve this zone</a>
+        </aside>
       </div>
     </div>
   </section>
-
-  <section class="status-strip" aria-label="Campaign status">
-    <div><span>Available</span><strong>20 spots</strong></div>
-    <div><span>Claimed</span><strong>0 spots</strong></div>
+  <section class="status-strip">
+    <div><span>Available</span><strong>20 zones</strong></div>
+    <div><span>Claimed</span><strong>0</strong></div>
     <div><span>Funded</span><strong>€0 / €10,000</strong></div>
     <div><span>Campaign</span><strong>12 months</strong></div>
   </section>
-
   <section class="how" id="how">
     <div class="eyebrow">How it works</div>
-    <h2>Pick. Upload. Pay.</h2>
+    <h2>View. Pick. Reserve.</h2>
     <div class="steps">
-      <div class="step"><b>01</b><strong>Pick a spot.</strong><span>Rotate the van and click the exact price and position you want.</span></div>
-      <div class="step"><b>02</b><strong>Send your logo.</strong><span>Your logo is prepared for that exact physical position on the van.</span></div>
-      <div class="step"><b>03</b><strong>Reserve it.</strong><span>Once confirmed, the spot is yours for the full 12-month campaign.</span></div>
+      <div class="step"><b>01</b><strong>Choose a side.</strong><span>LEFT, RIGHT and REAR use stable views so every sponsor zone is clean and easy to compare.</span></div>
+      <div class="step"><b>02</b><strong>Click a rectangle.</strong><span>You see the exact zone number, size category and fixed price before reserving it.</span></div>
+      <div class="step"><b>03</b><strong>Send your logo.</strong><span>Your logo will be prepared specifically for the physical zone you selected.</span></div>
     </div>
   </section>
-
-  <section class="faq">
-    <div class="eyebrow">Before you reserve</div>
-    <h2>Three useful answers.</h2>
-    <div class="faq-list">
-      <details open><summary>When does the 12-month campaign start?</summary><p>It starts once the €10,000 funding goal is reached, the van is purchased and the sponsor graphics are installed.</p></details>
-      <details><summary>What happens if the van is not fully funded?</summary><p>The final payment and refund rules will be shown clearly before checkout. No sponsor should have to guess what happens to their money.</p></details>
-      <details><summary>What does a sponsor receive?</summary><p>A real logo placement on the selected position of the van for 12 months, plus inclusion in the public Brand My Van project.</p></details>
-    </div>
-  </section>
-
-  <section class="final">
-    <div><div class="eyebrow">Brand My Van</div><h2>Choose the spot.<br>That’s it.</h2><p>No marketplace, no auction and no complicated packages. One van, twenty positions and one public funding goal.</p></div>
-    <a class="cta" href="#top">Pick a spot on the van</a>
-  </section>
+  <section class="final"><div><div class="eyebrow">Brand My Van</div><h2>20 zones.<br>One van.</h2><p>No auction. No random placement. You choose the exact space.</p></div><a class="cta" href="#vanStage">Choose a zone</a></section>
 </main>
-<footer><div>Brand My Van</div><div>20 sponsor spots · €10,000 goal</div><div>© 2026</div></footer>
+<footer><div>Brand My Van</div><div>20 sponsor zones · €10,000 goal</div><div>© 2026</div></footer>
 <script type="module" src="./funding-viewer.js"></script>
 </body>
 </html>
