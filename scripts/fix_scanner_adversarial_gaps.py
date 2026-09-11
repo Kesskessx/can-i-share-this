@@ -6,8 +6,8 @@ s = path.read_text(encoding='utf-8')
 
 repls = [
 (
-'''        r"\\b(seed phrase|recovery phrase|private key|phrase de r[ée]cup[ée]ration|cl[ée] priv[ée]e)\\b",\n''',
-'''        r"\\b(seed phrase|recovery phrase|private key|phrase de r[ée]cup[ée]ration|cl[ée] priv[ée]e)\\b",\n        r"\\b(enter|provide|confirm|send|share|verify|saisir|fournir|confirmer|envoyer|partager).{0,35}\\b(card|bank|banking|carte|bancaire).{0,20}\\b(details|information|credentials|code|number|coordonn[ée]es|num[ée]ro)\\b",\n'''
+'''        r"\\bseed phrase|recovery phrase|private key|phrase de r[ée]cup[ée]ration|cl[ée] priv[ée]e\\b",\n''',
+'''        r"\\bseed phrase|recovery phrase|private key|phrase de r[ée]cup[ée]ration|cl[ée] priv[ée]e\\b",\n        r"\\b(enter|provide|confirm|send|share|verify|saisir|fournir|confirmer|envoyer|partager).{0,35}\\b(card|bank|banking|carte|bancaire).{0,20}\\b(details|information|credentials|code|number|coordonn[ée]es|num[ée]ro)\\b",\n'''
 ),
 (
 '''        r"\\b(crypto|bitcoin|btc|ethereum|eth|usdt|wallet|portefeuille crypto)\\b",\n''',
