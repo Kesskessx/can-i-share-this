@@ -1,0 +1,33 @@
+name: Apply scanner v2 upgrade
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/upgrade_scanner_v2.py'
+      - '.github/workflows/apply-scanner-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply scanner upgrade
+        run: python scripts/upgrade_scanner_v2.py
+      - name: Commit scanner upgrade
+        run: |
+          if git diff --quiet; then
+            echo "No scanner changes needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add api/python_scan.py
+          git commit -m "Upgrade scanner brand intelligence and scoring"
+          git push
