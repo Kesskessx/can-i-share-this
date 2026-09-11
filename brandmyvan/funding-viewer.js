@@ -17,33 +17,36 @@ const panelCopy = document.getElementById('spotPanelCopy');
 const panelClaim = document.getElementById('spotPanelClaim');
 const panelClose = document.getElementById('spotPanelClose');
 
+// Fixed 2D buying zones for the three canonical views.
+// Percentages are relative to the stage, not to the moving 3D model.
+// They are deliberately constrained to flat, printable body panels.
 const SPOTS = [
-  {id:'S1',view:'left',tier:'Signature',price:1500,x:35,y:36,w:28,h:25,copy:'Main left-side sponsor zone. The largest and most visible placement on this side.'},
-  {id:'L1',view:'left',tier:'Large',price:750,x:13,y:38,w:19,h:22,copy:'Large left-side placement with strong visibility while driving or parked.'},
-  {id:'L2',view:'left',tier:'Large',price:750,x:66,y:38,w:19,h:22,copy:'Large left-side placement with strong visibility while driving or parked.'},
-  {id:'M1',view:'left',tier:'Medium',price:400,x:35,y:23,w:13,h:10,copy:'Medium left-side sponsor zone.'},
-  {id:'M2',view:'left',tier:'Medium',price:400,x:50,y:23,w:13,h:10,copy:'Medium left-side sponsor zone.'},
-  {id:'SM1',view:'left',tier:'Small',price:200,x:27,y:65,w:15,h:9,copy:'Compact left-side sponsor zone.'},
-  {id:'SM2',view:'left',tier:'Small',price:200,x:44,y:65,w:15,h:9,copy:'Compact left-side sponsor zone.'},
+  // LEFT SIDE — front of van is on the left in this camera view.
+  {id:'S1',view:'left',tier:'Signature',price:1500,x:39,y:51,w:26,h:20,copy:'Main left-side cargo-panel placement. Large, flat and highly visible.'},
+  {id:'L1',view:'left',tier:'Large',price:750,x:21,y:53,w:16,h:18,copy:'Lower front-door body placement, kept below the glass.'},
+  {id:'L2',view:'left',tier:'Large',price:750,x:68,y:45,w:20,h:25,copy:'Large rear-side cargo-panel placement.'},
+  {id:'M1',view:'left',tier:'Medium',price:400,x:39,y:41,w:12,h:8,copy:'Upper cargo-panel placement.'},
+  {id:'M2',view:'left',tier:'Medium',price:400,x:53,y:41,w:12,h:8,copy:'Upper cargo-panel placement.'},
+  {id:'SM1',view:'left',tier:'Small',price:200,x:40,y:72,w:11,h:6,copy:'Compact lower cargo-panel placement.'},
+  {id:'SM2',view:'left',tier:'Small',price:200,x:53,y:72,w:11,h:6,copy:'Compact lower cargo-panel placement.'},
 
-  {id:'S2',view:'right',tier:'Signature',price:1500,x:37,y:36,w:28,h:25,copy:'Main right-side sponsor zone. The largest and most visible placement on this side.'},
-  {id:'L3',view:'right',tier:'Large',price:750,x:15,y:38,w:19,h:22,copy:'Large right-side placement with strong visibility while driving or parked.'},
-  {id:'L4',view:'right',tier:'Large',price:750,x:68,y:38,w:19,h:22,copy:'Large right-side placement with strong visibility while driving or parked.'},
-  {id:'M3',view:'right',tier:'Medium',price:400,x:37,y:23,w:13,h:10,copy:'Medium right-side sponsor zone.'},
-  {id:'M4',view:'right',tier:'Medium',price:400,x:52,y:23,w:13,h:10,copy:'Medium right-side sponsor zone.'},
-  {id:'SM3',view:'right',tier:'Small',price:200,x:29,y:65,w:15,h:9,copy:'Compact right-side sponsor zone.'},
-  {id:'SM4',view:'right',tier:'Small',price:200,x:46,y:65,w:15,h:9,copy:'Compact right-side sponsor zone.'},
+  // RIGHT SIDE — mirrored distribution.
+  {id:'S2',view:'right',tier:'Signature',price:1500,x:36,y:51,w:26,h:20,copy:'Main right-side cargo-panel placement. Large, flat and highly visible.'},
+  {id:'L3',view:'right',tier:'Large',price:750,x:15,y:45,w:20,h:25,copy:'Large rear-side cargo-panel placement.'},
+  {id:'L4',view:'right',tier:'Large',price:750,x:64,y:53,w:16,h:18,copy:'Lower front-door body placement, kept below the glass.'},
+  {id:'M3',view:'right',tier:'Medium',price:400,x:36,y:41,w:12,h:8,copy:'Upper cargo-panel placement.'},
+  {id:'M4',view:'right',tier:'Medium',price:400,x:50,y:41,w:12,h:8,copy:'Upper cargo-panel placement.'},
+  {id:'SM3',view:'right',tier:'Small',price:200,x:37,y:72,w:11,h:6,copy:'Compact lower cargo-panel placement.'},
+  {id:'SM4',view:'right',tier:'Small',price:200,x:50,y:72,w:11,h:6,copy:'Compact lower cargo-panel placement.'},
 
-  {id:'M5',view:'rear',tier:'Medium',price:400,x:36,y:34,w:13,h:18,copy:'Medium rear sponsor zone.'},
-  {id:'M6',view:'rear',tier:'Medium',price:400,x:51,y:34,w:13,h:18,copy:'Medium rear sponsor zone.'},
-  {id:'SM5',view:'rear',tier:'Small',price:400,x:36,y:54,w:13,h:11,copy:'Compact rear sponsor zone.'},
-  {id:'SM6',view:'rear',tier:'Small',price:200,x:51,y:54,w:13,h:11,copy:'Compact rear sponsor zone.'},
-  {id:'SM7',view:'rear',tier:'Small',price:200,x:36,y:67,w:13,h:9,copy:'Compact rear sponsor zone.'},
-  {id:'SM8',view:'rear',tier:'Small',price:200,x:51,y:67,w:13,h:9,copy:'Compact rear sponsor zone.'}
+  // REAR — arranged as a clean two-column door grid.
+  {id:'M5',view:'rear',tier:'Medium',price:400,x:37,y:34,w:12,h:18,copy:'Upper-left rear-door placement.'},
+  {id:'M6',view:'rear',tier:'Medium',price:400,x:51,y:34,w:12,h:18,copy:'Upper-right rear-door placement.'},
+  {id:'SM5',view:'rear',tier:'Small',price:200,x:37,y:54,w:12,h:11,copy:'Middle-left rear-door placement.'},
+  {id:'SM6',view:'rear',tier:'Small',price:200,x:51,y:54,w:12,h:11,copy:'Middle-right rear-door placement.'},
+  {id:'SM7',view:'rear',tier:'Small',price:200,x:37,y:67,w:12,h:9,copy:'Lower-left rear-door placement.'},
+  {id:'SM8',view:'rear',tier:'Small',price:200,x:51,y:67,w:12,h:9,copy:'Lower-right rear-door placement.'}
 ];
-
-// Keep the funding math exact: the first rear small spot belongs to the €200 tier.
-SPOTS.find(s => s.id === 'SM5').price = 200;
 
 const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,2));
@@ -92,7 +95,8 @@ function fitDistance(view){
   const fov=THREE.MathUtils.degToRad(camera.fov);
   const byHeight=(height*.5)/Math.tan(fov*.5);
   const byWidth=(width*.5)/(Math.tan(fov*.5)*Math.max(camera.aspect,.4));
-  return Math.max(byHeight,byWidth)*1.18;
+  // Leave more breathing room than the first prototype, especially in rear view.
+  return Math.max(byHeight,byWidth)*(view==='rear'?1.32:1.24);
 }
 
 function cameraPose(view){
@@ -101,12 +105,14 @@ function cameraPose(view){
   const distance=fitDistance(view);
   const pos=center.clone();
   const target=center.clone();
-  target.y += size.y*.03;
+  target.y += size.y*.02;
 
   if(view==='left') pos[wideAxis]+=distance;
   if(view==='right') pos[wideAxis]-=distance;
-  if(view==='rear') pos[longAxis]+=distance;
-  pos.y += size.y*.04;
+  // The previous prototype used the positive long axis, which was the FRONT on this GLB.
+  // Negative long axis is the actual rear-door view.
+  if(view==='rear') pos[longAxis]-=distance;
+  pos.y += size.y*.03;
 
   return {pos,target};
 }
@@ -173,7 +179,8 @@ function renderZones(view){
     el.className=`zone ${spot.tier.toLowerCase()}`;
     el.style.left=`${spot.x}%`;el.style.top=`${spot.y}%`;el.style.width=`${spot.w}%`;el.style.height=`${spot.h}%`;
     el.setAttribute('aria-label',`${spot.tier} zone ${spot.id}, ${money(spot.price)}`);
-    el.innerHTML=`<span class="zone-badge"><b>${spot.id}</b><span>${money(spot.price)}</span></span><span class="zone-price">${money(spot.price)}</span>`;
+    // One identifier + one price. No duplicate price inside the circular badge.
+    el.innerHTML=`<span class="zone-badge"><b>${spot.id}</b></span><span class="zone-price">${money(spot.price)}</span>`;
     el.addEventListener('click',()=>selectSpot(spot,el));
     zoneLayer.appendChild(el);
   });
