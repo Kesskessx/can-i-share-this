@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE = ROOT / "api" / "python_scan.py"
 spec = importlib.util.spec_from_file_location("python_scan", MODULE)
 scanner = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = scanner
 spec.loader.exec_module(scanner)
 
 
