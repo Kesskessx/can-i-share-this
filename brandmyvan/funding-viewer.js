@@ -3,7 +3,6 @@ import { OrbitControls } from './vendor/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from './vendor/examples/jsm/loaders/GLTFLoader.js';
 
 const canvas = document.getElementById('vanCanvas');
-const stage = document.getElementById('vanStage');
 const zoneLayer = document.getElementById('zoneLayer');
 const viewLabel = document.getElementById('viewLabel');
 const freeMessage = document.getElementById('freeMessage');
@@ -17,10 +16,7 @@ const panelCopy = document.getElementById('spotPanelCopy');
 const panelClaim = document.getElementById('spotPanelClaim');
 const panelClose = document.getElementById('spotPanelClose');
 
-// Stable 2D buying zones for the three fixed views.
-// Percentages are tuned to the visible printable body panels in the GLB renders.
 const SPOTS = [
-  // LEFT — front of van is on the left.
   {id:'S1',view:'left',tier:'Signature',price:1500,x:40,y:43,w:27,h:24,copy:'Main left cargo-panel placement. Large, flat and highly visible.'},
   {id:'L1',view:'left',tier:'Large',price:750,x:21,y:56,w:17,h:16,copy:'Front-door body placement below the glass line.'},
   {id:'L2',view:'left',tier:'Large',price:750,x:70,y:47,w:20,h:21,copy:'Large rear cargo-panel placement above the wheel area.'},
@@ -29,7 +25,6 @@ const SPOTS = [
   {id:'SM1',view:'left',tier:'Small',price:200,x:43,y:68,w:11,h:7,copy:'Compact lower-left cargo-panel placement.'},
   {id:'SM2',view:'left',tier:'Small',price:200,x:56,y:68,w:11,h:7,copy:'Compact lower-right cargo-panel placement.'},
 
-  // RIGHT — mirrored, tuned independently to the opposite side render.
   {id:'S2',view:'right',tier:'Signature',price:1500,x:37,y:43,w:27,h:24,copy:'Main right cargo-panel placement. Large, flat and highly visible.'},
   {id:'L3',view:'right',tier:'Large',price:750,x:15,y:47,w:20,h:21,copy:'Large rear cargo-panel placement above the wheel area.'},
   {id:'L4',view:'right',tier:'Large',price:750,x:67,y:56,w:17,h:16,copy:'Front-door body placement below the glass line.'},
@@ -38,13 +33,13 @@ const SPOTS = [
   {id:'SM3',view:'right',tier:'Small',price:200,x:40,y:68,w:11,h:7,copy:'Compact lower-left cargo-panel placement.'},
   {id:'SM4',view:'right',tier:'Small',price:200,x:53,y:68,w:11,h:7,copy:'Compact lower-right cargo-panel placement.'},
 
-  // REAR — balanced two-column grid on the two rear doors.
-  {id:'M5',view:'rear',tier:'Medium',price:400,x:35,y:31,w:13,h:17,copy:'Upper-left rear-door placement.'},
-  {id:'M6',view:'rear',tier:'Medium',price:400,x:52,y:31,w:13,h:17,copy:'Upper-right rear-door placement.'},
-  {id:'SM5',view:'rear',tier:'Small',price:200,x:35,y:51,w:12,h:10,copy:'Middle-left rear-door placement.'},
-  {id:'SM6',view:'rear',tier:'Small',price:200,x:53,y:51,w:12,h:10,copy:'Middle-right rear-door placement.'},
-  {id:'SM7',view:'rear',tier:'Small',price:200,x:35,y:64,w:12,h:9,copy:'Lower-left rear-door placement.'},
-  {id:'SM8',view:'rear',tier:'Small',price:200,x:53,y:64,w:12,h:9,copy:'Lower-right rear-door placement.'}
+  // REAR — all six sticker spots live only inside the large red upper-door area.
+  {id:'M5',view:'rear',tier:'Medium',price:400,rx:27,ry:36,copy:'Medium sticker position inside the dedicated rear sticker area.'},
+  {id:'M6',view:'rear',tier:'Medium',price:400,rx:73,ry:36,copy:'Medium sticker position inside the dedicated rear sticker area.'},
+  {id:'SM5',view:'rear',tier:'Small',price:200,rx:13,ry:69,copy:'Small sticker position inside the dedicated rear sticker area.'},
+  {id:'SM6',view:'rear',tier:'Small',price:200,rx:38,ry:69,copy:'Small sticker position inside the dedicated rear sticker area.'},
+  {id:'SM7',view:'rear',tier:'Small',price:200,rx:62,ry:69,copy:'Small sticker position inside the dedicated rear sticker area.'},
+  {id:'SM8',view:'rear',tier:'Small',price:200,rx:87,ry:69,copy:'Small sticker position inside the dedicated rear sticker area.'}
 ];
 
 const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
@@ -145,7 +140,7 @@ function setFixedView(view,instant=false){
   renderZones(view);
   viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view===view));
   const count=SPOTS.filter(s=>s.view===view).length;
-  viewLabel.textContent=`${view.toUpperCase()} ${view==='rear'?'VIEW':'SIDE'} · ${count} AVAILABLE ZONES`;
+  viewLabel.textContent=view==='rear' ? `REAR STICKER AREA · ${count} AVAILABLE SPOTS` : `${view.toUpperCase()} SIDE · ${count} AVAILABLE ZONES`;
   viewLabel.style.display='block';
   closePanel();
 }
@@ -167,8 +162,39 @@ function setFreeView(){
   closePanel();
 }
 
+function renderRearStickerArea(){
+  const area=document.createElement('div');
+  area.className='rear-ad-area';
+  area.innerHTML=`
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path class="rear-fill" d="M9 8 Q16 2 29 2 L69 2 Q86 2 93 9 Q99 18 99 37 L99 60 Q99 73 91 81 Q79 94 59 95 L38 95 Q20 95 9 86 Q1 78 1 64 L1 36 Q1 18 9 8 Z"/>
+    </svg>
+    <div class="rear-area-label">Sticker area only</div>`;
+
+  SPOTS.filter(s=>s.view==='rear').forEach(spot=>{
+    const el=document.createElement('button');
+    el.type='button';
+    el.className=`rear-sticker ${spot.tier.toLowerCase()}`;
+    el.style.left=`${spot.rx}%`;
+    el.style.top=`${spot.ry}%`;
+    el.dataset.price=money(spot.price);
+    el.setAttribute('aria-label',`${spot.tier} rear sticker ${spot.id}, ${money(spot.price)}`);
+    el.innerHTML=`<b>${spot.id}</b>`;
+    el.addEventListener('click',()=>selectSpot(spot,el));
+    area.appendChild(el);
+  });
+
+  zoneLayer.appendChild(area);
+}
+
 function renderZones(view){
   zoneLayer.innerHTML='';
+
+  if(view==='rear'){
+    renderRearStickerArea();
+    return;
+  }
+
   SPOTS.filter(s=>s.view===view).forEach(spot=>{
     const el=document.createElement('button');
     el.type='button';
@@ -186,12 +212,12 @@ function renderZones(view){
 
 function selectSpot(spot,el){
   selectedId=spot.id;
-  [...zoneLayer.querySelectorAll('.zone')].forEach(z=>z.classList.remove('selected'));
+  [...zoneLayer.querySelectorAll('.zone,.rear-sticker')].forEach(z=>z.classList.remove('selected'));
   el.classList.add('selected');
   panelTier.textContent=`${spot.tier} · ${spot.view.toUpperCase()} · ${spot.id}`;
-  panelName.textContent=`Sponsor zone ${spot.id}`;
+  panelName.textContent=spot.view==='rear' ? `Rear sticker ${spot.id}` : `Sponsor zone ${spot.id}`;
   panelPrice.textContent=money(spot.price);
-  panelCopy.textContent=`${spot.copy} This exact rectangle becomes the physical location for your logo for 12 months.`;
+  panelCopy.textContent=spot.view==='rear' ? `${spot.copy} Stickers on the rear are restricted to the red upper-door area shown on the van.` : `${spot.copy} This exact rectangle becomes the physical location for your logo for 12 months.`;
   panelClaim.textContent=`Reserve ${spot.id} — ${money(spot.price)}`;
   panelClaim.href=`https://x.com/THEFOFOSHOW?brandmyvan=${encodeURIComponent(spot.id)}`;
   panel.hidden=false;
@@ -200,7 +226,7 @@ function selectSpot(spot,el){
 function closePanel(){
   selectedId=null;
   panel.hidden=true;
-  [...zoneLayer.querySelectorAll('.zone')].forEach(z=>z.classList.remove('selected'));
+  [...zoneLayer.querySelectorAll('.zone,.rear-sticker')].forEach(z=>z.classList.remove('selected'));
 }
 
 panelClose?.addEventListener('click',closePanel);
