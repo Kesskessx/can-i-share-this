@@ -290,6 +290,14 @@ def detect_type(primary: str, all_text: str, urls: Sequence[str], emails: Sequen
         return "email"
     if p and any(p == c for c in cryptos):
         return "crypto"
+    # A browser-uploaded filename plus extracted content is a file/message input,
+    # not a bare domain even when the extension is also a valid public TLD.
+    if p and len(all_text.strip()) > len(p) and re.fullmatch(
+        r"[^/\\\s]+\.(?:pdf|doc|docx|xls|xlsx|csv|txt|rtf|eml|msg|zip|rar|7z|jpg|jpeg|png|webp|gif|heic|svg)",
+        p,
+        re.I,
+    ):
+        return "message-url" if urls else ("message-email" if emails else "message")
     if p:
         n = normalize_url(p)
         if n and (p.lower().startswith(("http://", "https://", "www.")) or BARE_DOMAIN_RE.fullmatch(p)):
