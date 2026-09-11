@@ -17,7 +17,7 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
 .how{padding:46px 4vw;border-bottom:1px solid var(--line)}.how h2{font-size:clamp(38px,4.5vw,58px);line-height:.95;letter-spacing:-2.7px;margin:8px 0 18px}.steps{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);background:#fff}.step{padding:22px;border-right:1px solid var(--line)}.step:last-child{border-right:0}.step b{display:block;font-size:22px;margin-bottom:20px}.step strong{display:block;font-size:15px;margin-bottom:6px}.step span{font-size:12px;line-height:1.5;color:var(--muted)}
 .final{background:#111;color:#fff;padding:40px 4vw;display:flex;align-items:center;justify-content:space-between;gap:24px}.final h2{font-size:clamp(38px,4.5vw,56px);line-height:.94;letter-spacing:-2.7px;margin:6px 0}.final p{font-size:12px;color:#cfcfcf;margin:0}.final .cta{white-space:nowrap}footer{display:flex;justify-content:space-between;gap:18px;padding:18px 28px;font-size:9px;text-transform:uppercase;letter-spacing:1px}
 @media(max-width:900px){header{padding:0 14px}.header-progress span{display:none}.hero{padding:8px}.hero-layout{display:flex;flex-direction:column;min-height:0;gap:8px}.stage{order:1;min-height:72svh}.hero-copy{order:2;padding:20px}.hero h1{font-size:clamp(46px,11vw,64px)}.hero-note{display:none}.status-strip{grid-template-columns:1fr 1fr}.status-strip div:nth-child(2){border-right:0}.status-strip div:nth-child(-n+2){border-bottom:1px solid var(--line)}.steps{grid-template-columns:1fr}.step{border-right:0;border-bottom:1px solid var(--line)}.step:last-child{border-bottom:0}.final{display:block}.final .cta{margin-top:18px}footer{flex-wrap:wrap}}
-@media(max-width:560px){header{height:58px}.brand{font-size:18px}.header-progress strong{padding:8px 9px}.stage{min-height:69svh}.view-tabs{left:8px;right:8px;top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.view-tabs button{padding:9px 5px;font-size:8px;min-width:0}.viewer-actions{top:50px;right:8px}.viewer-actions button{width:36px;height:36px;font-size:18px}.view-label{left:8px;bottom:8px;padding:7px 8px;font-size:8px}.viewer-tip,.free-message{right:8px;bottom:8px;font-size:8px;padding:7px 8px}.spot-panel{left:8px;right:8px;bottom:8px;width:auto;padding:13px}.spot-panel h3{font-size:17px}.spot-panel-price{font-size:30px}.spot-panel p{font-size:10px;line-height:1.35}.hero-copy{padding:17px}.hero-sub{font-size:14px}.hero-meta{margin:14px 0}.hero-meta span{font-size:8px}.status-strip div{padding:13px}.status-strip strong{font-size:17px}.how{padding:36px 16px}.final{padding:34px 16px}.cta{width:100%}}
+@media(max-width:560px){header{height:58px}.brand{font-size:18px}.header-progress strong{padding:8px 9px}.stage{min-height:69svh}.view-tabs{left:8px;right:8px;top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.view-tabs button{padding:9px 4px;font-size:7.5px;min-width:0}.viewer-actions{top:50px;right:8px}.viewer-actions button{width:36px;height:36px;font-size:18px}.view-label{left:8px;bottom:8px;padding:7px 8px;font-size:8px}.viewer-tip,.free-message{right:8px;bottom:8px;font-size:8px;padding:7px 8px}.spot-panel{left:8px;right:8px;bottom:8px;width:auto;padding:13px}.spot-panel h3{font-size:17px}.spot-panel-price{font-size:30px}.spot-panel p{font-size:10px;line-height:1.35}.hero-copy{padding:17px}.hero-sub{font-size:14px}.hero-meta{margin:14px 0}.hero-meta span{font-size:8px}.status-strip div{padding:13px}.status-strip strong{font-size:17px}.how{padding:36px 16px}.final{padding:34px 16px}.cta{width:100%}}
 </style>
 <script type="importmap">{"imports":{"three":"./vendor/build/three.module.js"}}</script>
 </head>
@@ -35,7 +35,7 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
         <p class="hero-sub">Choose a side and tap the exact placement you want. Every spot follows the real 3D body surface.</p>
         <div class="hero-meta"><span>From €200</span><span>20 spots</span><span>Real 3D placement</span><span>12 months</span></div>
         <a class="cta" href="#vanStage">Choose a spot</a>
-        <div class="hero-note">LEFT, RIGHT and REAR are buying views. Free 3D is for inspecting the vehicle.</div>
+        <div class="hero-note">LEFT, RIGHT and REAR are buying views. Garage 3D lets you inspect the van in a realistic workshop scene.</div>
       </div>
       <div class="stage" id="vanStage">
         <div class="viewer"><canvas id="vanCanvas" aria-label="Interactive 3D van"></canvas></div>
@@ -43,13 +43,13 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
           <button class="active" data-view="left" type="button">Left · 7</button>
           <button data-view="right" type="button">Right · 7</button>
           <button data-view="rear" type="button">Rear · 6</button>
-          <button class="free" data-view="free" type="button">Free 3D</button>
+          <button class="free" data-view="free" type="button">Garage 3D</button>
         </div>
         <div class="viewer-actions"><button id="resetVan" type="button" aria-label="Reset view" title="Reset view">↺</button></div>
         <div class="zone-layer" id="zoneLayer" aria-hidden="true"></div>
         <div class="view-label" id="viewLabel">LEFT · 7 AVAILABLE SPOTS</div>
         <div class="viewer-tip" id="viewerTip">Tap a spot to see price</div>
-        <div class="free-message" id="freeMessage">Drag to rotate · pinch to zoom</div>
+        <div class="free-message" id="freeMessage">Garage view · drag to rotate · pinch to zoom</div>
         <aside class="spot-panel" id="spotPanel" hidden>
           <div class="spot-panel-head"><div class="eyebrow" id="spotPanelTier">Sponsor spot</div><button id="spotPanelClose" type="button" aria-label="Close">×</button></div>
           <h3 id="spotPanelName">Spot</h3>
