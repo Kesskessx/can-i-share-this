@@ -105,6 +105,7 @@ python3 scripts/apply_scanner_unification.py
 python3 scripts/apply_local_image_ocr.py
 python3 scripts/apply_gemini_free_transparency.py
 python3 scripts/apply_explainable_result_v3.py
+python3 scripts/apply_visible_technical_evidence_v1.py
 node scripts/test_mega_evidence.js
 node scripts/test_mega_evidence_v3.js
 node scripts/test_mega_evidence_v5.js
