@@ -3,10 +3,12 @@ import { OrbitControls } from './vendor/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from './vendor/examples/jsm/loaders/GLTFLoader.js';
 
 const canvas = document.getElementById('vanCanvas');
-const status = document.getElementById('viewerStatus');
-const rotateBtn = document.getElementById('rotateVan');
+const stage = document.getElementById('vanStage');
+const zoneLayer = document.getElementById('zoneLayer');
+const viewLabel = document.getElementById('viewLabel');
+const freeMessage = document.getElementById('freeMessage');
 const resetBtn = document.getElementById('resetVan');
-const overlay = document.getElementById('spotOverlay');
+const viewButtons = [...document.querySelectorAll('[data-view]')];
 const panel = document.getElementById('spotPanel');
 const panelTier = document.getElementById('spotPanelTier');
 const panelName = document.getElementById('spotPanelName');
@@ -15,344 +17,222 @@ const panelCopy = document.getElementById('spotPanelCopy');
 const panelClaim = document.getElementById('spotPanelClaim');
 const panelClose = document.getElementById('spotPanelClose');
 
-function applyHeroLayout() {
-  const hero = document.querySelector('.hero');
-  const viewer = hero?.querySelector('.viewer');
-  const copy = hero?.querySelector('.hero-copy');
-  if (!hero || !viewer || !copy || hero.querySelector('.hero-layout')) return;
-
-  const layout = document.createElement('div');
-  layout.className = 'hero-layout';
-  const stage = document.createElement('div');
-  stage.className = 'hero-stage';
-
-  hero.appendChild(layout);
-  layout.appendChild(copy);
-  layout.appendChild(stage);
-  stage.appendChild(viewer);
-
-  const style = document.createElement('style');
-  style.textContent = `
-    .hero{
-      min-height:calc(100vh - 62px)!important;
-      padding:18px!important;
-      overflow:visible!important;
-      background:#ece9e0!important;
-    }
-    .hero-layout{
-      min-height:calc(100vh - 98px);
-      display:grid;
-      grid-template-columns:minmax(360px,500px) minmax(0,1fr);
-      gap:18px;
-      align-items:stretch;
-      width:100%;
-    }
-    .hero-copy{
-      position:relative!important;
-      left:auto!important;
-      bottom:auto!important;
-      width:auto!important;
-      max-width:none!important;
-      min-height:0;
-      align-self:center;
-      z-index:12;
-      padding:24px!important;
-      background:rgba(245,243,237,.96)!important;
-    }
-    .hero h1{
-      font-size:clamp(46px,5.7vw,78px)!important;
-      line-height:.88!important;
-      letter-spacing:-4px!important;
-    }
-    .hero-stage{
-      position:relative;
-      min-width:0;
-      min-height:610px;
-      overflow:visible;
-    }
-    .hero-stage .viewer{
-      position:relative!important;
-      inset:auto!important;
-      width:100%;
-      height:100%;
-      min-height:610px;
-      overflow:visible;
-    }
-    .hero-stage .viewer canvas{
-      width:100%!important;
-      height:100%!important;
-      display:block;
-    }
-    .hero-stage .spot-overlay{
-      overflow:visible!important;
-    }
-    .hero-stage .viewer-status{
-      left:14px!important;
-      top:14px!important;
-    }
-    .hero-stage .viewer-tools{
-      top:14px!important;
-      right:14px!important;
-    }
-    .hero-stage .rotate-hint{
-      right:14px!important;
-      bottom:14px!important;
-    }
-    @media(max-width:860px){
-      .hero{padding:12px!important;min-height:auto!important;}
-      .hero-layout{grid-template-columns:1fr;min-height:0;gap:12px;}
-      .hero-copy{order:1;align-self:auto;}
-      .hero-stage{order:2;min-height:470px;}
-      .hero-stage .viewer{min-height:470px;}
-      .hero h1{font-size:clamp(44px,12vw,64px)!important;}
-      .hero-stage .viewer-tools{top:48px!important;}
-      .spot-panel{top:92px!important;bottom:auto!important;right:12px!important;}
-    }
-    @media(max-width:520px){
-      .hero{padding:8px!important;}
-      .hero-copy{padding:18px!important;}
-      .hero-stage{min-height:410px;}
-      .hero-stage .viewer{min-height:410px;}
-      .hero-stage .rotate-hint{display:none!important;}
-    }
-  `;
-  document.head.appendChild(style);
-}
-
-applyHeroLayout();
-
 const SPOTS = [
-  { id:'S1', tier:'Signature', price:1500, kind:'side', side: 1, u:-0.12, y:.58, copy:'Prime side placement. One of only two founding sponsor positions.' },
-  { id:'S2', tier:'Signature', price:1500, kind:'side', side:-1, u:-0.12, y:.58, copy:'Prime side placement. One of only two founding sponsor positions.' },
+  {id:'S1',view:'left',tier:'Signature',price:1500,x:35,y:36,w:28,h:25,copy:'Main left-side sponsor zone. The largest and most visible placement on this side.'},
+  {id:'L1',view:'left',tier:'Large',price:750,x:13,y:38,w:19,h:22,copy:'Large left-side placement with strong visibility while driving or parked.'},
+  {id:'L2',view:'left',tier:'Large',price:750,x:66,y:38,w:19,h:22,copy:'Large left-side placement with strong visibility while driving or parked.'},
+  {id:'M1',view:'left',tier:'Medium',price:400,x:35,y:23,w:13,h:10,copy:'Medium left-side sponsor zone.'},
+  {id:'M2',view:'left',tier:'Medium',price:400,x:50,y:23,w:13,h:10,copy:'Medium left-side sponsor zone.'},
+  {id:'SM1',view:'left',tier:'Small',price:200,x:27,y:65,w:15,h:9,copy:'Compact left-side sponsor zone.'},
+  {id:'SM2',view:'left',tier:'Small',price:200,x:44,y:65,w:15,h:9,copy:'Compact left-side sponsor zone.'},
 
-  { id:'L1', tier:'Large', price:750, kind:'side', side: 1, u:.42, y:.56, copy:'Large side placement with strong visibility on the road and while parked.' },
-  { id:'L2', tier:'Large', price:750, kind:'side', side:-1, u:.42, y:.56, copy:'Large side placement with strong visibility on the road and while parked.' },
-  { id:'L3', tier:'Large', price:750, kind:'side', side: 1, u:-.52, y:.54, copy:'Large side placement with strong visibility on the road and while parked.' },
-  { id:'L4', tier:'Large', price:750, kind:'side', side:-1, u:-.52, y:.54, copy:'Large side placement with strong visibility on the road and while parked.' },
+  {id:'S2',view:'right',tier:'Signature',price:1500,x:37,y:36,w:28,h:25,copy:'Main right-side sponsor zone. The largest and most visible placement on this side.'},
+  {id:'L3',view:'right',tier:'Large',price:750,x:15,y:38,w:19,h:22,copy:'Large right-side placement with strong visibility while driving or parked.'},
+  {id:'L4',view:'right',tier:'Large',price:750,x:68,y:38,w:19,h:22,copy:'Large right-side placement with strong visibility while driving or parked.'},
+  {id:'M3',view:'right',tier:'Medium',price:400,x:37,y:23,w:13,h:10,copy:'Medium right-side sponsor zone.'},
+  {id:'M4',view:'right',tier:'Medium',price:400,x:52,y:23,w:13,h:10,copy:'Medium right-side sponsor zone.'},
+  {id:'SM3',view:'right',tier:'Small',price:200,x:29,y:65,w:15,h:9,copy:'Compact right-side sponsor zone.'},
+  {id:'SM4',view:'right',tier:'Small',price:200,x:46,y:65,w:15,h:9,copy:'Compact right-side sponsor zone.'},
 
-  { id:'M1', tier:'Medium', price:400, kind:'side', side: 1, u:.68, y:.49, copy:'Mid-size sponsor position for a clear physical brand presence.' },
-  { id:'M2', tier:'Medium', price:400, kind:'side', side:-1, u:.68, y:.49, copy:'Mid-size sponsor position for a clear physical brand presence.' },
-  { id:'M3', tier:'Medium', price:400, kind:'side', side: 1, u:-.72, y:.46, copy:'Mid-size sponsor position for a clear physical brand presence.' },
-  { id:'M4', tier:'Medium', price:400, kind:'side', side:-1, u:-.72, y:.46, copy:'Mid-size sponsor position for a clear physical brand presence.' },
-  { id:'M5', tier:'Medium', price:400, kind:'end', end: 1, v:-.22, y:.50, copy:'Medium end-panel position, visible when traffic approaches the van.' },
-  { id:'M6', tier:'Medium', price:400, kind:'end', end:-1, v:.22, y:.50, copy:'Medium end-panel position, visible when traffic approaches the van.' },
-
-  { id:'SM1', tier:'Small', price:200, kind:'side', side: 1, u:.18, y:.76, copy:'Compact 12-month sponsor placement.' },
-  { id:'SM2', tier:'Small', price:200, kind:'side', side:-1, u:.18, y:.76, copy:'Compact 12-month sponsor placement.' },
-  { id:'SM3', tier:'Small', price:200, kind:'side', side: 1, u:-.34, y:.77, copy:'Compact 12-month sponsor placement.' },
-  { id:'SM4', tier:'Small', price:200, kind:'side', side:-1, u:-.34, y:.77, copy:'Compact 12-month sponsor placement.' },
-  { id:'SM5', tier:'Small', price:200, kind:'end', end: 1, v:.22, y:.72, copy:'Compact end-panel sponsor placement.' },
-  { id:'SM6', tier:'Small', price:200, kind:'end', end: 1, v:-.22, y:.72, copy:'Compact end-panel sponsor placement.' },
-  { id:'SM7', tier:'Small', price:200, kind:'end', end:-1, v:.22, y:.72, copy:'Compact end-panel sponsor placement.' },
-  { id:'SM8', tier:'Small', price:200, kind:'end', end:-1, v:-.22, y:.72, copy:'Compact end-panel sponsor placement.' }
+  {id:'M5',view:'rear',tier:'Medium',price:400,x:36,y:34,w:13,h:18,copy:'Medium rear sponsor zone.'},
+  {id:'M6',view:'rear',tier:'Medium',price:400,x:51,y:34,w:13,h:18,copy:'Medium rear sponsor zone.'},
+  {id:'SM5',view:'rear',tier:'Small',price:400,x:36,y:54,w:13,h:11,copy:'Compact rear sponsor zone.'},
+  {id:'SM6',view:'rear',tier:'Small',price:200,x:51,y:54,w:13,h:11,copy:'Compact rear sponsor zone.'},
+  {id:'SM7',view:'rear',tier:'Small',price:200,x:36,y:67,w:13,h:9,copy:'Compact rear sponsor zone.'},
+  {id:'SM8',view:'rear',tier:'Small',price:200,x:51,y:67,w:13,h:9,copy:'Compact rear sponsor zone.'}
 ];
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+// Keep the funding math exact: the first rear small spot belongs to the €200 tier.
+SPOTS.find(s => s.id === 'SM5').price = 200;
+
+const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.toneMappingExposure = 1.18;
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#f5f3ed');
-
-const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 100);
-
-const controls = new OrbitControls(camera, canvas);
+scene.background = new THREE.Color('#f7f6f1');
+const camera = new THREE.PerspectiveCamera(30,1,0.01,100);
+const controls = new OrbitControls(camera,canvas);
 controls.enableDamping = true;
 controls.enablePan = false;
-controls.minDistance = 3.4;
-controls.maxDistance = 10;
-controls.maxPolarAngle = Math.PI / 2 - 0.02;
-controls.autoRotate = true;
-controls.autoRotateSpeed = 0.42;
+controls.autoRotate = false;
+controls.minPolarAngle = Math.PI * .18;
+controls.maxPolarAngle = Math.PI * .82;
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0xb7b0a4, 3.1));
-const key = new THREE.DirectionalLight(0xffffff, 3.2);
-key.position.set(4, 7, 5);
-scene.add(key);
-const fill = new THREE.DirectionalLight(0xffffff, 1.5);
-fill.position.set(-5, 3, -4);
-scene.add(fill);
+scene.add(new THREE.HemisphereLight(0xffffff,0xb8b0a2,3.2));
+const key = new THREE.DirectionalLight(0xffffff,3.3);key.position.set(5,7,5);scene.add(key);
+const fill = new THREE.DirectionalLight(0xffffff,1.4);fill.position.set(-5,3,-4);scene.add(fill);
+const floor = new THREE.Mesh(new THREE.CircleGeometry(4.2,72),new THREE.MeshStandardMaterial({color:0xebe7dc,roughness:1,metalness:0}));
+floor.rotation.x=-Math.PI/2;floor.position.y=-.02;scene.add(floor);
 
-const floor = new THREE.Mesh(
-  new THREE.CircleGeometry(3.6, 64),
-  new THREE.MeshStandardMaterial({ color: 0xe8e4d9, roughness: 1, metalness: 0 })
-);
-floor.rotation.x = -Math.PI / 2;
-floor.position.y = -0.02;
-scene.add(floor);
-
-let hotspotState = [];
+let model = null;
+let modelBox = null;
+let longAxis = 'x';
+let wideAxis = 'z';
+let currentView = 'left';
 let selectedId = null;
-let modelRadius = 2.5;
+let tween = null;
 
-function money(value) {
-  return `€${value.toLocaleString('en-US')}`;
+function money(v){return `€${v.toLocaleString('en-US')}`}
+
+function resize(){
+  const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),r=renderer.getPixelRatio();
+  if(canvas.width!==Math.round(w*r)||canvas.height!==Math.round(h*r)) renderer.setSize(w,h,false);
+  camera.aspect=w/h;camera.updateProjectionMatrix();
 }
 
-function resetView() {
-  const mobile = window.innerWidth <= 860;
-  if (mobile) {
-    camera.position.set(5.2, 2.25, 6.6);
-    controls.target.set(0, 0.92, 0);
-  } else {
-    camera.position.set(5.8, 2.35, 7.2);
-    controls.target.set(0.15, 0.98, 0);
-  }
-  controls.minDistance = Math.max(3.5, modelRadius * 1.45);
-  controls.maxDistance = Math.max(9, modelRadius * 3.8);
-  controls.update();
-}
-
-rotateBtn.addEventListener('click', () => {
-  controls.autoRotate = !controls.autoRotate;
-  rotateBtn.textContent = controls.autoRotate ? 'Pause rotation' : 'Auto rotate';
-});
-
-resetBtn.addEventListener('click', resetView);
-controls.addEventListener('start', () => {
-  if (controls.autoRotate) {
-    controls.autoRotate = false;
-    rotateBtn.textContent = 'Auto rotate';
-  }
-});
-
-panelClose?.addEventListener('click', () => {
-  panel.hidden = true;
-  selectedId = null;
-  hotspotState.forEach(item => item.el.classList.remove('selected'));
-});
-
-function selectSpot(spot, el) {
-  selectedId = spot.id;
-  controls.autoRotate = false;
-  rotateBtn.textContent = 'Auto rotate';
-  hotspotState.forEach(item => item.el.classList.toggle('selected', item.spot.id === spot.id));
-  panelTier.textContent = `${spot.tier} · Spot ${spot.id}`;
-  panelName.textContent = `${spot.tier} sponsor spot`;
-  panelPrice.textContent = money(spot.price);
-  panelCopy.textContent = spot.copy;
-  panelClaim.textContent = `Claim spot ${spot.id}`;
-  panelClaim.href = `https://x.com/THEFOFOSHOW?brandmyvan=${encodeURIComponent(spot.id)}`;
-  panel.hidden = false;
-}
-
-function buildHotspots(modelBox) {
-  overlay.innerHTML = '';
-  hotspotState = [];
-
-  const size = modelBox.getSize(new THREE.Vector3());
-  const center = modelBox.getCenter(new THREE.Vector3());
-  const longAxis = size.x >= size.z ? 'x' : 'z';
-  const wideAxis = longAxis === 'x' ? 'z' : 'x';
-  const longSize = size[longAxis];
-  const wideSize = size[wideAxis];
-  const height = size.y;
-
-  SPOTS.forEach(spot => {
-    const pos = center.clone();
-    const normal = new THREE.Vector3();
-
-    if (spot.kind === 'side') {
-      pos[longAxis] = center[longAxis] + spot.u * longSize * .48;
-      pos[wideAxis] = center[wideAxis] + spot.side * (wideSize * .51);
-      pos.y = modelBox.min.y + spot.y * height;
-      normal[wideAxis] = spot.side;
-    } else {
-      pos[longAxis] = center[longAxis] + spot.end * (longSize * .505);
-      pos[wideAxis] = center[wideAxis] + spot.v * wideSize;
-      pos.y = modelBox.min.y + spot.y * height;
-      normal[longAxis] = spot.end;
-    }
-
-    const el = document.createElement('button');
-    el.type = 'button';
-    el.className = `van-spot van-spot-${spot.tier.toLowerCase()}`;
-    el.innerHTML = `<span>${spot.id}</span><strong>${money(spot.price)}</strong>`;
-    el.setAttribute('aria-label', `${spot.tier} spot ${spot.id}, ${money(spot.price)}`);
-    el.addEventListener('click', event => {
-      event.preventDefault();
-      event.stopPropagation();
-      selectSpot(spot, el);
-    });
-    overlay.appendChild(el);
-    hotspotState.push({ spot, el, pos, normal });
-  });
-}
-
-function updateHotspots() {
-  if (!hotspotState.length) return;
-  const rect = canvas.getBoundingClientRect();
-  const cameraDirection = new THREE.Vector3();
-
-  hotspotState.forEach(item => {
-    const toCamera = cameraDirection.copy(camera.position).sub(item.pos).normalize();
-    const facingCamera = item.normal.dot(toCamera) > .08;
-    const p = item.pos.clone().project(camera);
-    const onScreen = p.z > -1 && p.z < 1 && p.x > -.98 && p.x < .98 && p.y > -.96 && p.y < .96;
-    const visible = facingCamera && onScreen;
-
-    item.el.style.opacity = visible ? '1' : '0';
-    item.el.style.pointerEvents = visible ? 'auto' : 'none';
-    item.el.style.transform = `translate(-50%,-50%) translate(${(p.x * .5 + .5) * rect.width}px,${(-p.y * .5 + .5) * rect.height}px)`;
-    item.el.style.zIndex = item.spot.id === selectedId ? '12' : '8';
-  });
-}
-
-function resize() {
-  const width = Math.max(1, canvas.clientWidth);
-  const height = Math.max(1, canvas.clientHeight);
-  const ratio = renderer.getPixelRatio();
-  if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) {
-    renderer.setSize(width, height, false);
-  }
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
-}
-
-renderer.setAnimationLoop(() => {
+function fitDistance(view){
+  if(!modelBox) return 6;
   resize();
+  const size=modelBox.getSize(new THREE.Vector3());
+  const height=size.y;
+  const width=view==='rear'?size[wideAxis]:size[longAxis];
+  const fov=THREE.MathUtils.degToRad(camera.fov);
+  const byHeight=(height*.5)/Math.tan(fov*.5);
+  const byWidth=(width*.5)/(Math.tan(fov*.5)*Math.max(camera.aspect,.4));
+  return Math.max(byHeight,byWidth)*1.18;
+}
+
+function cameraPose(view){
+  const center=modelBox.getCenter(new THREE.Vector3());
+  const size=modelBox.getSize(new THREE.Vector3());
+  const distance=fitDistance(view);
+  const pos=center.clone();
+  const target=center.clone();
+  target.y += size.y*.03;
+
+  if(view==='left') pos[wideAxis]+=distance;
+  if(view==='right') pos[wideAxis]-=distance;
+  if(view==='rear') pos[longAxis]+=distance;
+  pos.y += size.y*.04;
+
+  return {pos,target};
+}
+
+function animateCamera(pos,target,duration=420){
+  const startPos=camera.position.clone();
+  const startTarget=controls.target.clone();
+  const started=performance.now();
+  tween={startPos,startTarget,pos,target,started,duration};
+}
+
+function updateTween(){
+  if(!tween) return;
+  const raw=(performance.now()-tween.started)/tween.duration;
+  const t=Math.min(1,raw);
+  const eased=1-Math.pow(1-t,3);
+  camera.position.lerpVectors(tween.startPos,tween.pos,eased);
+  controls.target.lerpVectors(tween.startTarget,tween.target,eased);
+  if(t>=1) tween=null;
+}
+
+function setFixedView(view,instant=false){
+  if(!modelBox) return;
+  currentView=view;
+  controls.autoRotate=false;
+  controls.enableRotate=false;
+  controls.enableZoom=false;
+  controls.enablePan=false;
+  freeMessage.style.display='none';
+  zoneLayer.style.display='block';
+  const pose=cameraPose(view);
+  if(instant){camera.position.copy(pose.pos);controls.target.copy(pose.target);controls.update();}
+  else animateCamera(pose.pos,pose.target);
+  renderZones(view);
+  viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  const count=SPOTS.filter(s=>s.view===view).length;
+  viewLabel.textContent=`${view.toUpperCase()} ${view==='rear'?'VIEW':'SIDE'} · ${count} AVAILABLE ZONES`;
+  viewLabel.style.display='block';
+  closePanel();
+}
+
+function setFreeView(){
+  currentView='free';
+  zoneLayer.innerHTML='';
+  zoneLayer.style.display='none';
+  viewLabel.style.display='none';
+  freeMessage.style.display='block';
+  controls.enableRotate=true;
+  controls.enableZoom=true;
+  controls.enablePan=false;
+  const center=modelBox.getCenter(new THREE.Vector3());
+  const d=fitDistance('left')*1.05;
+  const p=center.clone();p[wideAxis]+=d*.72;p[longAxis]+=d*.72;p.y+=modelBox.getSize(new THREE.Vector3()).y*.18;
+  animateCamera(p,center,450);
+  viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view==='free'));
+  closePanel();
+}
+
+function renderZones(view){
+  zoneLayer.innerHTML='';
+  SPOTS.filter(s=>s.view===view).forEach(spot=>{
+    const el=document.createElement('button');
+    el.type='button';
+    el.className=`zone ${spot.tier.toLowerCase()}`;
+    el.style.left=`${spot.x}%`;el.style.top=`${spot.y}%`;el.style.width=`${spot.w}%`;el.style.height=`${spot.h}%`;
+    el.setAttribute('aria-label',`${spot.tier} zone ${spot.id}, ${money(spot.price)}`);
+    el.innerHTML=`<span class="zone-badge"><b>${spot.id}</b><span>${money(spot.price)}</span></span><span class="zone-price">${money(spot.price)}</span>`;
+    el.addEventListener('click',()=>selectSpot(spot,el));
+    zoneLayer.appendChild(el);
+  });
+}
+
+function selectSpot(spot,el){
+  selectedId=spot.id;
+  [...zoneLayer.querySelectorAll('.zone')].forEach(z=>z.classList.remove('selected'));
+  el.classList.add('selected');
+  panelTier.textContent=`${spot.tier} · ${spot.view.toUpperCase()} · ${spot.id}`;
+  panelName.textContent=`Sponsor zone ${spot.id}`;
+  panelPrice.textContent=money(spot.price);
+  panelCopy.textContent=`${spot.copy} This exact rectangle becomes the physical location for your logo for 12 months.`;
+  panelClaim.textContent=`Reserve ${spot.id} — ${money(spot.price)}`;
+  panelClaim.href=`https://x.com/THEFOFOSHOW?brandmyvan=${encodeURIComponent(spot.id)}`;
+  panel.hidden=false;
+}
+
+function closePanel(){
+  selectedId=null;
+  panel.hidden=true;
+  [...zoneLayer.querySelectorAll('.zone')].forEach(z=>z.classList.remove('selected'));
+}
+
+panelClose?.addEventListener('click',closePanel);
+viewButtons.forEach(btn=>btn.addEventListener('click',()=>btn.dataset.view==='free'?setFreeView():setFixedView(btn.dataset.view)));
+resetBtn?.addEventListener('click',()=>currentView==='free'?setFreeView():setFixedView(currentView));
+window.addEventListener('resize',()=>{if(modelBox&&currentView!=='free')setFixedView(currentView,true)});
+
+renderer.setAnimationLoop(()=>{
+  resize();
+  updateTween();
   controls.update();
-  updateHotspots();
-  renderer.render(scene, camera);
+  renderer.render(scene,camera);
 });
 
-async function boot() {
-  try {
-    status.textContent = 'Loading the van…';
-    const gltf = await new GLTFLoader().loadAsync('./van-realistic.glb', event => {
-      if (event.total) status.textContent = `Loading ${Math.round((event.loaded / event.total) * 100)}%`;
-    });
-
-    const model = gltf.scene;
-    const box = new THREE.Box3().setFromObject(model);
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
-    const mobile = window.innerWidth <= 860;
-    const fitSize = mobile ? 3.15 : 3.55;
-    const scale = fitSize / Math.max(size.x, size.y, size.z);
-    const origin = new THREE.Vector3(center.x, box.min.y, center.z);
-
+async function boot(){
+  try{
+    const gltf=await new GLTFLoader().loadAsync('./van-realistic.glb');
+    model=gltf.scene;
+    const rawBox=new THREE.Box3().setFromObject(model);
+    const rawSize=rawBox.getSize(new THREE.Vector3());
+    const rawCenter=rawBox.getCenter(new THREE.Vector3());
+    const scale=4.75/Math.max(rawSize.x,rawSize.y,rawSize.z);
+    const origin=new THREE.Vector3(rawCenter.x,rawBox.min.y,rawCenter.z);
     model.scale.setScalar(scale);
     model.position.copy(origin).multiplyScalar(-scale);
     scene.add(model);
     scene.updateMatrixWorld(true);
-
-    const worldBox = new THREE.Box3().setFromObject(model);
-    const sphere = worldBox.getBoundingSphere(new THREE.Sphere());
-    modelRadius = sphere.radius;
-    buildHotspots(worldBox);
-    resetView();
-    status.textContent = '20 clickable sponsor spots';
-  } catch (error) {
-    console.error(error);
-    status.textContent = '3D model unavailable';
+    modelBox=new THREE.Box3().setFromObject(model);
+    const size=modelBox.getSize(new THREE.Vector3());
+    longAxis=size.x>=size.z?'x':'z';
+    wideAxis=longAxis==='x'?'z':'x';
+    setFixedView('left',true);
+  }catch(err){
+    console.error(err);
+    viewLabel.textContent='3D MODEL UNAVAILABLE';
+    zoneLayer.style.display='none';
   }
 }
-
-window.addEventListener('resize', () => {
-  resetView();
-});
 
 boot();
