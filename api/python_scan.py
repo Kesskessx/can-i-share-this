@@ -196,12 +196,15 @@ RULES: Sequence[Tuple[str, int, str, Sequence[str]]] = (
         r"\b(otp|one[- ]?time code|verification code|security code|code de v[ée]rification|code sms|tan)\b",
         r"\b(confirm|verify|validate|secure|unlock|restore).{0,28}\b(account|compte|identity|identit[ée]|login)\b",
         r"\bseed phrase|recovery phrase|private key|phrase de r[ée]cup[ée]ration|cl[ée] priv[ée]e\b",
+        r"\b(enter|provide|confirm|send|share|verify|saisir|fournir|confirmer|envoyer|partager).{0,35}\b(card|bank|banking|carte|bancaire).{0,20}\b(details|information|credentials|code|number|coordonn[ée]es|num[ée]ro)\b",
     )),
     ("payment", 20, "Requests money or a payment action", (
         r"\b(pay|payment|payer|paiement|pago|bezahlen|zahlung|pagamento)\b",
         r"\b(bank transfer|wire transfer|virement|transferencia bancaria|[üu]berweisung|bonifico|deposit|d[ée]p[oô]t|recharge)\b",
         r"\b(gift card|carte cadeau|voucher|coupon).{0,25}\b(code|number|num[ée]ro|photo)\b",
         r"\b(crypto|bitcoin|btc|ethereum|eth|usdt|wallet|portefeuille crypto)\b",
+        r"\b(send|pay|transfer|envoyer|payer|virer).{0,30}\b(money|funds?|crypto|usdt|fee|deposit|argent|fonds|frais|acompte|virement)\b",
+        r"\b(activation|registration|processing|release|delivery|redelivery).{0,20}\b(fee|deposit)\b",
     )),
     ("urgency", 13, "Uses urgency or a short deadline", (
         r"\b(urgent|urgently|imm[ée]diatement|immédiat|immediately|asap|now|maintenant|ahora|sofort|subito)\b",
@@ -223,7 +226,8 @@ RULES: Sequence[Tuple[str, int, str, Sequence[str]]] = (
         r"\b(call|phone|appelez|contact).{0,28}\b(support|technician|technicien|security team)\b",
     )),
     ("investment", 18, "Promises investment returns or trading profits", (
-        r"\b(guaranteed|garanti|risk[- ]?free|sans risque).{0,35}\b(return|profit|rendement|gain)\b",
+        r"\b(guaranteed|garanti|risk[- ]?free|sans risque).{0,35}\b(return|returns|profit|profits|rendement|rendements|gain|gains)\b",
+        r"\b(crypto|bitcoin|btc|ethereum|eth|usdt).{0,35}\b(return|returns|profit|profits|rendement|rendements|gain|gains)\b",
         r"\b(double|triple|doubler|tripler).{0,25}\b(money|argent|investment|investissement|crypto)\b",
         r"\b(trading|forex|investment|investissement).{0,35}\b(signal|mentor|expert|profit|return)\b",
     )),
@@ -309,9 +313,12 @@ def normalize_url(raw: str) -> Optional[str]:
             return None
         host = u.hostname.encode("idna").decode("ascii").lower().rstrip(".")
         port = f":{u.port}" if u.port and not ((u.scheme == "http" and u.port == 80) or (u.scheme == "https" and u.port == 443)) else ""
+        # Preserve the fact that user-info existed so analyze_url can flag the
+        # deceptive user@host pattern, but redact the original value/password.
+        userinfo = "user@" if u.username is not None else ""
         path = u.path or ""
         query = f"?{u.query}" if u.query else ""
-        return f"{u.scheme.lower()}://{host}{port}{path}{query}"
+        return f"{u.scheme.lower()}://{userinfo}{host}{port}{path}{query}"
     except (ValueError, UnicodeError):
         return None
 
