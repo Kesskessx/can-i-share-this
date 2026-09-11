@@ -30,7 +30,7 @@ from http.server import BaseHTTPRequestHandler
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 from urllib.parse import parse_qsl, unquote, urlsplit
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 MAX_INPUT_CHARS = 50_000
 MAX_SIGNALS = 20
 MAX_ENTITIES = 30
@@ -107,6 +107,88 @@ BRANDS: Dict[str, Tuple[str, ...]] = {
     "coinbase": ("coinbase.com",),
     "binance": ("binance.com",),
 }
+# Expanded first-party domain intelligence. Keep this deterministic: these are
+# canonical domains, not reputation claims.
+BRANDS.update({
+    "ameli": ("ameli.fr",),
+    "assurance maladie": ("ameli.fr",),
+    "impots": ("impots.gouv.fr",),
+    "impots.gouv.fr": ("impots.gouv.fr",),
+    "service public": ("service-public.fr",),
+    "france travail": ("francetravail.fr",),
+    "caf": ("caf.fr",),
+    "urssaf": ("urssaf.fr",),
+    "edf": ("edf.fr",),
+    "engie": ("engie.fr",),
+    "orange": ("orange.fr",),
+    "sfr": ("sfr.fr",),
+    "free": ("free.fr",),
+    "bouygues telecom": ("bouyguestelecom.fr",),
+    "societe generale": ("societegenerale.fr",),
+    "credit agricole": ("credit-agricole.fr",),
+    "credit mutuel": ("creditmutuel.fr",),
+    "bnp paribas": ("mabanque.bnpparibas", "bnpparibas.com"),
+    "boursobank": ("boursobank.com",),
+    "n26": ("n26.com",),
+    "wise": ("wise.com",),
+    "visa": ("visa.com", "visa.fr"),
+    "mastercard": ("mastercard.com", "mastercard.fr"),
+    "github": ("github.com",),
+    "discord": ("discord.com", "discord.gg"),
+    "steam": ("steampowered.com", "steamcommunity.com"),
+    "booking": ("booking.com",),
+    "airbnb": ("airbnb.com", "airbnb.fr"),
+    "uber": ("uber.com",),
+    "vinted": ("vinted.fr", "vinted.com"),
+})
+
+CONFUSABLE_ASCII = str.maketrans({
+    "0": "o", "1": "l", "3": "e", "4": "a", "5": "s", "7": "t",
+})
+
+
+def brand_key(value: str) -> str:
+    value = fold(value).translate(CONFUSABLE_ASCII)
+    return re.sub(r"[^a-z0-9]", "", value)
+
+
+def levenshtein_limited(a: str, b: str, limit: int = 1) -> int:
+    if abs(len(a) - len(b)) > limit:
+        return limit + 1
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        row_min = i
+        for j, cb in enumerate(b, 1):
+            cur.append(min(cur[-1] + 1, prev[j] + 1, prev[j - 1] + (ca != cb)))
+            row_min = min(row_min, cur[-1])
+        if row_min > limit:
+            return limit + 1
+        prev = cur
+    return prev[-1]
+
+
+def detect_brand_lookalike(host: str) -> Optional[Tuple[str, str]]:
+    registered = registered_guess(host)
+    labels = [x for x in registered.split('.')[:-1] if x]
+    if not labels:
+        return None
+    compact_labels = [brand_key(x) for x in labels]
+    for brand, official_domains in BRANDS.items():
+        if any(host == d or host.endswith('.' + d) for d in official_domains):
+            continue
+        key = brand_key(brand)
+        # Short/generic brand names (x, free, caf, etc.) are deliberately
+        # excluded from fuzzy matching to avoid false positives.
+        if len(key) < 5:
+            continue
+        for label in compact_labels:
+            if len(label) < 5:
+                continue
+            distance = levenshtein_limited(label, key, 1)
+            if label == key or distance <= 1:
+                return brand, label
+    return None
 
 RULES: Sequence[Tuple[str, int, str, Sequence[str]]] = (
     ("credentials", 28, "Requests credentials, codes or account verification", (
@@ -422,6 +504,15 @@ def analyze_url(url: str, full_text: str, signals: List[Signal]) -> Dict[str, An
     params = dict(parse_qsl(u.query, keep_blank_values=True))
     if any(k.lower() in {"redirect", "redirect_uri", "url", "target", "dest", "destination", "continue", "return", "next"} for k in params):
         add_signal(signals, Signal("url_redirect_param", "low", 6, "URL contains a redirect/destination parameter", u.query[:180], "url"))
+    lookalike = detect_brand_lookalike(host)
+    if lookalike:
+        brand, matched_label = lookalike
+        add_signal(signals, Signal(
+            "brand_domain_lookalike", "high", 24,
+            f"Domain closely resembles a known brand ({brand})",
+            f"Brand: {brand}; domain: {host}; matched label: {matched_label}", "url"
+        ))
+        result["lookalikeBrand"] = brand
     tf = fold(full_text)
     claimed: List[str] = []
     claim_action_context = bool(re.search(
@@ -468,25 +559,49 @@ def analyze_email(email: str, text: str, signals: List[Signal]) -> Dict[str, Any
     return result
 
 
+def score_breakdown(signals: Sequence[Signal]) -> Dict[str, int]:
+    groups = {
+        "identity": {"brand_domain_mismatch", "brand_domain_lookalike", "brand_email_mismatch", "brand_email_lookalike", "email_disposable"},
+        "requestedAction": {"credentials", "payment", "crypto_context"},
+        "pressure": {"urgency", "threat", "secrecy"},
+        "scenario": {"delivery", "support", "investment", "prize", "job", "romance", "invoice", "impersonation", "offplatform"},
+        "technicalUrl": {"url_http", "url_ip", "url_private", "url_punycode", "url_shortener", "url_tld", "url_subdomains", "url_random", "url_sensitive_path", "url_encoding", "url_long", "url_userinfo", "url_redirect_param", "many_links"},
+    }
+    out: Dict[str, int] = {}
+    for name, ids in groups.items():
+        vals = sorted((s.weight for s in signals if s.id in ids), reverse=True)
+        if not vals:
+            out[name] = 0
+        elif name == "technicalUrl" and len(vals) > 1:
+            out[name] = int(round(vals[0] + vals[1] * 0.35))
+        else:
+            out[name] = vals[0]
+    return out
+
+
 def combined_risk(signals: Sequence[Signal], text: str) -> Tuple[int, str]:
-    weights = sorted((max(0, s.weight) for s in signals), reverse=True)
-    raw = 0.0
-    decay = 1.0
-    for w in weights:
-        raw += w * decay
-        decay *= 0.82
-    score = int(round(clamp(raw, 0, 100)))
+    breakdown = score_breakdown(signals)
+    # Evidence families are capped by taking their strongest signal. This keeps
+    # repeated wording from artificially inflating risk while rewarding
+    # independent evidence from identity, requested action, pressure, scenario
+    # and URL structure.
+    score = sum(breakdown.values())
     ids = {s.id for s in signals}
-    if ids & {"credentials", "payment"} and ids & {"urgency", "threat", "brand_domain_mismatch", "url_shortener", "url_userinfo"}:
-        score = min(100, score + 10)
-    if "credentials" in ids and "brand_domain_mismatch" in ids:
-        score = min(100, score + 12)
+
+    if ids & {"credentials", "payment"} and ids & {"urgency", "threat", "brand_domain_mismatch", "brand_domain_lookalike", "url_shortener", "url_userinfo"}:
+        score += 8
+    if "credentials" in ids and ids & {"brand_domain_mismatch", "brand_domain_lookalike", "brand_email_mismatch", "brand_email_lookalike"}:
+        score += 10
     if "payment" in ids and ids & {"crypto_context", "investment", "prize", "job", "romance"}:
-        score = min(100, score + 8)
-    if "payment" in ids and "brand_domain_mismatch" in ids:
-        score = min(100, score + 15)
+        score += 8
+    if "payment" in ids and ids & {"brand_domain_mismatch", "brand_domain_lookalike"}:
+        score += 10
     if "job" in ids and "offplatform" in ids and "payment" in ids:
-        score = min(100, score + 15)
+        score += 12
+    if "credentials" in ids and "support" in ids:
+        score += 8
+
+    score = int(round(clamp(score, 0, 100)))
     if not text.strip():
         return score, "unknown"
     if score >= 60:
@@ -494,7 +609,6 @@ def combined_risk(signals: Sequence[Signal], text: str) -> Tuple[int, str]:
     if score >= 25:
         return score, "caution"
     return score, "low"
-
 
 def make_summary(risk: str, signals: Sequence[Signal]) -> str:
     if risk == "unknown":
@@ -599,6 +713,7 @@ def scan(payload: Dict[str, Any]) -> Dict[str, Any]:
         "categories": categories,
         "technical": {
             "inputCharacters": len(all_text),
+            "scoreBreakdown": score_breakdown(signals),
             "urlDetails": url_details,
             "emailDetails": email_details,
             "limitations": [
