@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Regression matrix for all scanner input types.
 import importlib.util
 import json
 import sys
