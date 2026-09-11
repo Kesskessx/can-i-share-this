@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Regression matrix for all scanner input types.
+# Trigger after file-type fix.
 import importlib.util
 import json
 import sys
