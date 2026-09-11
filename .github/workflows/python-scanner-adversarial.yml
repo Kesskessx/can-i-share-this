@@ -1,0 +1,29 @@
+name: Python scanner adversarial suite
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'api/python_scan.py'
+      - 'scripts/test_python_scan_matrix.py'
+      - 'scripts/test_python_scan_adversarial.py'
+      - '.github/workflows/python-scanner-adversarial.yml'
+  pull_request:
+    paths:
+      - 'api/python_scan.py'
+      - 'scripts/test_python_scan_matrix.py'
+      - 'scripts/test_python_scan_adversarial.py'
+      - '.github/workflows/python-scanner-adversarial.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run baseline format matrix
+        run: python scripts/test_python_scan_matrix.py
+      - name: Run adversarial scanner suite
+        run: python scripts/test_python_scan_adversarial.py
