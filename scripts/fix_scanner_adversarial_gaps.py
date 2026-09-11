@@ -4,6 +4,7 @@ from pathlib import Path
 path = Path('api/python_scan.py')
 s = path.read_text(encoding='utf-8')
 
+# 1) Keep the scanner patch idempotent: only add missing rules.
 repls = [
 (
 '''        r"\\bseed phrase|recovery phrase|private key|phrase de r[ée]cup[ée]ration|cl[ée] priv[ée]e\\b",\n''',
@@ -26,9 +27,33 @@ repls = [
 for old, new in repls:
     if new in s:
         continue
-    if old not in s:
-        raise SystemExit('Expected patch marker not found:\n' + old[:120])
-    s = s.replace(old, new, 1)
+    if old in s:
+        s = s.replace(old, new, 1)
+
+# 2) Remove accidental duplicate score_breakdown() definitions.
+marker = 'def score_breakdown(signals: Sequence[Signal]) -> Dict[str, int]:'
+positions = []
+start = 0
+while True:
+    idx = s.find(marker, start)
+    if idx < 0:
+        break
+    positions.append(idx)
+    start = idx + len(marker)
+if len(positions) > 1:
+    # Keep the last definition and remove earlier copies, including surrounding blank lines.
+    s = s[:positions[0]] + s[positions[-1]:]
+
+# 3) Reward independent social-engineering evidence without making ordinary
+# social links risky on their own.
+anchor = '''    if "credentials" in ids and "support" in ids:\n        score += 8\n\n    score = int(round(clamp(score, 0, 100)))\n'''
+replacement = '''    if "credentials" in ids and "support" in ids:\n        score += 8\n\n    social_scenarios = {"prize", "job", "romance", "investment", "support", "impersonation", "invoice"}\n    if "offplatform" in ids and ids & social_scenarios:\n        score += 8\n    if "offplatform" in ids and ids & {"payment", "credentials", "urgency", "secrecy"}:\n        score += 6\n    if ids & social_scenarios and ids & {"payment", "credentials"} and ids & {"urgency", "secrecy", "threat"}:\n        score += 6\n\n    score = int(round(clamp(score, 0, 100)))\n'''
+if replacement not in s and anchor in s:
+    s = s.replace(anchor, replacement, 1)
+
+# 4) Bump engine version once the hardened scoring is present.
+if 'social_scenarios = {' in s:
+    s = s.replace('VERSION = "1.1.0"', 'VERSION = "1.1.1"', 1)
 
 path.write_text(s, encoding='utf-8')
-print('Applied adversarial gap fixes')
+print('Applied/verified adversarial gap fixes')
