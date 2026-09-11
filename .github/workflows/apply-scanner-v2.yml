@@ -31,3 +31,5 @@ jobs:
           git add api/python_scan.py
           git commit -m "Upgrade scanner brand intelligence and scoring"
           git push
+
+# Triggered after workflow creation so GitHub Actions applies the patch.
