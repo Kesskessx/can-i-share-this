@@ -27,3 +27,5 @@ jobs:
         run: python scripts/test_python_scan_matrix.py
       - name: Run adversarial scanner suite
         run: python scripts/test_python_scan_adversarial.py
+
+# Trigger after initial workflow creation.
