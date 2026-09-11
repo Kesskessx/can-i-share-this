@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Regression matrix for all scanner input types.
-# Trigger after file-type fix.
+# Trigger after scanner v1.1 scoring and brand-intelligence upgrade.
 import importlib.util
 import json
 import sys
