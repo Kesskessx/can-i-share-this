@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/apply-python-filename-fix.yml'
+      - 'scripts/apply_python_filename_fix.py'
 
 permissions:
   contents: write
@@ -17,23 +18,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Patch scanner
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('api/python_scan.py')
-          s = p.read_text()
-          old = '''    urls = extract_urls(all_text, [v for v in qr_values if str(v).lower().startswith(("http://", "https://"))])'''
-          new = '''    url_text = all_text
-    # When the browser supplies extracted file text, a plain filename such as
-    # "invoice.pdf" is context, not a bare web domain. Keep real URLs found in
-    # the extracted text/QR data while excluding the filename from URL parsing.
-    if extracted and primary and re.fullmatch(r"[^/\\\\\\s]+\\.(?:pdf|doc|docx|xls|xlsx|csv|txt|rtf|eml|msg|zip|rar|7z|jpg|jpeg|png|webp|gif|heic|svg)", primary.strip(), re.I):
-        url_text = "\\n".join(x for x in (context, extracted, *qr_values) if x)[:MAX_INPUT_CHARS]
-    urls = extract_urls(url_text, [v for v in qr_values if str(v).lower().startswith(("http://", "https://"))])'''
-          if old not in s:
-              raise SystemExit('Target scanner line not found; refusing unsafe patch')
-          p.write_text(s.replace(old, new, 1))
-          PY
+        run: python scripts/apply_python_filename_fix.py
       - name: Commit fix
         run: |
           git config user.name "github-actions[bot]"
@@ -41,5 +26,3 @@ jobs:
           git add api/python_scan.py
           git commit -m "Fix file names being classified as URLs"
           git push origin HEAD:main
-
-# one-shot trigger
