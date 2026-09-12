@@ -1,5 +1,5 @@
 {
-  "buildCommand": "bash build.sh && python3 scripts/apply_x_viral_loop.py",
+  "buildCommand": "bash build.sh && python3 scripts/apply_x_viral_loop.py && python3 scripts/apply_link_first_home_v1.py",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
