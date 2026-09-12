@@ -1,9 +1,11 @@
 {
-  "buildCommand": "bash build.sh",
+  "buildCommand": "bash build.sh && python3 scripts/apply_x_viral_loop.py",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    {"source": "/r/:id", "destination": "/api/result-page?id=:id"},
+    {"source": "/og/:id", "destination": "/api/result-og?id=:id"},
     {"source": "/api/python-scan", "destination": "/api/python_scan"}
   ],
   "redirects": [
