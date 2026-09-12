@@ -32,12 +32,12 @@ const SPOTS=[
   {id:'M4',view:'right',tier:'Medium',price:400,u:0.545,v:0.71,uw:0.12,vh:0.1,copy:'Upper cargo-panel placement.'},
   {id:'SM3',view:'right',tier:'Small',price:200,u:0.405,v:0.355,uw:0.12,vh:0.07,copy:'Compact lower cargo-panel placement.'},
   {id:'SM4',view:'right',tier:'Small',price:200,u:0.545,v:0.355,uw:0.12,vh:0.07,copy:'Compact lower cargo-panel placement.'},
-  {id:'M5',view:'rear',tier:'Medium',price:400,u:0.36,v:0.765,uw:0.2,vh:0.13,copy:'Upper-left rear-door sticker.'},
-  {id:'M6',view:'rear',tier:'Medium',price:400,u:0.64,v:0.765,uw:0.2,vh:0.13,copy:'Upper-right rear-door sticker.'},
-  {id:'SM5',view:'rear',tier:'Small',price:200,u:0.3,v:0.625,uw:0.095,vh:0.085,copy:'Lower-left rear-door sticker.'},
-  {id:'SM6',view:'rear',tier:'Small',price:200,u:0.42,v:0.625,uw:0.095,vh:0.085,copy:'Lower-left-center rear-door sticker.'},
-  {id:'SM7',view:'rear',tier:'Small',price:200,u:0.58,v:0.625,uw:0.095,vh:0.085,copy:'Lower-right-center rear-door sticker.'},
-  {id:'SM8',view:'rear',tier:'Small',price:200,u:0.7,v:0.625,uw:0.095,vh:0.085,copy:'Lower-right rear-door sticker.'}
+  {id:'M5',view:'rear',tier:'Medium',price:400,u:0.64,v:0.765,uw:0.2,vh:0.13,copy:'Upper-left rear-door sticker.'},
+  {id:'M6',view:'rear',tier:'Medium',price:400,u:0.36,v:0.765,uw:0.2,vh:0.13,copy:'Upper-right rear-door sticker.'},
+  {id:'SM5',view:'rear',tier:'Small',price:200,u:0.7,v:0.625,uw:0.095,vh:0.085,copy:'Lower-left rear-door sticker.'},
+  {id:'SM6',view:'rear',tier:'Small',price:200,u:0.58,v:0.625,uw:0.095,vh:0.085,copy:'Lower-left-center rear-door sticker.'},
+  {id:'SM7',view:'rear',tier:'Small',price:200,u:0.42,v:0.625,uw:0.095,vh:0.085,copy:'Lower-right-center rear-door sticker.'},
+  {id:'SM8',view:'rear',tier:'Small',price:200,u:0.3,v:0.625,uw:0.095,vh:0.085,copy:'Lower-right rear-door sticker.'}
 ];
 
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
@@ -80,38 +80,126 @@ function buildGarage(){
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(1,72),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.23,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.008;shadow.scale.set(Math.max(size.x*.58,1.4),Math.max(size.z*.72,.8),1);garageGroup.add(shadow);garageGroup.visible=false;
 }
 function setEnvironmentMode(garage){if(garageGroup)garageGroup.visible=garage;floor.visible=!garage;scene.background.set(garage?0x1b1e22:0xf7f6f1);hemi.intensity=garage?1.45:3.1;key.intensity=garage?3.8:3.2;fill.intensity=garage?1.8:1.3;renderer.toneMappingExposure=garage?1.08:1.15}
-function setGroupVisibility(view){for(const k of['left','right','rear'])if(viewGroups[k])viewGroups[k].visible=k===view}
+function setGroupVisibility(view){for(const k of['left','right','rear'])if(viewGroups[k])viewGroups[k].visible=view==='free'||k===view}
 function setFixedView(view,instant=false){if(!modelBox)return;currentView=view;setEnvironmentMode(false);controls.enableRotate=false;controls.enableZoom=false;controls.enablePan=false;controls.autoRotate=false;freeMessage.style.display='none';zoneLayer.style.display='none';setGroupVisibility(view);const pose=cameraPose(view);if(instant){camera.position.copy(pose.pos);controls.target.copy(pose.target);controls.update()}else animateCamera(pose.pos,pose.target);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view===view));const count=SPOTS.filter(s=>s.view===view).length;viewLabel.textContent=`${view.toUpperCase()} · ${count} AVAILABLE SPOTS`;viewLabel.style.display='block';if(viewerTip){viewerTip.textContent='Tap a spot to see price';viewerTip.style.display='block'}closePanel()}
-function setFreeView(){currentView='free';setEnvironmentMode(true);zoneLayer.style.display='none';setGroupVisibility('none');viewLabel.style.display='none';freeMessage.style.display='block';if(viewerTip)viewerTip.style.display='none';controls.enableRotate=true;controls.enableZoom=true;controls.enablePan=false;const c=modelBox.getCenter(new THREE.Vector3()),size=modelBox.getSize(new THREE.Vector3()),d=fitDistance('left')*.90,p=c.clone();p[wideAxis]+=d*.66;p[longAxis]+=d*.66;p.y+=size.y*.20;controls.minDistance=d*.50;controls.maxDistance=d*1.10;animateCamera(p,c,460);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view==='free'));closePanel()}
+function setFreeView(){currentView='free';setEnvironmentMode(true);zoneLayer.style.display='none';setGroupVisibility('free');viewLabel.style.display='none';freeMessage.style.display='block';if(viewerTip)viewerTip.style.display='none';controls.enableRotate=true;controls.enableZoom=true;controls.enablePan=false;const c=modelBox.getCenter(new THREE.Vector3()),size=modelBox.getSize(new THREE.Vector3()),d=fitDistance('left')*.90,p=c.clone();p[wideAxis]+=d*.66;p[longAxis]+=d*.66;p.y+=size.y*.20;controls.minDistance=d*.50;controls.maxDistance=d*1.10;animateCamera(p,c,460);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view==='free'));closePanel()}
 
 function sampleSurface(view,u,v,{strict=true}={}){if(!model||!modelBox)return null;const cfg=viewConfig(view),size=modelBox.getSize(new THREE.Vector3()),origin=modelBox.getCenter(new THREE.Vector3());origin[cfg.hAxis]=modelBox.min[cfg.hAxis]+u*size[cfg.hAxis];origin.y=modelBox.min.y+v*size.y;const margin=Math.max(.35,size[cfg.rayAxis]*.12);origin[cfg.rayAxis]=cfg.out[cfg.rayAxis]>0?modelBox.max[cfg.rayAxis]+margin:modelBox.min[cfg.rayAxis]-margin;const dir=cfg.out.clone().multiplyScalar(-1);modelRaycaster.set(origin,dir);modelRaycaster.far=size[cfg.rayAxis]*1.6;const hits=modelRaycaster.intersectObject(model,true);for(const hit of hits){if(!hit.face)continue;const n=hit.face.normal.clone().applyMatrix3(new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld)).normalize(),facing=n.dot(cfg.out);// Only the first visible surface can receive a sticker; never project through glass or trim.
 if(strict&&(facing<.62||hit.object.material?.name!=='Textures_Body_1'))return null;return{point:hit.point.clone(),normal:n,distance:hit.distance,object:hit.object}}return null}
-function createSurfacePatch(view,{u0,u1,v0,v1,nx=18,ny=12,material,autoMask=true,offset=.006,erode=1}){const cfg=viewConfig(view),samples=[];for(let y=0;y<=ny;y++){samples[y]=[];for(let x=0;x<=nx;x++){const u=u0+(u1-u0)*(x/nx),v=v0+(v1-v0)*(y/ny);samples[y][x]=sampleSurface(view,u,v,{strict:autoMask})}}if(autoMask){const distances=[];for(const row of samples)for(const s of row)if(s)distances.push(s.distance);distances.sort((a,b)=>a-b);const median=distances.length?distances[Math.floor(distances.length/2)]:0,size=modelBox.getSize(new THREE.Vector3()),depthTol=Math.max(.022,size[cfg.rayAxis]*.022);for(let y=0;y<=ny;y++)for(let x=0;x<=nx;x++)if(samples[y][x]&&Math.abs(samples[y][x].distance-median)>depthTol)samples[y][x]=null;for(let pass=0;pass<erode;pass++){const ok=samples.map(r=>r.map(Boolean));for(let y=1;y<ny;y++)for(let x=1;x<nx;x++){if(!ok[y][x]){samples[y][x]=null;continue}let keep=true;for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if(!ok[y+yy]?.[x+xx])keep=false;if(!keep)samples[y][x]=null}}}const verts=[],uvs=[],grid=[];for(let y=0;y<=ny;y++){grid[y]=[];for(let x=0;x<=nx;x++){const s=samples[y][x];if(!s){grid[y][x]=-1;continue}const p=s.point.clone().addScaledVector(s.normal,offset);grid[y][x]=verts.length/3;verts.push(p.x,p.y,p.z);uvs.push(cfg.flipU?1-x/nx:x/nx,y/ny)}}const tangent=axisVector(cfg.hAxis,1),up=new THREE.Vector3(0,1,0),basis=tangent.clone().cross(up),front=basis.dot(cfg.out)>0,idx=[];for(let y=0;y<ny;y++)for(let x=0;x<nx;x++){const a=grid[y][x],b=grid[y][x+1],c=grid[y+1][x],d=grid[y+1][x+1];if(a>=0&&b>=0&&c>=0)idx.push(...(front?[a,b,c]:[a,c,b]));if(b>=0&&d>=0&&c>=0)idx.push(...(front?[b,d,c]:[b,c,d]))}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));g.setIndex(idx);g.computeVertexNormals();const mesh=new THREE.Mesh(g,material);mesh.renderOrder=20;return mesh}
+// Clip the ORIGINAL body triangles, retaining their positions and smooth normals.
+// A sampled grid can bridge grooves or sink inside curved panels between samples.
+function createSurfacePatch(view,{u0,u1,v0,v1,material,offset=.0005}){
+  const cfg=viewConfig(view),size=modelBox.getSize(new THREE.Vector3());
+  const horizontalMin=modelBox.min[cfg.hAxis]+u0*size[cfg.hAxis];
+  const horizontalMax=modelBox.min[cfg.hAxis]+u1*size[cfg.hAxis];
+  const bottom=modelBox.min.y+v0*size.y,top=modelBox.min.y+v1*size.y;
+  const surfaceDepths=[];
+  for(let y=0;y<=4;y++)for(let x=0;x<=4;x++){
+    const sample=sampleSurface(view,u0+(u1-u0)*x/4,v0+(v1-v0)*y/4);
+    if(sample)surfaceDepths.push(sample.point[cfg.rayAxis]);
+  }
+  if(!surfaceDepths.length)throw new Error(`No printable body surface for ${view}`);
+  const planes=[
+    [cfg.hAxis,horizontalMin,1],[cfg.hAxis,horizontalMax,-1],
+    ['y',bottom,1],['y',top,-1],
+    [cfg.rayAxis,Math.min(...surfaceDepths)-.008,1],
+    [cfg.rayAxis,Math.max(...surfaceDepths)+.008,-1]
+  ];
+  function clipPolygon(vertices,axis,limit,sign){
+    const result=[];
+    for(let i=0;i<vertices.length;i++){
+      const a=vertices[i],b=vertices[(i+1)%vertices.length];
+      const da=(a.p[axis]-limit)*sign,db=(b.p[axis]-limit)*sign;
+      if(da>=0)result.push(a);
+      if((da>=0)!==(db>=0)){
+        const t=da/(da-db);
+        result.push({p:a.p.clone().lerp(b.p,t),n:a.n.clone().lerp(b.n,t).normalize()});
+      }
+    }
+    return result;
+  }
+  const positions=[],normals=[],uvs=[];
+  const emit=vertex=>{
+    const p=vertex.p.clone().addScaledVector(vertex.n,offset);
+    positions.push(p.x,p.y,p.z);normals.push(vertex.n.x,vertex.n.y,vertex.n.z);
+    const u=(vertex.p[cfg.hAxis]-horizontalMin)/(horizontalMax-horizontalMin);
+    uvs.push(cfg.flipU?1-u:u,(vertex.p.y-bottom)/(top-bottom));
+  };
+  model.traverse(object=>{
+    if(!object.isMesh||object.material?.name!=='Textures_Body_1')return;
+    const geometry=object.geometry,position=geometry.attributes.position,normal=geometry.attributes.normal,index=geometry.index;
+    const normalMatrix=new THREE.Matrix3().getNormalMatrix(object.matrixWorld);
+    for(let i=0,count=index?index.count:position.count;i<count;i+=3){
+      let polygon=[];
+      for(let j=0;j<3;j++){
+        const k=index?index.getX(i+j):i+j;
+        polygon.push({p:new THREE.Vector3().fromBufferAttribute(position,k).applyMatrix4(object.matrixWorld),n:new THREE.Vector3().fromBufferAttribute(normal,k).applyMatrix3(normalMatrix).normalize()});
+      }
+      const faceNormal=new THREE.Vector3().subVectors(polygon[1].p,polygon[0].p).cross(new THREE.Vector3().subVectors(polygon[2].p,polygon[0].p)).normalize();
+      if(faceNormal.dot(cfg.out)<.25)continue;
+      for(const [axis,limit,sign] of planes){polygon=clipPolygon(polygon,axis,limit,sign);if(polygon.length<3)break;}
+      if(polygon.length<3)continue;
+      for(let j=1;j<polygon.length-1;j++){
+        emit(polygon[0]);emit(polygon[j]);emit(polygon[j+1]);
+      }
+    }
+  });
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  geometry.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
+  geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
+  geometry.computeBoundingSphere();
+  return new THREE.Mesh(geometry,material);
+}
 function makeSpotTexture(spot,selected=false){
   // Match the texture to the physical patch so labels keep their proportions.
   const size=modelBox.getSize(new THREE.Vector3()),cfg=viewConfig(spot.view);
   const aspect=(spot.uw*size[cfg.hAxis])/(spot.vh*size.y);
   const c=document.createElement('canvas');c.width=1024;c.height=Math.round(1024/aspect);
   const ctx=c.getContext('2d'),w=c.width,h=c.height,pad=Math.min(w,h)*.055;
-  ctx.fillStyle=selected?'rgba(220,255,41,.86)':'rgba(255,255,255,.82)';
-  ctx.fillRect(pad,pad,w-2*pad,h-2*pad);
-  ctx.strokeStyle=selected?'#111111':'#e53a3f';ctx.lineWidth=Math.min(w,h)*.028;
-  ctx.strokeRect(pad,pad,w-2*pad,h-2*pad);
+  ctx.beginPath();ctx.roundRect(pad,pad,w-2*pad,h-2*pad,pad*.7);
+  ctx.fillStyle=selected?'#dcff29':'#f8f8f5';ctx.fill();
+  ctx.strokeStyle=selected?'#111111':'#6f7476';ctx.lineWidth=Math.min(w,h)*.012;ctx.stroke();
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#111111';
   const fontSize=Math.min(h*.29,w*.21);
   ctx.font=`900 ${fontSize}px Arial`;ctx.fillText(spot.id,w/2,h*.34);
   ctx.font=`700 ${fontSize*.86}px Arial`;ctx.fillText(money(spot.price),w/2,h*.70);
   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());t.needsUpdate=true;return t;
 }
-function buildSpotMesh(spot){const material=new THREE.MeshBasicMaterial({map:makeSpotTexture(spot,false),transparent:true,opacity:.98,depthWrite:false,side:THREE.DoubleSide});material.userData.normalMap=material.map;material.userData.selectedMap=makeSpotTexture(spot,true);const mesh=createSurfacePatch(spot.view,{u0:spot.u-spot.uw/2,u1:spot.u+spot.uw/2,v0:spot.v-spot.vh/2,v1:spot.v+spot.vh/2,nx:spot.tier==='Small'?14:20,ny:spot.tier==='Small'?10:14,material,autoMask:true,offset:.003,erode:0});mesh.name=`spot-${spot.id}`;mesh.userData.spot=spot;mesh.renderOrder=30;return mesh}
+function buildSpotMesh(spot){
+  // Satin vinyl: it receives the same light as the paint instead of glowing flat.
+  const material=new THREE.MeshStandardMaterial({map:makeSpotTexture(spot,false),roughness:.62,metalness:0,transparent:true,alphaTest:.08,depthWrite:false,side:THREE.FrontSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+  material.userData.normalMap=material.map;material.userData.selectedMap=makeSpotTexture(spot,true);
+  const mesh=createSurfacePatch(spot.view,{u0:spot.u-spot.uw/2,u1:spot.u+spot.uw/2,v0:spot.v-spot.vh/2,v1:spot.v+spot.vh/2,material});
+  mesh.name=`spot-${spot.id}`;mesh.userData.spot=spot;mesh.renderOrder=30;return mesh;
+}
 function buildViewGroups(){for(const view of['left','right','rear']){const group=new THREE.Group();group.name=`${view}-sponsor-spots`;scene.add(group);viewGroups[view]=group;viewSpotMeshes[view]=[];for(const spot of SPOTS.filter(s=>s.view===view)){const mesh=buildSpotMesh(spot);viewSpotMeshes[view].push(mesh);group.add(mesh)}group.visible=false}}
 function resetSpotTextures(){for(const view of['left','right','rear'])for(const m of viewSpotMeshes[view])if(m.material?.userData?.normalMap){m.material.map=m.material.userData.normalMap;m.material.needsUpdate=true}}
 function selectSpot(spot){selectedId=spot.id;resetSpotTextures();const mesh=viewSpotMeshes[spot.view].find(m=>m.userData.spot?.id===spot.id);if(mesh?.material?.userData?.selectedMap){mesh.material.map=mesh.material.userData.selectedMap;mesh.material.needsUpdate=true}panelTier.textContent=`${spot.tier} · ${spot.view.toUpperCase()} · ${spot.id}`;panelName.textContent=`Spot ${spot.id}`;panelPrice.textContent=money(spot.price);panelCopy.textContent=`${spot.copy} Your logo is displayed here for the 12-month campaign.`;panelClaim.textContent=`Reserve ${spot.id} — ${money(spot.price)}`;panelClaim.href=`https://x.com/THEFOFOSHOW?brandmyvan=${encodeURIComponent(spot.id)}`;panel.hidden=false;if(viewerTip)viewerTip.style.display='none'}
 function closePanel(){selectedId=null;panel.hidden=true;resetSpotTextures();if(viewerTip&&currentView!=='free')viewerTip.style.display='block'}
 function setPointer(e){const r=canvas.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1}
-function interactiveMeshes(){return currentView==='free'?[]:viewSpotMeshes[currentView]||[]}
-canvas.addEventListener('pointermove',e=>{const meshes=interactiveMeshes();if(!meshes.length){canvas.style.cursor='';return}setPointer(e);clickRaycaster.setFromCamera(pointer,camera);canvas.style.cursor=clickRaycaster.intersectObjects(meshes,false).length?'pointer':''});
-canvas.addEventListener('click',e=>{const meshes=interactiveMeshes();if(!meshes.length)return;setPointer(e);clickRaycaster.setFromCamera(pointer,camera);const hits=clickRaycaster.intersectObjects(meshes,false);if(hits.length)selectSpot(hits[0].object.userData.spot)});
+function interactiveMeshes(){return currentView==='free'?Object.values(viewSpotMeshes).flat():viewSpotMeshes[currentView]||[]}
+function pickSpot(e){
+  if(tween)return null;
+  setPointer(e);clickRaycaster.setFromCamera(pointer,camera);
+  const hit=clickRaycaster.intersectObjects(interactiveMeshes(),false)[0];
+  if(!hit)return null;
+  const bodyHit=clickRaycaster.intersectObject(model,true)[0];
+  // The far-side stickers must never be clickable through the van.
+  if(bodyHit&&bodyHit.distance+.002<hit.distance)return null;
+  return hit.object.userData.spot;
+}
+let pointerStart=null,pointerDragged=false;
+canvas.addEventListener('pointerdown',e=>{pointerStart={x:e.clientX,y:e.clientY};pointerDragged=false});
+canvas.addEventListener('pointercancel',()=>{pointerStart=null;pointerDragged=true});
+canvas.addEventListener('pointermove',e=>{
+  if(pointerStart&&e.buttons&&Math.hypot(e.clientX-pointerStart.x,e.clientY-pointerStart.y)>5)pointerDragged=true;
+  canvas.style.cursor=pickSpot(e)?'pointer':currentView==='free'?'grab':'';
+});
+canvas.addEventListener('click',e=>{
+  if(pointerDragged){pointerStart=null;return;}
+  const spot=pickSpot(e);if(spot)selectSpot(spot);pointerStart=null;
+});
 panelClose?.addEventListener('click',closePanel);viewButtons.forEach(btn=>btn.addEventListener('click',()=>btn.dataset.view==='free'?setFreeView():setFixedView(btn.dataset.view)));resetBtn?.addEventListener('click',()=>currentView==='free'?setFreeView():setFixedView(currentView));window.addEventListener('resize',()=>{if(modelBox&&currentView!=='free')setFixedView(currentView,true)});
 renderer.setAnimationLoop(()=>{resize();updateTween();controls.update();renderer.render(scene,camera)});
 async function boot(){try{const gltf=await new GLTFLoader().loadAsync('./van-realistic.glb');model=gltf.scene;const rawBox=new THREE.Box3().setFromObject(model),rawSize=rawBox.getSize(new THREE.Vector3()),rawCenter=rawBox.getCenter(new THREE.Vector3()),scale=4.75/Math.max(rawSize.x,rawSize.y,rawSize.z),origin=new THREE.Vector3(rawCenter.x,rawBox.min.y,rawCenter.z);model.scale.setScalar(scale);model.position.copy(origin).multiplyScalar(-scale);scene.add(model);scene.updateMatrixWorld(true);modelBox=new THREE.Box3().setFromObject(model);const size=modelBox.getSize(new THREE.Vector3());longAxis=size.x>=size.z?'x':'z';wideAxis=longAxis==='x'?'z':'x';buildGarage();buildViewGroups();setEnvironmentMode(false);setFixedView('left',true)}catch(err){console.error(err);viewLabel.textContent='3D MODEL UNAVAILABLE';zoneLayer.style.display='none'}}
