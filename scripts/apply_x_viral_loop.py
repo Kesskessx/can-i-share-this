@@ -23,11 +23,17 @@ SCRIPT = r"""
   function track(event,resultId,parentResultId){
     try{api('viral-event',{event:event,resultId:resultId||null,parentResultId:parentResultId||null},true).catch(function(){})}catch(_){}
   }
-  function intent(url,summary){
+  function shareText(summary){
     var verdict=String(summary&&summary.verdict||'unknown');
-    var lead=verdict==='high'?'Would you open this?':verdict==='caution'?'Would you trust this?':'I checked this before opening it.';
-    var headline=String(summary&&summary.headline||'Can I Share This? scan result');
-    return 'https://twitter.com/intent/tweet?text='+encodeURIComponent(lead+' '+headline)+'&url='+encodeURIComponent(url);
+    var reasons=Array.isArray(summary&&summary.reasons)?summary.reasons:[];
+    var n=reasons.length,plural=n===1?'':'s';
+    if(verdict==='high')return '⚠️ Would you open this?\n\nCan I Share This? found '+(n||'multiple')+' warning signal'+(n===1?'':'s')+'.';
+    if(verdict==='caution')return '👀 Would you trust this?\n\n'+(n||'Some')+' signal'+plural+' need verification.';
+    if(verdict==='low')return '🔎 I checked this before opening it.\n\nNo major warning found'+(n?' · '+n+' signal'+plural+' reviewed':'')+'.\nWould you trust it?';
+    return '🔎 I checked this before opening it.\n\nThe result was incomplete. Would you trust it?';
+  }
+  function intent(url,summary){
+    return 'https://x.com/intent/tweet?text='+encodeURIComponent(shareText(summary))+'&url='+encodeURIComponent(url);
   }
   async function createShare(summary,parentResultId){
     var response=await api('share-result',{summary:summary,parentResultId:parentResultId||null},false);
@@ -45,7 +51,7 @@ SCRIPT = r"""
     var result=window.cistMegaLastResult;if(!result||!result.shareSummary||button.disabled)return;
     var popup=window.open('about:blank','_blank');if(popup)try{popup.opener=null}catch(_){}
     button.disabled=true;button.textContent='Preparing X post…';
-    try{var shared=await createShare(result.shareSummary,null);track('share_x',shared.id,null);var target=intent(shared.url,result.shareSummary);if(popup)popup.location.replace(target);else window.open(target,'_blank','noopener,noreferrer');button.textContent='Shared on X'}
+    try{var shared=await createShare(result.shareSummary,null);track('share_x',shared.id,null);var target=intent(shared.url,result.shareSummary);if(popup)popup.location.replace(target);else window.open(target,'_blank','noopener,noreferrer');button.textContent='Posted on X'}
     catch(error){if(popup)popup.close();button.textContent='Share on X'}
     finally{setTimeout(function(){button.disabled=false;button.textContent='Share on X'},1400)}
   },true);
