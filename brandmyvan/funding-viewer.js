@@ -18,26 +18,26 @@ const panelClaim=document.getElementById('spotPanelClaim');
 const panelClose=document.getElementById('spotPanelClose');
 
 const SPOTS=[
-  {id:'S1',view:'left',tier:'Signature',price:1500,u:0.475,v:0.52,uw:0.27,vh:0.22,copy:'Main left cargo-panel placement.'},
-  {id:'L1',view:'left',tier:'Large',price:750,u:0.2,v:0.735,uw:0.18,vh:0.14,copy:'Upper rear cargo-panel placement, clear of windows and handles.'},
-  {id:'L2',view:'left',tier:'Large',price:750,u:0.2,v:0.51,uw:0.18,vh:0.2,copy:'Rear cargo-panel placement above the wheel area.'},
-  {id:'M1',view:'left',tier:'Medium',price:400,u:0.545,v:0.71,uw:0.12,vh:0.1,copy:'Upper cargo-panel placement.'},
-  {id:'M2',view:'left',tier:'Medium',price:400,u:0.405,v:0.71,uw:0.12,vh:0.1,copy:'Upper cargo-panel placement.'},
-  {id:'SM1',view:'left',tier:'Small',price:200,u:0.545,v:0.355,uw:0.12,vh:0.07,copy:'Compact lower cargo-panel placement.'},
-  {id:'SM2',view:'left',tier:'Small',price:200,u:0.405,v:0.355,uw:0.12,vh:0.07,copy:'Compact lower cargo-panel placement.'},
-  {id:'S2',view:'right',tier:'Signature',price:1500,u:0.475,v:0.52,uw:0.27,vh:0.22,copy:'Main right cargo-panel placement.'},
-  {id:'L3',view:'right',tier:'Large',price:750,u:0.2,v:0.51,uw:0.18,vh:0.2,copy:'Rear cargo-panel placement above the wheel area.'},
-  {id:'L4',view:'right',tier:'Large',price:750,u:0.2,v:0.735,uw:0.18,vh:0.14,copy:'Upper rear cargo-panel placement, clear of windows and handles.'},
-  {id:'M3',view:'right',tier:'Medium',price:400,u:0.405,v:0.71,uw:0.12,vh:0.1,copy:'Upper cargo-panel placement.'},
-  {id:'M4',view:'right',tier:'Medium',price:400,u:0.545,v:0.71,uw:0.12,vh:0.1,copy:'Upper cargo-panel placement.'},
-  {id:'SM3',view:'right',tier:'Small',price:200,u:0.405,v:0.355,uw:0.12,vh:0.07,copy:'Compact lower cargo-panel placement.'},
-  {id:'SM4',view:'right',tier:'Small',price:200,u:0.545,v:0.355,uw:0.12,vh:0.07,copy:'Compact lower cargo-panel placement.'},
-  {id:'M5',view:'rear',tier:'Medium',price:400,u:0.64,v:0.765,uw:0.2,vh:0.13,copy:'Upper-left rear-door sticker.'},
-  {id:'M6',view:'rear',tier:'Medium',price:400,u:0.36,v:0.765,uw:0.2,vh:0.13,copy:'Upper-right rear-door sticker.'},
-  {id:'SM5',view:'rear',tier:'Small',price:200,u:0.7,v:0.625,uw:0.095,vh:0.085,copy:'Lower-left rear-door sticker.'},
-  {id:'SM6',view:'rear',tier:'Small',price:200,u:0.58,v:0.625,uw:0.095,vh:0.085,copy:'Lower-left-center rear-door sticker.'},
-  {id:'SM7',view:'rear',tier:'Small',price:200,u:0.42,v:0.625,uw:0.095,vh:0.085,copy:'Lower-right-center rear-door sticker.'},
-  {id:'SM8',view:'rear',tier:'Small',price:200,u:0.3,v:0.625,uw:0.095,vh:0.085,copy:'Lower-right rear-door sticker.'}
+  {id:'S1',edge:'cargo-front',view:'left',tier:'Signature',price:1500,u:0.455,v:0.66,uw:0.21,vh:0.24,copy:'Main left cargo-panel placement.'},
+  {id:'L1',edge:'cargo-rear',view:'left',tier:'Large',price:750,u:0.14,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, inside the outer panel edge.'},
+  {id:'L2',view:'left',tier:'Large',price:750,u:0.265,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, clear of the vertical panel joint.'},
+  {id:'M1',view:'left',tier:'Medium',price:400,u:0.52,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
+  {id:'M2',view:'left',tier:'Medium',price:400,u:0.4,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
+  {id:'SM1',view:'left',tier:'Small',price:200,u:0.14,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
+  {id:'SM2',view:'left',tier:'Small',price:200,u:0.265,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
+  {id:'S2',edge:'cargo-front',view:'right',tier:'Signature',price:1500,u:0.455,v:0.66,uw:0.21,vh:0.24,copy:'Main right cargo-panel placement.'},
+  {id:'L3',view:'right',tier:'Large',price:750,u:0.265,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, clear of the vertical panel joint.'},
+  {id:'L4',edge:'cargo-rear',view:'right',tier:'Large',price:750,u:0.14,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, inside the outer panel edge.'},
+  {id:'M3',view:'right',tier:'Medium',price:400,u:0.4,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
+  {id:'M4',view:'right',tier:'Medium',price:400,u:0.52,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
+  {id:'SM3',view:'right',tier:'Small',price:200,u:0.265,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
+  {id:'SM4',view:'right',tier:'Small',price:200,u:0.14,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
+  {id:'M5',view:'rear',tier:'Medium',price:400,u:0.65,v:0.73,uw:0.22,vh:0.12,copy:'Upper-left rear-door sticker.'},
+  {id:'M6',view:'rear',tier:'Medium',price:400,u:0.35,v:0.73,uw:0.22,vh:0.12,copy:'Upper-right rear-door sticker.'},
+  {id:'SM5',view:'rear',tier:'Small',price:200,u:0.7,v:0.59,uw:0.095,vh:0.07,copy:'Lower-left rear-door sticker.'},
+  {id:'SM6',view:'rear',tier:'Small',price:200,u:0.58,v:0.59,uw:0.095,vh:0.07,copy:'Lower-left-center rear-door sticker.'},
+  {id:'SM7',view:'rear',tier:'Small',price:200,u:0.42,v:0.59,uw:0.095,vh:0.07,copy:'Lower-right-center rear-door sticker.'},
+  {id:'SM8',view:'rear',tier:'Small',price:200,u:0.3,v:0.59,uw:0.095,vh:0.07,copy:'Lower-right rear-door sticker.'}
 ];
 
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
@@ -86,9 +86,16 @@ function setFreeView(){currentView='free';setEnvironmentMode(true);zoneLayer.sty
 
 function sampleSurface(view,u,v,{strict=true}={}){if(!model||!modelBox)return null;const cfg=viewConfig(view),size=modelBox.getSize(new THREE.Vector3()),origin=modelBox.getCenter(new THREE.Vector3());origin[cfg.hAxis]=modelBox.min[cfg.hAxis]+u*size[cfg.hAxis];origin.y=modelBox.min.y+v*size.y;const margin=Math.max(.35,size[cfg.rayAxis]*.12);origin[cfg.rayAxis]=cfg.out[cfg.rayAxis]>0?modelBox.max[cfg.rayAxis]+margin:modelBox.min[cfg.rayAxis]-margin;const dir=cfg.out.clone().multiplyScalar(-1);modelRaycaster.set(origin,dir);modelRaycaster.far=size[cfg.rayAxis]*1.6;const hits=modelRaycaster.intersectObject(model,true);for(const hit of hits){if(!hit.face)continue;const n=hit.face.normal.clone().applyMatrix3(new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld)).normalize(),facing=n.dot(cfg.out);// Only the first visible surface can receive a sticker; never project through glass or trim.
 if(strict&&(facing<.62||hit.object.material?.name!=='Textures_Body_1'))return null;return{point:hit.point.clone(),normal:n,distance:hit.distance,object:hit.object}}return null}
+// Contours are inset from the stamped cargo recesses visible in this GLB.
+// Coordinates stay in panel space so the artwork itself is never skewed.
+function panelOutline(spot){
+  if(spot.edge==='cargo-front')return [[0,0],[.87,0],[.95,.06],[1,.20],[1,.93],[.94,1],[0,1]];
+  if(spot.edge==='cargo-rear')return [[0,0],[1,0],[1,1],[.14,1],[0,.88]];
+  return [[0,0],[1,0],[1,1],[0,1]];
+}
 // Clip the ORIGINAL body triangles, retaining their positions and smooth normals.
 // A sampled grid can bridge grooves or sink inside curved panels between samples.
-function createSurfacePatch(view,{u0,u1,v0,v1,material,offset=.0005}){
+function createSurfacePatch(view,{u0,u1,v0,v1,material,outline=[[0,0],[1,0],[1,1],[0,1]],offset=.0005}){
   const cfg=viewConfig(view),size=modelBox.getSize(new THREE.Vector3());
   const horizontalMin=modelBox.min[cfg.hAxis]+u0*size[cfg.hAxis];
   const horizontalMax=modelBox.min[cfg.hAxis]+u1*size[cfg.hAxis];
@@ -105,11 +112,11 @@ function createSurfacePatch(view,{u0,u1,v0,v1,material,offset=.0005}){
     [cfg.rayAxis,Math.min(...surfaceDepths)-.008,1],
     [cfg.rayAxis,Math.max(...surfaceDepths)+.008,-1]
   ];
-  function clipPolygon(vertices,axis,limit,sign){
+  function clipPolygon(vertices,signedDistance){
     const result=[];
     for(let i=0;i<vertices.length;i++){
       const a=vertices[i],b=vertices[(i+1)%vertices.length];
-      const da=(a.p[axis]-limit)*sign,db=(b.p[axis]-limit)*sign;
+      const da=signedDistance(a.p),db=signedDistance(b.p);
       if(da>=0)result.push(a);
       if((da>=0)!==(db>=0)){
         const t=da/(da-db);
@@ -137,7 +144,14 @@ function createSurfacePatch(view,{u0,u1,v0,v1,material,offset=.0005}){
       }
       const faceNormal=new THREE.Vector3().subVectors(polygon[1].p,polygon[0].p).cross(new THREE.Vector3().subVectors(polygon[2].p,polygon[0].p)).normalize();
       if(faceNormal.dot(cfg.out)<.25)continue;
-      for(const [axis,limit,sign] of planes){polygon=clipPolygon(polygon,axis,limit,sign);if(polygon.length<3)break;}
+      for(const [axis,limit,sign] of planes){polygon=clipPolygon(polygon,p=>(p[axis]-limit)*sign);if(polygon.length<3)break;}
+      for(let edge=0;edge<outline.length&&polygon.length>=3;edge++){
+        const a=outline[edge],b=outline[(edge+1)%outline.length];
+        polygon=clipPolygon(polygon,p=>{
+          const u=(p[cfg.hAxis]-horizontalMin)/(horizontalMax-horizontalMin),v=(p.y-bottom)/(top-bottom);
+          return (b[0]-a[0])*(v-a[1])-(b[1]-a[1])*(u-a[0]);
+        });
+      }
       if(polygon.length<3)continue;
       for(let j=1;j<polygon.length-1;j++){
         emit(polygon[0]);emit(polygon[j]);emit(polygon[j+1]);
@@ -157,7 +171,18 @@ function makeSpotTexture(spot,selected=false){
   const aspect=(spot.uw*size[cfg.hAxis])/(spot.vh*size.y);
   const c=document.createElement('canvas');c.width=1024;c.height=Math.round(1024/aspect);
   const ctx=c.getContext('2d'),w=c.width,h=c.height,pad=Math.min(w,h)*.055;
-  ctx.beginPath();ctx.roundRect(pad,pad,w-2*pad,h-2*pad,pad*.7);
+  const contour=panelOutline(spot).map(([u,v])=>[pad+(cfg.flipU?1-u:u)*(w-2*pad),pad+(1-v)*(h-2*pad)]);
+  // Round only the print corners; the silhouette remains parallel to the recess.
+  ctx.beginPath();
+  for(let i=0;i<contour.length;i++){
+    const prev=contour[(i+contour.length-1)%contour.length],point=contour[i],next=contour[(i+1)%contour.length];
+    const r=pad*.45,d1=Math.hypot(prev[0]-point[0],prev[1]-point[1]),d2=Math.hypot(next[0]-point[0],next[1]-point[1]);
+    const before=[point[0]+(prev[0]-point[0])*r/d1,point[1]+(prev[1]-point[1])*r/d1];
+    const after=[point[0]+(next[0]-point[0])*r/d2,point[1]+(next[1]-point[1])*r/d2];
+    if(i===0)ctx.moveTo(...before);else ctx.lineTo(...before);
+    ctx.quadraticCurveTo(point[0],point[1],after[0],after[1]);
+  }
+  ctx.closePath();
   ctx.fillStyle=selected?'#dcff29':'#f8f8f5';ctx.fill();
   ctx.strokeStyle=selected?'#111111':'#6f7476';ctx.lineWidth=Math.min(w,h)*.012;ctx.stroke();
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#111111';
@@ -170,7 +195,7 @@ function buildSpotMesh(spot){
   // Satin vinyl: it receives the same light as the paint instead of glowing flat.
   const material=new THREE.MeshStandardMaterial({map:makeSpotTexture(spot,false),roughness:.62,metalness:0,transparent:true,alphaTest:.08,depthWrite:false,side:THREE.FrontSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
   material.userData.normalMap=material.map;material.userData.selectedMap=makeSpotTexture(spot,true);
-  const mesh=createSurfacePatch(spot.view,{u0:spot.u-spot.uw/2,u1:spot.u+spot.uw/2,v0:spot.v-spot.vh/2,v1:spot.v+spot.vh/2,material});
+  const mesh=createSurfacePatch(spot.view,{u0:spot.u-spot.uw/2,u1:spot.u+spot.uw/2,v0:spot.v-spot.vh/2,v1:spot.v+spot.vh/2,material,outline:panelOutline(spot)});
   mesh.name=`spot-${spot.id}`;mesh.userData.spot=spot;mesh.renderOrder=30;return mesh;
 }
 function buildViewGroups(){for(const view of['left','right','rear']){const group=new THREE.Group();group.name=`${view}-sponsor-spots`;scene.add(group);viewGroups[view]=group;viewSpotMeshes[view]=[];for(const spot of SPOTS.filter(s=>s.view===view)){const mesh=buildSpotMesh(spot);viewSpotMeshes[view].push(mesh);group.add(mesh)}group.visible=false}}
