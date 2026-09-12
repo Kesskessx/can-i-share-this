@@ -1,5 +1,5 @@
 {
-  "buildCommand": "bash build.sh && python3 scripts/apply_x_viral_loop.py && python3 scripts/patch_og_node_require.py",
+  "buildCommand": "bash build.sh && python3 scripts/apply_x_viral_loop.py",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
