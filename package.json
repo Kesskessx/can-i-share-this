@@ -1,0 +1,9 @@
+{
+  "name": "can-i-share-this",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "@vercel/og": "1.0.2",
+    "react": "19.3.0"
+  }
+}
