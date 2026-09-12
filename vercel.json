@@ -1,10 +1,12 @@
 {
-  "buildCommand": "bash build.sh",
+  "buildCommand": "bash build.sh && python3 scripts/apply_viral_share_v1.py",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    {"source": "/api/python-scan", "destination": "/api/python_scan"}
+    {"source": "/api/python-scan", "destination": "/api/python_scan"},
+    {"source": "/r/:id", "destination": "/api/result-page?id=:id"},
+    {"source": "/og/:id", "destination": "/api/og?id=:id"}
   ],
   "redirects": [
     {"source": "/suspicious-text-message-link", "destination": "/sms-link-checker", "permanent": true},
