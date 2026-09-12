@@ -1,7 +1,7 @@
 'use strict';
 
 const { createSharedResult, getSharedResult, normalizeId, trackViralEvent, VALID_EVENTS } = require('../lib/shared-results');
-const { pageHtml, ogImageResponse } = require('../lib/shared-result-render');
+const { pageHtml, ogImageResponse } = require('../lib/shared-result-render-node');
 
 const ALLOWED_EVENTS = new Set(['homepage_view', 'paste', 'analyze', 'deep_scan', 'scan_result']);
 const ALLOWED_STATUSES = new Set(['low', 'caution', 'high', 'unknown']);
