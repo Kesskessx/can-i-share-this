@@ -36,6 +36,7 @@ function renderDetail(){
  const notesLabel=el('label','Notes privées');const notes=el('textarea');notes.name='private_notes';notes.maxLength=5000;notes.rows=6;notes.value=r.private_notes||'';notes.placeholder='Échanges, facture, contraintes d’impression…';notesLabel.append(notes);
  const save=el('button','Enregistrer le suivi');save.className='primary';workflow.append(paymentLabel,productionLabel,notesLabel,save);
  workflow.onsubmit=async e=>{e.preventDefault();if(busy)return;lock(true);message();try{await api('bmv-admin-manage',{id:r.id,revision:r.revision,payment_status:payment.value,production_status:production.value,private_notes:notes.value});current=await api('bmv-admin-detail',null,{id:r.id});renderDetail();message('Suivi privé enregistré.');await list();}catch(e){message(e.message);}finally{lock(false);}};
+ const pdf=el('button','Télécharger la fiche partenaire PDF');pdf.type='button';pdf.className='pdf-button';pdf.onclick=async()=>{if(busy)return;lock(true);message('Création du PDF…');try{await window.BMV_PDF.download(r);message('Fiche partenaire téléchargée.');}catch{message('Le PDF n’a pas pu être créé. Réessayez.');}finally{lock(false);}};box.append(pdf);
  box.append(workflow);
  const actions=el('div');actions.className='toolbar';
  for(const [status,title] of [['confirmed','Confirmer cet emplacement'],['declined','Refuser la demande'],['pending_review','Remettre à étudier']]){
