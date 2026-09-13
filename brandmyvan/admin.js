@@ -48,4 +48,20 @@ $('filter').onchange=()=>{offset=0;list().catch(e=>message(e.message));};
 $('refresh').onclick=()=>list().catch(e=>message(e.message));
 $('prev').onclick=()=>{offset=Math.max(0,offset-50);list().catch(e=>message(e.message));};
 $('next').onclick=()=>{offset+=50;list().catch(e=>message(e.message));};
-list().catch(e=>message(e.message));
+
+const activationToken=new URLSearchParams(location.hash.slice(1)).get('activate');
+if(activationToken){
+ history.replaceState(null,'',location.pathname+location.search);
+ $('login').hidden=true;$('activation').hidden=false;
+}else{list().catch(e=>message(e.message));}
+$('activation').onsubmit=async e=>{
+ e.preventDefault();if(busy)return;
+ if($('newPassword').value!==$('confirmPassword').value){message('Les deux mots de passe doivent être identiques.');return;}
+ lock(true);message();
+ try{
+  const data=await api('bmv-admin-activate',{token:activationToken,password:$('newPassword').value});
+  $('newPassword').value='';$('confirmPassword').value='';
+  $('activation').hidden=true;$('login').hidden=false;$('email').value=data.email;
+  message('Votre accès administrateur est activé. Connectez-vous avec le mot de passe que vous venez de choisir.');
+ }catch(error){message(error.message);}finally{lock(false);}
+};

@@ -25,8 +25,31 @@ module.exports=async function(req,res){
  let body={};try{if(req.method==='POST'){const raw=typeof req.body==='string'?req.body:JSON.stringify(req.body);if(!raw||Buffer.byteLength(raw)>5000)throw Error();body=JSON.parse(raw);}}catch{return res.status(400).json({error:'Requête invalide.'});}
  const cookie=String(req.headers.cookie||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('__Host-bmv_admin='));
  const token=cookie?cookie.slice('__Host-bmv_admin='.length):'';
- async function allowed(user){if(!user?.id||!UUID.test(user.id)||!user.email_confirmed_at)return false;const r=await call('/rest/v1/brandmyvan_admins?user_id=eq.'+user.id+'&select=user_id');return r.ok&&r.data?.length===1;}
+ async function allowed(user){if(!user?.id||!UUID.test(user.id)||!user.email_confirmed_at)return false;const r=await call('/rest/v1/brandmyvan_admins?user_id=eq.'+user.id+'&select=user_id');if(r.ok&&r.data?.length===1)return true;
+   const inviteId=user.app_metadata?.bmv_invitation;
+   if(!UUID.test(inviteId||''))return false;
+   const invites=await call('/rest/v1/brandmyvan_admin_invitations?id=eq.'+inviteId+'&used_at=is.null&select=email,token_hash,expires_at');
+   const invite=invites.ok&&invites.data?.[0];
+   if(!invite||invite.email.toLowerCase()!==user.email?.toLowerCase()||Date.parse(invite.expires_at)<=Date.now())return false;
+   const redeemed=await call('/rest/v1/rpc/redeem_brandmyvan_admin_invitation',{method:'POST',body:JSON.stringify({p_hash:invite.token_hash,p_user:user.id})});
+   return redeemed.ok&&redeemed.data===true;}
  try{
+
+  if(action==='bmv-admin-activate'&&req.method==='POST'){
+   if(typeof body.token!=='string'||!/^[a-f0-9]{64}$/.test(body.token)||typeof body.password!=='string'||body.password.length<12||body.password.length>128)return res.status(400).json({error:'Utilisez le lien d’activation et un mot de passe de 12 à 128 caractères.'});
+   const hash=require('node:crypto').createHash('sha256').update(body.token).digest('hex');
+   const found=await call('/rest/v1/brandmyvan_admin_invitations?token_hash=eq.'+hash+'&used_at=is.null&expires_at=gt.'+encodeURIComponent(new Date().toISOString())+'&select=id,email');
+   if(!found.ok)throw Error();
+   const invite=found.data?.[0];if(!invite)return res.status(410).json({error:'Ce lien est expiré ou a déjà été utilisé.'});
+   const created=await call('/auth/v1/admin/users',{method:'POST',body:JSON.stringify({email:invite.email,password:body.password,email_confirm:true,app_metadata:{bmv_invitation:invite.id}})});
+   // Never change an existing account through this activation endpoint.
+   if(!created.ok)return res.status(409).json({error:'Le compte n’a pas pu être créé. Si vous avez déjà un compte, connectez-vous ; sinon demandez un nouveau lien.'});
+   const user=created.data.user||created.data;
+   if(!UUID.test(user.id||'')||user.email?.toLowerCase()!==invite.email.toLowerCase()||user.app_metadata?.bmv_invitation!==invite.id)throw Error();
+   const redeemed=await call('/rest/v1/rpc/redeem_brandmyvan_admin_invitation',{method:'POST',body:JSON.stringify({p_hash:hash,p_user:user.id})});
+   if(!redeemed.ok||redeemed.data!==true)throw Error();
+   return res.status(200).json({ok:true,email:invite.email});
+  }
   if(action==='bmv-availability'&&req.method==='GET'){
    const r=await call('/rest/v1/brandmyvan_logo_requests?status=eq.confirmed&select=spot_id,price_eur');
    if(!r.ok)throw Error();return res.status(200).json({confirmed:r.data});
