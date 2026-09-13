@@ -90,7 +90,7 @@ $('logoRequestForm').addEventListener('submit',async e=>{
  const signature=JSON.stringify({...payload,id:''});if(d.submission&&d.submission!==signature){d.requestId=crypto.randomUUID();payload.id=d.requestId;}d.submission=signature;
  lockForm(true);emit('bmv:pause');status('Sending your logo and placement…');$('sendLogoRequest').textContent='Sending…';
  try{
-  const response=await fetch('/api/brandmyvan-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(25000)});
+  const response=await fetch('/api/counter?operation=brandmyvan-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(25000)});
   const data=await response.json().catch(()=>({}));if(!response.ok||!data.id)throw Error(data.error||'The request could not be saved. Please retry.');
   d.receipt=data.id;$('logoRequestForm').hidden=true;status();
  }catch(error){status(error.name==='TimeoutError'?'The connection timed out. Retry to check and save the same request without duplicating it.':error.message,true);}

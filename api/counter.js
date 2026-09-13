@@ -232,6 +232,7 @@ function memorySnapshot(day) {
 }
 
 module.exports = async function handler(req, res) {
+  if (req.query?.operation === 'brandmyvan-request') return require('../server/brandmyvan-request.js')(req, res);
   res.setHeader('Cache-Control', 'no-store, max-age=0');
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
