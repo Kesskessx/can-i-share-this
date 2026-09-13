@@ -46,6 +46,25 @@ function renderDetail(){
    if(!confirm(question))return;lock(true);message();try{await api('bmv-admin-review',{id:r.id,revision:r.revision,status});current=await api('bmv-admin-detail',null,{id:r.id});renderDetail();message('Statut enregistré. Aucun e-mail envoyé.');}catch(e){message(e.message);}finally{lock(false);await list().catch(e=>message(e.message));}
   };actions.append(button);
  }box.append(actions);
+ if(r.status!=='pending_review'){
+  const emailBox=el('section');emailBox.className='email-draft';emailBox.append(el('h3','Préparer l’e-mail à la marque'));
+  const help=el('p','Relisez le message, téléchargez la fiche PDF puis joignez-la vous-même avant l’envoi. Le site ouvre seulement un brouillon : aucun e-mail n’est envoyé automatiquement.');help.className='email-help';emailBox.append(help);
+  const grid=el('div');grid.className='email-grid';
+  const kindLabel=el('label','Message');const kind=el('select');
+  const allowed=[];if(r.status==='confirmed')allowed.push(['accepted','Emplacement confirmé']);if(r.payment_status==='paid')allowed.push(['payment','Paiement reçu']);if(r.status==='declined')allowed.push(['declined','Demande refusée']);
+  for(const [value,title] of allowed){const option=el('option',title);option.value=value;kind.append(option);}
+  if(r.payment_status==='paid')kind.value='payment';
+  const langLabel=el('label','Langue');const lang=el('select');for(const [value,title] of [['en','English'],['fr','Français']]){const option=el('option',title);option.value=value;lang.append(option);}
+  kindLabel.append(kind);langLabel.append(lang);grid.append(kindLabel,langLabel);emailBox.append(grid);
+  const subjectLabel=el('label','Objet');const subject=el('input');subject.type='text';subject.maxLength=180;subjectLabel.append(subject);
+  const bodyLabel=el('label','Message');const body=el('textarea');body.maxLength=5000;bodyLabel.append(body);emailBox.append(subjectLabel,bodyLabel);
+  const updateDraft=()=>{const draft=window.BMV_EMAIL.make(r,kind.value,lang.value);subject.value=draft.subject;body.value=draft.body;};
+  kind.onchange=updateDraft;lang.onchange=updateDraft;updateDraft();
+  const emailActions=el('div');emailActions.className='email-actions';
+  const copy=el('button','Copier le message');copy.type='button';copy.onclick=async()=>{const value=subject.value+'\n\n'+body.value;try{await navigator.clipboard.writeText(value);}catch{const temp=el('textarea');temp.value=value;document.body.append(temp);temp.select();document.execCommand('copy');temp.remove();}message('Objet et message copiés.');};
+  const open=el('button','Ouvrir dans mon application e-mail');open.type='button';open.className='primary';open.onclick=()=>{location.href=window.BMV_EMAIL.mailto(r.email,subject.value,body.value);};
+  emailActions.append(copy,open);emailBox.append(emailActions);box.append(emailBox);
+ }
 }
 $('login').onsubmit=async e=>{e.preventDefault();if(busy)return;lock(true);message();try{await api('bmv-admin-login',{email:$('email').value.trim(),password:$('password').value});$('password').value='';await list();}catch(e){message(e.message);}finally{lock(false);}};
 $('logout').onclick=async()=>{sequence++;try{await api('bmv-admin-logout',{});$('dashboard').hidden=true;$('login').hidden=false;$('list').replaceChildren();$('detail').replaceChildren();current=null;message('Déconnexion effectuée.');}catch(e){message(e.message);}};
