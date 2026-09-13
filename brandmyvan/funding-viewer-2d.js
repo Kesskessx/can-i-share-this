@@ -12,7 +12,7 @@ export function startFallback(){
  for(const spot of spots){
   const button=document.createElement('button');button.type='button';button.className='van-flat-spot';button.setAttribute('aria-label',spot.id+' · '+spot.tier+' · €'+spot.price);
   const drawing=document.createElement('canvas');drawing.hidden=true;const label=document.createElement('span');label.textContent=spot.id;button.append(drawing,label);
-  button.addEventListener('click',()=>{if($('spotChoice').disabled)return;selected=spot.id;show(spot.view);emit('bmv:spot',spot.id);});
+  button.addEventListener('click',()=>{if($('spotChoice').disabled||window.BMV_CONFIRMED?.has(spot.id))return;selected=spot.id;show(spot.view);emit('bmv:spot',spot.id);});
   buttons.set(spot.id,{button,drawing,label});plane.append(button);
  }
  function show(view){
@@ -41,5 +41,6 @@ export function startFallback(){
   entry.drawing.hidden=!hasLogo;entry.label.hidden=hasLogo;entry.button.classList.toggle('has-logo',hasLogo);
   if(hasLogo){entry.drawing.width=canvas.width;entry.drawing.height=canvas.height;entry.drawing.getContext('2d').drawImage(canvas,0,0);}
  });
+ window.addEventListener('bmv:availability',()=>{for(const [id,e] of buttons){e.button.disabled=window.BMV_CONFIRMED.has(id);e.button.title=e.button.disabled?'Confirmed':'';}});
  show('left');emit('bmv:ready');
 }

@@ -41,7 +41,7 @@ module.exports=async function handler(req,res){
  try{
   const headers={apikey:key,'Content-Type':'application/json'};if(!key.startsWith('sb_secret_'))headers.Authorization=`Bearer ${key}`;
   const response=await fetch(`${url.replace(/\/$/,'')}/rest/v1/rpc/submit_brandmyvan_logo_request`,{method:'POST',headers,body:JSON.stringify({p_request:request,p_client:client,p_hash:hash}),signal:AbortSignal.timeout(15000)});
-  if(!response.ok)throw Error('Storage unavailable');const data=await response.json();
+  const data=await response.json();if(!response.ok){if(String(data.message||'').includes('spot_taken'))return res.status(409).json({error:'This spot has just been confirmed. Please choose another spot.'});throw Error('Storage unavailable');}
   if(data.error==='rate_limit')return res.status(429).json({error:'Too many requests. Please try again later.'});
   if(data.error==='id_conflict')return res.status(409).json({error:'The request changed. Reload the page before sending a new request.'});
   if(!data.id)throw Error('Storage unavailable');

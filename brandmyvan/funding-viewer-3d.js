@@ -184,7 +184,7 @@ function buildSpotMesh(spot){
 function buildViewGroups(){for(const view of['left','right','rear']){const group=new THREE.Group();group.name=`${view}-sponsor-spots`;scene.add(group);viewGroups[view]=group;viewSpotMeshes[view]=[];for(const spot of SPOTS.filter(s=>s.view===view)){const mesh=buildSpotMesh(spot);viewSpotMeshes[view].push(mesh);group.add(mesh)}group.visible=false}}
 function resetSpotTextures(){for(const view of['left','right','rear'])for(const m of viewSpotMeshes[view])if(m.material?.userData?.normalMap){m.material.map=m.userData.logoTexture||m.material.userData.normalMap;m.material.needsUpdate=true}}
 function stopRotation(){controls.autoRotate=false;window.dispatchEvent(new CustomEvent('bmv:rotation',{detail:false}));}
-function selectSpot(spot){
+function selectSpot(spot){if(window.BMV_CONFIRMED?.has(spot.id))return;
   stopRotation();selectedId=spot.id;resetSpotTextures();
   const mesh=viewSpotMeshes[spot.view].find(m=>m.userData.spot?.id===spot.id);
   if(mesh&&!mesh.userData.logoTexture){mesh.material.map=mesh.material.userData.selectedMap;mesh.material.needsUpdate=true;}

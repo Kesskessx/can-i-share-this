@@ -18,13 +18,13 @@ function refresh(){
  if(!selected)return;const d=draftFor(selected.id),art=drawArtwork(selected,d);const preview=$('logoPreview');preview.width=art.width;preview.height=art.height;
  preview.getContext('2d').drawImage(art,0,0);$('logoAdjustments').hidden=!d.logo;$('logoFileName').textContent=d.logo?d.logo.name:'PNG, JPG or WebP · up to 8 MB. Transparent PNG works best.';
  $('logoScale').value=Math.round(d.scale*100);$('logoScaleValue').textContent=`${Math.round(d.scale*100)}%`;$('logoX').value=Math.round(d.x*100);$('logoY').value=Math.round(d.y*100);
- $('spotPanelClaim').disabled=!d.logo||submitting||uploading; $('spotPanelClaim').textContent=d.logo?`Request ${selected.id} — ${money(selected.price)}`:'Upload a logo to continue';
+ $('spotPanelClaim').disabled=!d.logo||submitting||uploading||window.BMV_CONFIRMED?.has(selected.id); $('spotPanelClaim').textContent=d.logo?`Request ${selected.id} — ${money(selected.price)}`:'Upload a logo to continue';
  $('requestReceipt').hidden=!d.receipt;if(d.receipt)$('requestReceipt').textContent=`Request received. Reference ${d.receipt}. Your logo and placement have been saved. The spot is pending review; no payment has been taken.`;
  $('spotPanelClaim').hidden=!!d.receipt||!$('logoRequestForm').hidden;
  emit('bmv:artwork',{id:selected.id,canvas:art,hasLogo:!!d.logo});
 }
 function openSpot(id){
- if(submitting)return;const spot=spots.find(s=>s.id===id);if(!spot)return;
+ if(submitting)return;if(window.BMV_CONFIRMED?.has(id)){status('This spot is already confirmed. Please choose another.',true);return;}const spot=spots.find(s=>s.id===id);if(!spot)return;
  if(selected?.id!==id){uploadSequence++;uploading=false;$('logoFile').value='';status();$('logoRequestForm').hidden=true;}
  selected=spot;const d=draftFor(id);$('spotPanel').hidden=false;document.querySelector('.hero-layout').classList.add('is-editing');$('spotChoice').value=id;
  $('spotPanelTier').textContent=`${spot.tier} · ${spot.view}`;$('spotPanelName').textContent=`Spot ${id}`;$('spotPanelPrice').textContent=money(spot.price);$('spotPanelCopy').textContent=`${spot.copy} 12 months.`;
@@ -83,7 +83,7 @@ $('spotPanelClaim').addEventListener('click',()=>{if(!selected||uploading||submi
 function lockForm(locked){submitting=locked;for(const input of $('spotPanel').querySelectorAll('input,button'))input.disabled=locked;$('spotChoice').disabled=locked;document.querySelector('.view-tabs').inert=locked;$('vanCanvas').style.pointerEvents=locked?'none':'';if($('resetVan'))$('resetVan').disabled=locked;}
 $('logoRequestForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!selected||submitting||uploading||!e.currentTarget.reportValidity())return;
- const spot=selected,d=draftFor(spot.id);if(!d.logo)return;
+ const spot=selected,d=draftFor(spot.id);if(window.BMV_CONFIRMED?.has(spot.id)){status('This spot is already confirmed. Please choose another.',true);return;}if(!d.logo)return;
  const artwork=drawArtwork(spot,d).toDataURL('image/png');if(artwork.length>1900000){status('Please use a simpler or smaller logo.',true);return;}
  d.requestId=d.requestId||crypto.randomUUID();const payload={id:d.requestId,spotId:spot.id,version,company:$('requestCompany').value.trim(),email:$('requestEmail').value.trim(),website_check:e.currentTarget.elements.website_check.value,logoName:d.logo.name,logo:d.logo.png,artwork,adjustment:{scale:d.scale,x:d.x,y:d.y}};
  // Reuse the same id only when retrying the exact same submission.
@@ -96,3 +96,5 @@ $('logoRequestForm').addEventListener('submit',async e=>{
  }catch(error){status(error.name==='TimeoutError'?'The connection timed out. Retry to check and save the same request without duplicating it.':error.message,true);}
  finally{lockForm(false);$('sendLogoRequest').textContent='Send reservation request';refresh();}
 });
+
+window.addEventListener('bmv:availability',()=>{if(selected&&window.BMV_CONFIRMED?.has(selected.id)){status('This spot is now confirmed. Choose another spot to send a request.',true);refresh();}});

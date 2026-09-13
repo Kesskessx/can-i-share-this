@@ -232,6 +232,7 @@ function memorySnapshot(day) {
 }
 
 module.exports = async function handler(req, res) {
+  if (String(req.query?.operation||'').startsWith('bmv-')) return require('../server/brandmyvan-admin.js')(req,res);
   if (req.query?.operation === 'brandmyvan-request') return require('../server/brandmyvan-request.js')(req, res);
   res.setHeader('Cache-Control', 'no-store, max-age=0');
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
