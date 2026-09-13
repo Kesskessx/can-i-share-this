@@ -23,6 +23,24 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
 @media(max-width:900px){.spot-panel{order:2;align-self:stretch;padding:20px}.hero-layout.is-editing .stage{min-height:48svh}.logo-preview{max-width:480px;margin:auto}.spot-picker label{display:none}}
 @media(max-width:560px){.spot-panel{inset:auto;width:auto;padding:16px}.spot-panel p{font-size:14px}.spot-picker{top:52px;left:8px}.spot-picker select{max-width:240px}.view-tabs button{font-size:10px}.free-message{display:none!important}.hero-layout.is-editing .stage{min-height:42svh}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.project-faq{padding:58px 4vw;border-bottom:1px solid var(--line);scroll-margin-top:80px}
+.project-faq h2{font-size:clamp(34px,4vw,54px);line-height:1.02;letter-spacing:-2px;margin:12px 0 22px;max-width:740px}
+.project-intro{max-width:780px;font-size:17px;line-height:1.7;color:#3e3a34}
+.project-points{list-style:none;counter-reset:project;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:0;margin:30px 0 44px;border:1px solid var(--line);background:#fff}
+.project-points li{counter-increment:project;padding:24px;border-right:1px solid var(--line);font-size:15px;line-height:1.6}
+.project-points li:last-child{border-right:0}.project-points li::before{content:"0" counter(project);display:block;font-size:13px;font-weight:900;margin-bottom:16px;color:#596600}
+.project-points strong{display:block;font-size:18px;margin-bottom:8px}.project-points p{margin:0;color:#565149}
+.faq-layout{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr);gap:48px}
+.faq-heading h3{font-size:32px;letter-spacing:-1px;margin:10px 0 16px}.faq-heading p{font-size:16px;line-height:1.6;color:#565149}
+.faq-list{border-top:1px solid var(--line)}.faq-list details{border-bottom:1px solid var(--line)}
+.faq-list summary{display:flex;justify-content:space-between;gap:22px;align-items:center;cursor:pointer;list-style:none;padding:22px 0;font-size:17px;font-weight:700;line-height:1.4}
+.faq-list summary::-webkit-details-marker{display:none}.faq-list summary::after{content:"+";flex:none;font-size:25px;font-weight:400}
+.faq-list details[open] summary::after{content:"−"}.faq-list summary:focus-visible{outline:3px solid #82950d;outline-offset:4px}
+.faq-list details p{margin:0;padding:0 34px 22px 0;font-size:16px;line-height:1.7;color:#48443d}
+.faq-link{display:inline-block;margin-top:12px;text-decoration:underline;text-underline-offset:4px;font-size:14px}
+@media(max-width:900px){.faq-layout{grid-template-columns:1fr;gap:20px}.project-points{grid-template-columns:1fr}.project-points li{border-right:0;border-bottom:1px solid var(--line)}.project-points li:last-child{border-bottom:0}}
+@media(max-width:560px){.project-faq{padding:36px 16px}.project-faq h2{letter-spacing:-1.2px}.project-points li{padding:20px}.faq-list summary{font-size:16px}.faq-list details p{padding-right:0}}
 </style>
 <script type="importmap">{"imports":{"three":"./vendor/build/three.module.js"}}</script>
 </head>
@@ -40,6 +58,7 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
         <p class="hero-sub">Choose a side and tap the exact placement you want. Upload your logo and see it on the van before sending a reservation request.</p>
         <div class="hero-meta"><span>From €200</span><span>20 spots</span><span>Real 3D placement</span><span>12 months</span></div>
         <a class="cta" href="#vanStage">Choose a spot</a>
+        <a class="faq-link" href="#project-faq" lang="fr">Le projet &amp; les questions des marques ↗</a>
         <div class="hero-note">LEFT, RIGHT and REAR are buying views. Garage 3D lets you inspect the van in a realistic workshop scene.</div>
       </div>
       <aside class="spot-panel" id="spotPanel" hidden aria-label="Your logo preview">
@@ -100,6 +119,30 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
       <div class="step"><b>01</b><strong>Choose a side.</strong><span>Switch between LEFT, RIGHT and REAR to see the real sponsor surfaces.</span></div>
       <div class="step"><b>02</b><strong>Preview your logo.</strong><span>Upload your image, adjust its size and center it on your chosen panel.</span></div>
       <div class="step"><b>03</b><strong>Send your request.</strong><span>Your logo and exact placement are saved for review. Confirmation follows separately.</span></div>
+    </div>
+  </section>
+
+  <section class="project-faq" id="project-faq" lang="fr" aria-labelledby="project-title">
+    <div class="eyebrow">Le projet · Vos questions</div>
+    <h2 id="project-title">Votre marque sur le van.<br>Un projet concret à soutenir.</h2>
+    <p class="project-intro">Avec Brand My Van, je souhaite financer mon projet de van grâce au soutien de marques partenaires. Le principe est simple : proposer 20 emplacements publicitaires sur la carrosserie, à partir de 200 €, pour une campagne de 12 mois et un objectif global de 10 000 €. Vous choisissez la zone qui correspond à votre marque, visualisez votre logo sur le modèle 3D et envoyez votre demande. Cette première étape permet de préparer ensemble votre participation avant de confirmer la réservation.</p>
+    <ol class="project-points" aria-label="Votre participation, point par point">
+      <li><strong>Vous choisissez votre place.</strong><p>Le simulateur affiche l’emplacement et son prix. Vous pouvez essayer votre logo et ajuster sa taille et sa position.</p></li>
+      <li><strong>Votre aperçu est conservé.</strong><p>Lors de l’envoi, votre logo et les réglages de placement sont enregistrés avec votre demande pour servir de référence aux échanges.</p></li>
+      <li><strong>Vous avancez par étapes.</strong><p>L’envoi est une demande à étudier. Aucun paiement n’est prélevé sur cette page et l’emplacement reste à confirmer séparément.</p></li>
+    </ol>
+    <div class="faq-layout">
+      <div class="faq-heading"><div class="eyebrow">FAQ partenaires</div><h3>Avant de participer.</h3><p>Le fonctionnement du projet, les éléments déjà définis et les points à préciser avant de vous engager.</p><a class="cta" href="#vanStage">Essayer mon logo sur le van</a></div>
+      <div class="faq-list">
+        <details open><summary>Que finance ma participation ?</summary><p>Votre participation contribue au financement du projet de van, en contrepartie d’un emplacement pour votre marque sur la carrosserie. L’objectif affiché est de 10 000 € répartis sur 20 emplacements. Le détail du budget et l’usage des fonds sont des points à préciser lors de nos échanges.</p></details>
+        <details><summary>Quel est le prix et combien de temps dure la campagne ?</summary><p>Les emplacements sont proposés à 200 €, 400 €, 750 € ou 1 500 €, selon la zone choisie. Le prix apparaît dans le simulateur avant l’envoi de votre demande. La durée annoncée est de 12 mois ; les dates précises de début et de fin restent à confirmer ensemble.</p></details>
+        <details><summary>Puis-je voir mon logo avant de réserver ?</summary><p>Oui. Sélectionnez une zone, importez votre logo puis ajustez sa taille et son positionnement. L’aperçu 3D aide à visualiser le résultat sur la carrosserie. Il reste une simulation : les dimensions d’impression, les couleurs et le placement final devront être validés avant la fabrication.</p></details>
+        <details><summary>Quel fichier dois-je fournir ?</summary><p>Le simulateur accepte les images PNG, JPG et WebP jusqu’à 8 Mo. Un PNG sur fond transparent convient particulièrement bien à l’aperçu. Gardez également votre fichier original en haute définition, ou votre version vectorielle si vous en avez une : le fichier adapté à l’impression sera à vérifier séparément.</p></details>
+        <details><summary>Que se passe-t-il après l’envoi de ma demande ?</summary><p>Le site enregistre votre logo, l’aperçu, l’emplacement choisi et vos coordonnées, puis affiche une référence de demande. La disponibilité de la zone et les modalités de participation restent à confirmer par échange d’e-mails. Une demande envoyée ne bloque pas automatiquement l’emplacement.</p></details>
+        <details><summary>Dois-je payer maintenant ? La fabrication et la pose sont-elles incluses ?</summary><p>Aucun paiement n’est demandé dans ce formulaire. Le montant final, les éventuels frais de fabrication et de pose, les modalités de paiement et les conditions d’annulation restent à préciser avant votre engagement. Le prix affiché dans le simulateur ne détaille pas encore ces prestations.</p></details>
+        <details><summary>Où circulera le van et quelle visibilité puis-je attendre ?</summary><p>Les trajets, les zones de circulation et le calendrier ne sont pas encore détaillés sur cette page. Ces informations sont à échanger pour vérifier que le projet correspond à votre public. Aucun nombre de vues, de contacts ou de ventes n’est garanti.</p></details>
+        <details><summary>Comment mon logo et mes coordonnées sont-ils utilisés ?</summary><p>Le formulaire enregistre le nom de votre marque, votre e-mail, votre logo et l’aperçu avec ses réglages pour permettre l’étude de votre demande. Cet envoi ne publie pas automatiquement votre logo dans le simulateur des autres visiteurs.</p></details>
+      </div>
     </div>
   </section>
   <section class="final"><div><div class="eyebrow">Brand My Van</div><h2>20 spots.<br>One van.</h2><p>Choose the exact space your brand will occupy.</p></div><a class="cta" href="#vanStage">Pick a spot</a></section>
