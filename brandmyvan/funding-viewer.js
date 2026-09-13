@@ -17,30 +17,11 @@ const panelCopy=document.getElementById('spotPanelCopy');
 const panelClaim=document.getElementById('spotPanelClaim');
 const panelClose=document.getElementById('spotPanelClose');
 
-const SPOTS=[
-  {id:'S1',edge:'cargo-front',view:'left',tier:'Signature',price:1500,u:0.455,v:0.66,uw:0.21,vh:0.24,copy:'Main left cargo-panel placement.'},
-  {id:'L1',edge:'cargo-rear',view:'left',tier:'Large',price:750,u:0.14,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, inside the outer panel edge.'},
-  {id:'L2',view:'left',tier:'Large',price:750,u:0.265,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, clear of the vertical panel joint.'},
-  {id:'M1',view:'left',tier:'Medium',price:400,u:0.52,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
-  {id:'M2',view:'left',tier:'Medium',price:400,u:0.4,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
-  {id:'SM1',view:'left',tier:'Small',price:200,u:0.14,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
-  {id:'SM2',view:'left',tier:'Small',price:200,u:0.265,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
-  {id:'S2',edge:'cargo-front',view:'right',tier:'Signature',price:1500,u:0.455,v:0.66,uw:0.21,vh:0.24,copy:'Main right cargo-panel placement.'},
-  {id:'L3',view:'right',tier:'Large',price:750,u:0.265,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, clear of the vertical panel joint.'},
-  {id:'L4',edge:'cargo-rear',view:'right',tier:'Large',price:750,u:0.14,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, inside the outer panel edge.'},
-  {id:'M3',view:'right',tier:'Medium',price:400,u:0.4,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
-  {id:'M4',view:'right',tier:'Medium',price:400,u:0.52,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
-  {id:'SM3',view:'right',tier:'Small',price:200,u:0.265,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
-  {id:'SM4',view:'right',tier:'Small',price:200,u:0.14,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
-  {id:'M5',view:'rear',tier:'Medium',price:400,u:0.65,v:0.73,uw:0.22,vh:0.12,copy:'Upper-left rear-door sticker.'},
-  {id:'M6',view:'rear',tier:'Medium',price:400,u:0.35,v:0.73,uw:0.22,vh:0.12,copy:'Upper-right rear-door sticker.'},
-  {id:'SM5',view:'rear',tier:'Small',price:200,u:0.7,v:0.59,uw:0.095,vh:0.07,copy:'Lower-left rear-door sticker.'},
-  {id:'SM6',view:'rear',tier:'Small',price:200,u:0.58,v:0.59,uw:0.095,vh:0.07,copy:'Lower-left-center rear-door sticker.'},
-  {id:'SM7',view:'rear',tier:'Small',price:200,u:0.42,v:0.59,uw:0.095,vh:0.07,copy:'Lower-right-center rear-door sticker.'},
-  {id:'SM8',view:'rear',tier:'Small',price:200,u:0.3,v:0.59,uw:0.095,vh:0.07,copy:'Lower-right rear-door sticker.'}
-];
+const SPOTS=window.BMV_CONFIG.spots;
 
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
+let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance'});}
+catch(error){const message=document.createElement('p');message.className='viewer-error';message.textContent='3D is unavailable in this browser. Choose a spot above to preview your logo and send your request.';canvas.hidden=true;canvas.parentElement.append(message);throw error;}
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
 const scene=new THREE.Scene();scene.background=new THREE.Color('#f7f6f1');
 const camera=new THREE.PerspectiveCamera(29,1,.01,100);
@@ -81,8 +62,8 @@ function buildGarage(){
 }
 function setEnvironmentMode(garage){if(garageGroup)garageGroup.visible=garage;floor.visible=!garage;scene.background.set(garage?0x1b1e22:0xf7f6f1);hemi.intensity=garage?1.45:3.1;key.intensity=garage?3.8:3.2;fill.intensity=garage?1.8:1.3;renderer.toneMappingExposure=garage?1.08:1.15}
 function setGroupVisibility(view){for(const k of['left','right','rear'])if(viewGroups[k])viewGroups[k].visible=view==='free'||k===view}
-function setFixedView(view,instant=false){if(!modelBox)return;currentView=view;setEnvironmentMode(false);controls.enableRotate=false;controls.enableZoom=false;controls.enablePan=false;controls.autoRotate=false;freeMessage.style.display='none';zoneLayer.style.display='none';setGroupVisibility(view);const pose=cameraPose(view);if(instant){camera.position.copy(pose.pos);controls.target.copy(pose.target);controls.update()}else animateCamera(pose.pos,pose.target);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view===view));const count=SPOTS.filter(s=>s.view===view).length;viewLabel.textContent=`${view.toUpperCase()} · ${count} AVAILABLE SPOTS`;viewLabel.style.display='block';if(viewerTip){viewerTip.textContent='Tap a spot to see price';viewerTip.style.display='block'}closePanel()}
-function setFreeView(){currentView='free';setEnvironmentMode(true);zoneLayer.style.display='none';setGroupVisibility('free');viewLabel.style.display='none';freeMessage.style.display='block';if(viewerTip)viewerTip.style.display='none';controls.enableRotate=true;controls.enableZoom=true;controls.enablePan=false;const c=modelBox.getCenter(new THREE.Vector3()),size=modelBox.getSize(new THREE.Vector3()),d=fitDistance('left')*.90,p=c.clone();p[wideAxis]+=d*.66;p[longAxis]+=d*.66;p.y+=size.y*.20;controls.minDistance=d*.50;controls.maxDistance=d*1.10;animateCamera(p,c,460);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view==='free'));closePanel()}
+function setFixedView(view,instant=false,keepSelection=false){if(!modelBox)return;currentView=view;setEnvironmentMode(false);controls.enableRotate=false;controls.enableZoom=false;controls.enablePan=false;controls.autoRotate=false;freeMessage.style.display='none';zoneLayer.style.display='none';setGroupVisibility(view);const pose=cameraPose(view);if(instant){camera.position.copy(pose.pos);controls.target.copy(pose.target);controls.update()}else animateCamera(pose.pos,pose.target);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view===view));const count=SPOTS.filter(s=>s.view===view).length;viewLabel.textContent=`${view.toUpperCase()} · ${count} AVAILABLE SPOTS`;viewLabel.style.display='block';if(viewerTip){viewerTip.textContent='Tap a spot to see price';viewerTip.style.display='block'}stopRotation();if(!keepSelection)closePanel()}
+function setFreeView(keepSelection=false){currentView='free';setEnvironmentMode(true);zoneLayer.style.display='none';setGroupVisibility('free');viewLabel.style.display='none';freeMessage.style.display='block';if(viewerTip)viewerTip.style.display='none';controls.enableRotate=true;controls.enableZoom=true;controls.enablePan=false;const c=modelBox.getCenter(new THREE.Vector3()),size=modelBox.getSize(new THREE.Vector3()),d=fitDistance('left')*.90,p=c.clone();p[wideAxis]+=d*.66;p[longAxis]+=d*.66;p.y+=size.y*.20;controls.minDistance=d*.50;controls.maxDistance=d*1.10;animateCamera(p,c,460);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view==='free'));if(!keepSelection)closePanel()}
 
 function sampleSurface(view,u,v,{strict=true}={}){if(!model||!modelBox)return null;const cfg=viewConfig(view),size=modelBox.getSize(new THREE.Vector3()),origin=modelBox.getCenter(new THREE.Vector3());origin[cfg.hAxis]=modelBox.min[cfg.hAxis]+u*size[cfg.hAxis];origin.y=modelBox.min.y+v*size.y;const margin=Math.max(.35,size[cfg.rayAxis]*.12);origin[cfg.rayAxis]=cfg.out[cfg.rayAxis]>0?modelBox.max[cfg.rayAxis]+margin:modelBox.min[cfg.rayAxis]-margin;const dir=cfg.out.clone().multiplyScalar(-1);modelRaycaster.set(origin,dir);modelRaycaster.far=size[cfg.rayAxis]*1.6;const hits=modelRaycaster.intersectObject(model,true);for(const hit of hits){if(!hit.face)continue;const n=hit.face.normal.clone().applyMatrix3(new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld)).normalize(),facing=n.dot(cfg.out);// Only the first visible surface can receive a sticker; never project through glass or trim.
 if(strict&&(facing<.62||hit.object.material?.name!=='Textures_Body_1'))return null;return{point:hit.point.clone(),normal:n,distance:hit.distance,object:hit.object}}return null}
@@ -199,9 +180,42 @@ function buildSpotMesh(spot){
   mesh.name=`spot-${spot.id}`;mesh.userData.spot=spot;mesh.renderOrder=30;return mesh;
 }
 function buildViewGroups(){for(const view of['left','right','rear']){const group=new THREE.Group();group.name=`${view}-sponsor-spots`;scene.add(group);viewGroups[view]=group;viewSpotMeshes[view]=[];for(const spot of SPOTS.filter(s=>s.view===view)){const mesh=buildSpotMesh(spot);viewSpotMeshes[view].push(mesh);group.add(mesh)}group.visible=false}}
-function resetSpotTextures(){for(const view of['left','right','rear'])for(const m of viewSpotMeshes[view])if(m.material?.userData?.normalMap){m.material.map=m.material.userData.normalMap;m.material.needsUpdate=true}}
-function selectSpot(spot){selectedId=spot.id;resetSpotTextures();const mesh=viewSpotMeshes[spot.view].find(m=>m.userData.spot?.id===spot.id);if(mesh?.material?.userData?.selectedMap){mesh.material.map=mesh.material.userData.selectedMap;mesh.material.needsUpdate=true}panelTier.textContent=`${spot.tier} · ${spot.view.toUpperCase()} · ${spot.id}`;panelName.textContent=`Spot ${spot.id}`;panelPrice.textContent=money(spot.price);panelCopy.textContent=`${spot.copy} Your logo is displayed here for the 12-month campaign.`;panelClaim.textContent=`Reserve ${spot.id} — ${money(spot.price)}`;panelClaim.href=`https://x.com/THEFOFOSHOW?brandmyvan=${encodeURIComponent(spot.id)}`;panel.hidden=false;if(viewerTip)viewerTip.style.display='none'}
-function closePanel(){selectedId=null;panel.hidden=true;resetSpotTextures();if(viewerTip&&currentView!=='free')viewerTip.style.display='block'}
+function resetSpotTextures(){for(const view of['left','right','rear'])for(const m of viewSpotMeshes[view])if(m.material?.userData?.normalMap){m.material.map=m.userData.logoTexture||m.material.userData.normalMap;m.material.needsUpdate=true}}
+function stopRotation(){controls.autoRotate=false;window.dispatchEvent(new CustomEvent('bmv:rotation',{detail:false}));}
+function selectSpot(spot){
+  stopRotation();selectedId=spot.id;resetSpotTextures();
+  const mesh=viewSpotMeshes[spot.view].find(m=>m.userData.spot?.id===spot.id);
+  if(mesh&&!mesh.userData.logoTexture){mesh.material.map=mesh.material.userData.selectedMap;mesh.material.needsUpdate=true;}
+  window.dispatchEvent(new CustomEvent('bmv:spot',{detail:spot.id}));
+  if(viewerTip)viewerTip.style.display='none';
+}
+function closePanel(){selectedId=null;resetSpotTextures();window.dispatchEvent(new CustomEvent('bmv:closed'));if(viewerTip&&currentView!=='free')viewerTip.style.display='block'}
+window.addEventListener('bmv:select',e=>{
+  const spot=SPOTS.find(s=>s.id===e.detail);if(!spot||!modelBox)return;
+  setFixedView(spot.view,false,true);selectSpot(spot);
+});
+window.addEventListener('bmv:deselect',()=>{selectedId=null;resetSpotTextures();stopRotation();});
+window.addEventListener('bmv:pause',stopRotation);
+window.addEventListener('bmv:face',e=>{const spot=SPOTS.find(s=>s.id===e.detail);if(spot&&modelBox)setFixedView(spot.view,false,true);});
+window.addEventListener('bmv:inspect',e=>{
+  if(!modelBox)return;if(controls.autoRotate){stopRotation();return;}
+  const spot=SPOTS.find(s=>s.id===e.detail);if(!spot)return;
+  if(currentView!=='free'){
+    setFreeView(true);const cfg=viewConfig(spot.view),center=modelBox.getCenter(new THREE.Vector3()),d=fitDistance(spot.view);
+    const position=center.clone().addScaledVector(cfg.out,d*.96);position[cfg.hAxis]+=d*.18;position.y+=modelBox.getSize(new THREE.Vector3()).y*.10;
+    animateCamera(position,center,400);
+  }
+  controls.autoRotate=true;controls.autoRotateSpeed=.6;window.dispatchEvent(new CustomEvent('bmv:rotation',{detail:true}));
+});
+window.addEventListener('bmv:artwork',e=>{
+  const {id,canvas:art,hasLogo}=e.detail,spot=SPOTS.find(s=>s.id===id);if(!spot)return;
+  const mesh=viewSpotMeshes[spot.view].find(m=>m.userData.spot.id===id);if(!mesh)return;
+  if(hasLogo){if(!mesh.userData.logoTexture)mesh.userData.logoTexture=new THREE.CanvasTexture(art);
+    const texture=mesh.userData.logoTexture;texture.image=art;texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());texture.needsUpdate=true;mesh.material.map=texture;
+  }else{mesh.userData.logoTexture?.dispose();delete mesh.userData.logoTexture;mesh.material.map=selectedId===id?mesh.material.userData.selectedMap:mesh.material.userData.normalMap;}
+  mesh.material.needsUpdate=true;
+});
+controls.addEventListener('start',stopRotation);
 function setPointer(e){const r=canvas.getBoundingClientRect();pointer.x=((e.clientX-r.left)/r.width)*2-1;pointer.y=-((e.clientY-r.top)/r.height)*2+1}
 function interactiveMeshes(){return currentView==='free'?Object.values(viewSpotMeshes).flat():viewSpotMeshes[currentView]||[]}
 function pickSpot(e){
@@ -225,7 +239,7 @@ canvas.addEventListener('click',e=>{
   if(pointerDragged){pointerStart=null;return;}
   const spot=pickSpot(e);if(spot)selectSpot(spot);pointerStart=null;
 });
-panelClose?.addEventListener('click',closePanel);viewButtons.forEach(btn=>btn.addEventListener('click',()=>btn.dataset.view==='free'?setFreeView():setFixedView(btn.dataset.view)));resetBtn?.addEventListener('click',()=>currentView==='free'?setFreeView():setFixedView(currentView));window.addEventListener('resize',()=>{if(modelBox&&currentView!=='free')setFixedView(currentView,true)});
-renderer.setAnimationLoop(()=>{resize();updateTween();controls.update();renderer.render(scene,camera)});
-async function boot(){try{const gltf=await new GLTFLoader().loadAsync('./van-realistic.glb');model=gltf.scene;const rawBox=new THREE.Box3().setFromObject(model),rawSize=rawBox.getSize(new THREE.Vector3()),rawCenter=rawBox.getCenter(new THREE.Vector3()),scale=4.75/Math.max(rawSize.x,rawSize.y,rawSize.z),origin=new THREE.Vector3(rawCenter.x,rawBox.min.y,rawCenter.z);model.scale.setScalar(scale);model.position.copy(origin).multiplyScalar(-scale);scene.add(model);scene.updateMatrixWorld(true);modelBox=new THREE.Box3().setFromObject(model);const size=modelBox.getSize(new THREE.Vector3());longAxis=size.x>=size.z?'x':'z';wideAxis=longAxis==='x'?'z':'x';buildGarage();buildViewGroups();setEnvironmentMode(false);setFixedView('left',true)}catch(err){console.error(err);viewLabel.textContent='3D MODEL UNAVAILABLE';zoneLayer.style.display='none'}}
+viewButtons.forEach(btn=>btn.addEventListener('click',()=>btn.dataset.view==='free'?setFreeView():setFixedView(btn.dataset.view)));resetBtn?.addEventListener('click',()=>currentView==='free'?setFreeView():setFixedView(currentView));window.addEventListener('resize',()=>{if(modelBox&&currentView!=='free')setFixedView(currentView,true,true)});
+const frameClock=new THREE.Clock();renderer.setAnimationLoop(()=>{const delta=Math.min(frameClock.getDelta(),.1);resize();updateTween();controls.update(delta);renderer.render(scene,camera)});
+async function boot(){try{const gltf=await new GLTFLoader().loadAsync('./van-realistic.glb');model=gltf.scene;const rawBox=new THREE.Box3().setFromObject(model),rawSize=rawBox.getSize(new THREE.Vector3()),rawCenter=rawBox.getCenter(new THREE.Vector3()),scale=4.75/Math.max(rawSize.x,rawSize.y,rawSize.z),origin=new THREE.Vector3(rawCenter.x,rawBox.min.y,rawCenter.z);model.scale.setScalar(scale);model.position.copy(origin).multiplyScalar(-scale);scene.add(model);scene.updateMatrixWorld(true);modelBox=new THREE.Box3().setFromObject(model);const size=modelBox.getSize(new THREE.Vector3());longAxis=size.x>=size.z?'x':'z';wideAxis=longAxis==='x'?'z':'x';buildGarage();buildViewGroups();setEnvironmentMode(false);setFixedView('left',true,true);window.dispatchEvent(new CustomEvent('bmv:ready'));}catch(err){console.error(err);viewLabel.textContent='3D MODEL UNAVAILABLE';zoneLayer.style.display='none'}}
 boot();

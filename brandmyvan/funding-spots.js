@@ -1,0 +1,22 @@
+(function(root){const config={version:'panel-edges-v1',model:{length:4.75,width:1.922155520079944,height:2.0613367643228018},spots:[
+  {id:'S1',edge:'cargo-front',view:'left',tier:'Signature',price:1500,u:0.455,v:0.66,uw:0.21,vh:0.24,copy:'Main left cargo-panel placement.'},
+  {id:'L1',edge:'cargo-rear',view:'left',tier:'Large',price:750,u:0.14,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, inside the outer panel edge.'},
+  {id:'L2',view:'left',tier:'Large',price:750,u:0.265,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, clear of the vertical panel joint.'},
+  {id:'M1',view:'left',tier:'Medium',price:400,u:0.52,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
+  {id:'M2',view:'left',tier:'Medium',price:400,u:0.4,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
+  {id:'SM1',view:'left',tier:'Small',price:200,u:0.14,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
+  {id:'SM2',view:'left',tier:'Small',price:200,u:0.265,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
+  {id:'S2',edge:'cargo-front',view:'right',tier:'Signature',price:1500,u:0.455,v:0.66,uw:0.21,vh:0.24,copy:'Main right cargo-panel placement.'},
+  {id:'L3',view:'right',tier:'Large',price:750,u:0.265,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, clear of the vertical panel joint.'},
+  {id:'L4',edge:'cargo-rear',view:'right',tier:'Large',price:750,u:0.14,v:0.66,uw:0.1,vh:0.215,copy:'Rear cargo recess, inside the outer panel edge.'},
+  {id:'M3',view:'right',tier:'Medium',price:400,u:0.4,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
+  {id:'M4',view:'right',tier:'Medium',price:400,u:0.52,v:0.365,uw:0.1,vh:0.085,copy:'Lower cargo-door panel, between the body crease and protective trim.'},
+  {id:'SM3',view:'right',tier:'Small',price:200,u:0.265,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
+  {id:'SM4',view:'right',tier:'Small',price:200,u:0.14,v:0.365,uw:0.1,vh:0.065,copy:'Lower rear panel, above the wheel arch and protective trim.'},
+  {id:'M5',view:'rear',tier:'Medium',price:400,u:0.65,v:0.73,uw:0.22,vh:0.12,copy:'Upper-left rear-door sticker.'},
+  {id:'M6',view:'rear',tier:'Medium',price:400,u:0.35,v:0.73,uw:0.22,vh:0.12,copy:'Upper-right rear-door sticker.'},
+  {id:'SM5',view:'rear',tier:'Small',price:200,u:0.7,v:0.59,uw:0.095,vh:0.07,copy:'Lower-left rear-door sticker.'},
+  {id:'SM6',view:'rear',tier:'Small',price:200,u:0.58,v:0.59,uw:0.095,vh:0.07,copy:'Lower-left-center rear-door sticker.'},
+  {id:'SM7',view:'rear',tier:'Small',price:200,u:0.42,v:0.59,uw:0.095,vh:0.07,copy:'Lower-right-center rear-door sticker.'},
+  {id:'SM8',view:'rear',tier:'Small',price:200,u:0.3,v:0.59,uw:0.095,vh:0.07,copy:'Lower-right rear-door sticker.'}
+]};if(typeof module==='object'&&module.exports)module.exports=config;else root.BMV_CONFIG=config;})(globalThis);

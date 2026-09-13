@@ -18,6 +18,11 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
 .final{background:#111;color:#fff;padding:40px 4vw;display:flex;align-items:center;justify-content:space-between;gap:24px}.final h2{font-size:clamp(38px,4.5vw,56px);line-height:.94;letter-spacing:-2.7px;margin:6px 0}.final p{font-size:12px;color:#cfcfcf;margin:0}.final .cta{white-space:nowrap}footer{display:flex;justify-content:space-between;gap:18px;padding:18px 28px;font-size:9px;text-transform:uppercase;letter-spacing:1px}
 @media(max-width:900px){header{padding:0 14px}.header-progress span{display:none}.hero{padding:8px}.hero-layout{display:flex;flex-direction:column;min-height:0;gap:8px}.stage{order:1;min-height:72svh}.hero-copy{order:2;padding:20px}.hero h1{font-size:clamp(46px,11vw,64px)}.hero-note{display:none}.status-strip{grid-template-columns:1fr 1fr}.status-strip div:nth-child(2){border-right:0}.status-strip div:nth-child(-n+2){border-bottom:1px solid var(--line)}.steps{grid-template-columns:1fr}.step{border-right:0;border-bottom:1px solid var(--line)}.step:last-child{border-bottom:0}.final{display:block}.final .cta{margin-top:18px}footer{flex-wrap:wrap}}
 @media(max-width:560px){header{height:58px}.brand{font-size:18px}.header-progress strong{padding:8px 9px}.stage{min-height:69svh}.view-tabs{left:8px;right:8px;top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.view-tabs button{padding:9px 4px;font-size:7.5px;min-width:0}.viewer-actions{top:50px;right:8px}.viewer-actions button{width:36px;height:36px;font-size:18px}.view-label{left:8px;bottom:8px;padding:7px 8px;font-size:8px}.viewer-tip,.free-message{right:8px;bottom:8px;font-size:8px;padding:7px 8px}.spot-panel{left:8px;right:8px;bottom:8px;width:auto;padding:13px}.spot-panel h3{font-size:17px}.spot-panel-price{font-size:30px}.spot-panel p{font-size:10px;line-height:1.35}.hero-copy{padding:17px}.hero-sub{font-size:14px}.hero-meta{margin:14px 0}.hero-meta span{font-size:8px}.status-strip div{padding:13px}.status-strip strong{font-size:17px}.how{padding:36px 16px}.final{padding:34px 16px}.cta{width:100%}}
+
+[hidden]{display:none!important}.hero-layout.is-editing .hero-copy{display:none}.spot-panel{position:relative;inset:auto;width:auto;max-width:none;z-index:25;padding:22px;box-shadow:none;backdrop-filter:none;background:var(--bg);align-self:start}.spot-panel .eyebrow{font-size:12px}.spot-panel p{font-size:14px;line-height:1.45}.spot-panel-head button{width:36px;height:36px;font-size:20px}.price-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:10px 0}.price-row h3{font-size:24px;margin:0}.price-row strong{font-size:26px}.upload-button{position:relative;display:block;text-align:center;padding:12px;background:#fff;border:1px solid #111;font-size:15px;font-weight:700;cursor:pointer;overflow:hidden}.upload-button input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}.upload-button:focus-within{outline:3px solid #82950d;outline-offset:2px}.spot-panel .editor-help{font-size:13px;color:#565651;margin:8px 0 14px}.logo-preview{background-color:white;background-image:conic-gradient(#ececea 25%,transparent 0 50%,#ececea 0 75%,transparent 0);background-size:16px 16px;border:1px solid #c3c3bb;display:flex;align-items:center;justify-content:center;min-height:110px;padding:10px}.logo-preview canvas{display:block;width:auto;height:auto;max-width:100%;max-height:170px;object-fit:contain;touch-action:none;cursor:move}.slider-row{display:flex;justify-content:space-between;margin-top:12px;font-size:14px}.spot-panel input[type=range]{width:100%;accent-color:#535c18;margin:8px 0;min-height:28px}.position-controls{font-size:14px;margin:4px 0 10px}.position-controls summary{cursor:pointer;padding:8px 0}.editor-buttons{display:flex;gap:8px;margin:8px 0}.editor-buttons button{flex:1;border:1px solid #b8b8ae;background:white;padding:10px 6px;font-size:14px;cursor:pointer;min-height:42px}.spot-panel .cta{font-size:14px;min-height:46px}.spot-panel button:disabled{opacity:.5;cursor:not-allowed}#logoStatus:empty{display:none}#logoStatus[data-error=true]{color:#a22121}#logoRequestForm>label{display:block;font-size:14px;margin:12px 0 6px}#logoRequestForm>input{width:100%;padding:12px;font-size:16px;border:1px solid #aaa;background:#fff}#requestReceipt{padding:16px;background:#eff4d9;border:1px solid #84913f;font-size:15px;line-height:1.5;overflow-wrap:anywhere}.form-trap{position:absolute;left:-10000px}.spot-picker{position:absolute;top:64px;left:12px;z-index:22;display:flex;align-items:center;gap:8px;font-size:13px}.spot-picker select{max-width:240px;font-size:14px;padding:9px;background:white;border:1px solid #aaa}.stage:has(.viewer-error) .viewer{display:flex;align-items:center;justify-content:center}.viewer-error{padding:24px;max-width:380px;line-height:1.5;font-size:16px}.is-editing .viewer-tip{display:none!important}
+@media(max-width:900px){.spot-panel{order:2;align-self:stretch;padding:20px}.hero-layout.is-editing .stage{min-height:48svh}.logo-preview{max-width:480px;margin:auto}.spot-picker label{display:none}}
+@media(max-width:560px){.spot-panel{inset:auto;width:auto;padding:16px}.spot-panel p{font-size:14px}.spot-picker{top:52px;left:8px}.spot-picker select{max-width:240px}.view-tabs button{font-size:10px}.free-message{display:none!important}.hero-layout.is-editing .stage{min-height:42svh}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 <script type="importmap">{"imports":{"three":"./vendor/build/three.module.js"}}</script>
 </head>
@@ -32,11 +37,38 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
       <div class="hero-copy">
         <div class="eyebrow">20 real sponsor spots · 12 months</div>
         <h1>Pick a spot.<br><em>Fund the van.</em></h1>
-        <p class="hero-sub">Choose a side and tap the exact placement you want. Every spot follows the real 3D body surface.</p>
+        <p class="hero-sub">Choose a side and tap the exact placement you want. Upload your logo and see it on the van before sending a reservation request.</p>
         <div class="hero-meta"><span>From €200</span><span>20 spots</span><span>Real 3D placement</span><span>12 months</span></div>
         <a class="cta" href="#vanStage">Choose a spot</a>
         <div class="hero-note">LEFT, RIGHT and REAR are buying views. Garage 3D lets you inspect the van in a realistic workshop scene.</div>
       </div>
+      <aside class="spot-panel" id="spotPanel" hidden aria-label="Your logo preview">
+        <div class="spot-panel-head"><div class="eyebrow" id="spotPanelTier">Your placement</div><button id="spotPanelClose" type="button" aria-label="Close logo editor">×</button></div>
+        <div class="price-row"><h3 id="spotPanelName">Spot</h3><strong id="spotPanelPrice"></strong></div>
+        <p id="spotPanelCopy"></p>
+        <label class="upload-button" for="logoFile">Upload your logo<input id="logoFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
+        <p class="editor-help" id="logoFileName">PNG, JPG or WebP · up to 8 MB. Transparent PNG works best.</p>
+        <div id="logoAdjustments" hidden>
+          <div class="logo-preview"><canvas id="logoPreview" aria-label="Logo placement preview. Drag to position your logo."></canvas></div>
+          <div class="slider-row"><label for="logoScale">Size</label><output id="logoScaleValue">85%</output></div><input id="logoScale" type="range" min="30" max="100" value="85">
+          <details class="position-controls"><summary>Adjust position</summary>
+            <label for="logoX">Horizontal</label><input id="logoX" type="range" min="0" max="100" value="50">
+            <label for="logoY">Vertical</label><input id="logoY" type="range" min="0" max="100" value="50">
+          </details>
+          <div class="editor-buttons"><button type="button" id="logoCenter">Center logo</button><button type="button" id="logoRemove">Remove</button></div>
+          <div class="editor-buttons"><button type="button" id="inspectLogo">Rotate van</button><button type="button" id="editLogo">Face this spot</button></div>
+        </div>
+        <p id="logoStatus" role="status" aria-live="polite"></p>
+        <button class="cta" id="spotPanelClaim" type="button" disabled>Upload a logo to continue</button>
+        <form id="logoRequestForm" hidden>
+          <label for="requestCompany">Brand name</label><input id="requestCompany" name="company" required maxlength="100" autocomplete="organization">
+          <label for="requestEmail">Email</label><input id="requestEmail" name="email" type="email" required maxlength="254" autocomplete="email">
+          <div class="form-trap" aria-hidden="true"><label>Leave empty<input name="website_check" tabindex="-1" autocomplete="off"></label></div>
+          <p class="editor-help">Your logo, placement and contact details are sent for review. No payment today. The spot is confirmed separately by email.</p>
+          <button class="cta" id="sendLogoRequest" type="submit">Send reservation request</button>
+        </form>
+        <div id="requestReceipt" hidden role="status" aria-live="polite"></div>
+      </aside>
       <div class="stage" id="vanStage">
         <div class="viewer"><canvas id="vanCanvas" aria-label="Interactive 3D van"></canvas></div>
         <div class="view-tabs" role="tablist" aria-label="Van view">
@@ -46,17 +78,12 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
           <button class="free" data-view="free" type="button">Garage 3D</button>
         </div>
         <div class="viewer-actions"><button id="resetVan" type="button" aria-label="Reset view" title="Reset view">↺</button></div>
+        <div class="spot-picker"><label for="spotChoice">Choose a spot</label><select id="spotChoice"><option value="">Select an available spot</option></select></div>
         <div class="zone-layer" id="zoneLayer" aria-hidden="true"></div>
         <div class="view-label" id="viewLabel">LEFT · 7 AVAILABLE SPOTS</div>
         <div class="viewer-tip" id="viewerTip">Tap a spot to see price</div>
         <div class="free-message" id="freeMessage">Garage view · drag to rotate · pinch to zoom</div>
-        <aside class="spot-panel" id="spotPanel" hidden>
-          <div class="spot-panel-head"><div class="eyebrow" id="spotPanelTier">Sponsor spot</div><button id="spotPanelClose" type="button" aria-label="Close">×</button></div>
-          <h3 id="spotPanelName">Spot</h3>
-          <div class="spot-panel-price" id="spotPanelPrice">€0</div>
-          <p id="spotPanelCopy"></p>
-          <a class="cta" id="spotPanelClaim" href="https://x.com/THEFOFOSHOW" target="_blank" rel="noopener">Reserve this spot</a>
-        </aside>
+
       </div>
     </div>
   </section>
@@ -68,16 +95,19 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
   </section>
   <section class="how" id="how">
     <div class="eyebrow">How it works</div>
-    <h2>View. Tap. Reserve.</h2>
+    <h2>Choose. Preview. Request.</h2>
     <div class="steps">
       <div class="step"><b>01</b><strong>Choose a side.</strong><span>Switch between LEFT, RIGHT and REAR to see the real sponsor surfaces.</span></div>
-      <div class="step"><b>02</b><strong>Tap a spot.</strong><span>The selected area lights up and shows its fixed price immediately.</span></div>
-      <div class="step"><b>03</b><strong>Reserve it.</strong><span>Your logo is prepared specifically for that physical position on the van.</span></div>
+      <div class="step"><b>02</b><strong>Preview your logo.</strong><span>Upload your image, adjust its size and center it on your chosen panel.</span></div>
+      <div class="step"><b>03</b><strong>Send your request.</strong><span>Your logo and exact placement are saved for review. Confirmation follows separately.</span></div>
     </div>
   </section>
   <section class="final"><div><div class="eyebrow">Brand My Van</div><h2>20 spots.<br>One van.</h2><p>Choose the exact space your brand will occupy.</p></div><a class="cta" href="#vanStage">Pick a spot</a></section>
 </main>
 <footer><div>Brand My Van</div><div>20 sponsor spots · €10,000 goal</div><div>© 2026</div></footer>
+<script src="./funding-spots.js"></script>
+<script src="./logo-layout.js"></script>
+<script type="module" src="./logo-editor.js"></script>
 <script type="module" src="./funding-viewer.js"></script>
 </body>
 </html>
