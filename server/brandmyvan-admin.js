@@ -51,7 +51,7 @@ module.exports=async function(req,res){
    return res.status(200).json({ok:true,email:invite.email});
   }
   if(action==='bmv-availability'&&req.method==='GET'){
-   const r=await call('/rest/v1/brandmyvan_logo_requests?status=eq.confirmed&select=spot_id,price_eur');
+   const r=await call('/rest/v1/brandmyvan_logo_requests?status=eq.confirmed&select=spot_id,price_eur,payment_status');
    if(!r.ok)throw Error();return res.status(200).json({confirmed:r.data});
   }
   if(action==='bmv-admin-login'&&req.method==='POST'){
@@ -72,17 +72,24 @@ module.exports=async function(req,res){
   if(action==='bmv-admin-list'&&req.method==='GET'){
    const status=['pending_review','confirmed','declined'].includes(req.query.status)?req.query.status:null;
    const offset=Math.max(0,Math.min(100000,parseInt(req.query.offset,10)||0));
-   const r=await call('/rest/v1/brandmyvan_logo_requests?select=id,created_at,company,email,spot_id,price_eur,status,revision&order=created_at.desc,id.desc&limit=51&offset='+offset+(status?'&status=eq.'+status:''));
+   const r=await call('/rest/v1/brandmyvan_logo_requests?select=id,created_at,company,email,spot_id,price_eur,status,revision,payment_status,production_status&order=created_at.desc,id.desc&limit=51&offset='+offset+(status?'&status=eq.'+status:''));
    if(!r.ok)throw Error();return res.status(200).json({rows:r.data.slice(0,50),hasMore:r.data.length>50});
   }
   if(action==='bmv-admin-detail'&&req.method==='GET'&&UUID.test(req.query.id||'')){
-   const r=await call('/rest/v1/brandmyvan_logo_requests?select=id,created_at,company,email,spot_id,price_eur,status,revision,duration_months,logo_name,logo_png,artwork_png,placement,reviewed_at&id=eq.'+req.query.id);
+   const r=await call('/rest/v1/brandmyvan_logo_requests?select=id,created_at,company,email,spot_id,price_eur,status,revision,duration_months,logo_name,logo_png,artwork_png,placement,reviewed_at,payment_status,paid_at,production_status,private_notes&id=eq.'+req.query.id);
    if(!r.ok)throw Error();return r.data.length?res.status(200).json(r.data[0]):res.status(404).json({error:'Demande introuvable.'});
   }
   if(action==='bmv-admin-review'&&req.method==='POST'&&UUID.test(body.id||'')&&Number.isInteger(body.revision)&&['pending_review','confirmed','declined'].includes(body.status)){
    const r=await call('/rest/v1/rpc/review_brandmyvan_request',{method:'POST',body:JSON.stringify({p_id:body.id,p_status:body.status,p_revision:body.revision,p_admin:auth.data.id})});
    if(!r.ok)throw Error();
-   if(r.data.error)return res.status(409).json({error:r.data.error==='spot_taken'?'Cet emplacement est déjà confirmé pour une autre marque.':'La demande a changé. Actualisez avant de réessayer.'});
+   if(r.data.error)return res.status(409).json({error:r.data.error==='spot_taken'?'Cet emplacement est déjà confirmé pour une autre marque.':r.data.error==='paid_request'?'Marquez d’abord cette demande comme non payée avant de modifier son statut.':'La demande a changé. Actualisez avant de réessayer.'});
+   return res.status(200).json(r.data);
+  }
+  if(action==='bmv-admin-manage'&&req.method==='POST'&&UUID.test(body.id||'')&&Number.isInteger(body.revision)&&['unpaid','paid'].includes(body.payment_status)&&['waiting','ready_to_print','printed','installed'].includes(body.production_status)&&typeof body.private_notes==='string'&&body.private_notes.length<=5000){
+   const r=await call('/rest/v1/rpc/manage_brandmyvan_request',{method:'POST',body:JSON.stringify({p_id:body.id,p_revision:body.revision,p_admin:auth.data.id,p_payment_status:body.payment_status,p_production_status:body.production_status,p_private_notes:body.private_notes})});
+   if(!r.ok)throw Error();
+   const errors={confirm_first:'Confirmez d’abord l’emplacement.',pay_first:'Marquez d’abord le paiement comme reçu.',stale:'La demande a changé. Actualisez avant de réessayer.'};
+   if(r.data.error)return res.status(409).json({error:errors[r.data.error]||'Modification refusée.'});
    return res.status(200).json(r.data);
   }
   return res.status(400).json({error:'Action invalide.'});
