@@ -1,1 +1,202 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=./funding-v1.html"><title>Brand My Van</title><script>location.replace('./funding-v1.html')</script></head><body><a href="./funding-v1.html">Open Brand My Van</a></body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f3ed">
+  <title>Brand My Van — Vans, créateurs et campagnes sur la route</title>
+  <meta name="description" content="Trouvez des vans et des créateurs selon leur itinéraire, leur audience et leurs emplacements disponibles. Lancez une campagne visible sur la route et en ligne.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23111111'/%3E%3Cpath d='M5 11h16l6 6v8H5z' fill='%23dcff29'/%3E%3Ccircle cx='11' cy='25' r='3' fill='%23f5f3ed'/%3E%3Ccircle cx='23' cy='25' r='3' fill='%23f5f3ed'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/brandmyvan/marketplace.css">
+  <script src="/brandmyvan/marketplace.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/brandmyvan/" aria-label="Brand My Van, accueil">BRAND <b>MYVAN</b></a>
+    <nav class="desktop-nav" aria-label="Navigation principale">
+      <a href="#explore">Explorer les vans</a>
+      <a href="#brands">Pour les marques</a>
+      <a href="#how">Fonctionnement</a>
+    </nav>
+    <a class="header-action" href="#owners">Inscrire mon van</a>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Marketplace de campagnes vanlife</p>
+        <h1 id="hero-title">Votre marque.<br>Sur la route.<br><em>Avec la bonne personne.</em></h1>
+        <p class="hero-text">Trouvez des vans et des créateurs selon leur itinéraire, leur audience et leur tarif. Combinez présence physique et contenus sur les réseaux sociaux.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#explore">Explorer les vans</a>
+          <a class="button button-secondary" href="#brands">Lancer une campagne</a>
+        </div>
+      </div>
+      <aside class="hero-proof" aria-label="Principes de la marketplace">
+        <div class="proof-index">01</div>
+        <p class="proof-kicker">Un profil complet, pas seulement un véhicule</p>
+        <div class="proof-list">
+          <div><span>Véhicule</span><strong>Photos et emplacements</strong></div>
+          <div><span>Créateur</span><strong>Identité et univers</strong></div>
+          <div><span>Audience</span><strong>Réseaux et statistiques</strong></div>
+          <div><span>Terrain</span><strong>Itinéraire et kilomètres</strong></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="trust-strip" aria-label="Garanties Brand My Van">
+      <div><span aria-hidden="true">✓</span> Profils documentés par leurs créateurs</div>
+      <div><span aria-hidden="true">✓</span> Chaque réservation soumise à validation</div>
+      <div><span aria-hidden="true">✓</span> Preuves définies avant la campagne</div>
+    </section>
+
+    <section class="explore section" id="explore" aria-labelledby="explore-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Explorer</p>
+          <h2 id="explore-title">Vans et créateurs</h2>
+        </div>
+        <p>Les premières campagnes publiées sur Brand My Van. Aucun profil fictif.</p>
+      </div>
+
+      <form class="filters" id="vanFilters">
+        <label class="search-field">
+          <span>Recherche</span>
+          <input id="searchFilter" type="search" placeholder="Créateur, région, itinéraire…" autocomplete="off">
+        </label>
+        <label>
+          <span>Pays</span>
+          <select id="countryFilter">
+            <option value="all">Tous les pays</option>
+            <option value="france">France</option>
+          </select>
+        </label>
+        <label>
+          <span>Catégorie</span>
+          <select id="categoryFilter">
+            <option value="all">Toutes</option>
+            <option value="vanlife">Vanlife</option>
+            <option value="road-trip">Road trip</option>
+            <option value="outdoor">Outdoor</option>
+          </select>
+        </label>
+        <label>
+          <span>Budget</span>
+          <select id="budgetFilter">
+            <option value="all">Tous les budgets</option>
+            <option value="250">Jusqu’à 250 €</option>
+            <option value="500">Jusqu’à 500 €</option>
+            <option value="1000">Jusqu’à 1 000 €</option>
+          </select>
+        </label>
+        <button class="reset-filter" id="resetFilters" type="button">Réinitialiser</button>
+      </form>
+
+      <div class="results-bar">
+        <strong id="resultCount" aria-live="polite">1 campagne disponible</strong>
+        <span>Mise à jour des disponibilités en direct</span>
+      </div>
+
+      <div class="campaign-grid" id="campaignGrid">
+        <article class="campaign-card" data-search="fofo pyrénées orientales france espagne vanlife road trip outdoor thefofoshow" data-country="france" data-categories="vanlife road-trip outdoor" data-price="200" data-available="true">
+          <a class="campaign-visual" href="/brandmyvan/funding-v1" aria-label="Voir la campagne de Fofo">
+            <img src="/brandmyvan/fallback-left.png" width="1200" height="720" alt="Vue latérale du van de la campagne de Fofo">
+            <span class="campaign-status"><i></i> Campagne ouverte</span>
+            <span class="campaign-number">01</span>
+          </a>
+          <div class="campaign-body">
+            <div class="campaign-title-row">
+              <div>
+                <p class="eyebrow">Projet vanlife</p>
+                <h3>Fofo — Fund the Van</h3>
+              </div>
+              <span class="starting-price">Dès <strong>200 €</strong></span>
+            </div>
+            <p class="campaign-location">Pyrénées-Orientales · France et Espagne</p>
+            <div class="campaign-tags"><span>Vanlife</span><span>Road trip</span><span>Outdoor</span></div>
+            <dl class="campaign-data">
+              <div><dt>Réseau</dt><dd><a href="https://x.com/THEFOFOSHOW" rel="noreferrer">X · @THEFOFOSHOW</a></dd></div>
+              <div><dt>Durée</dt><dd>12 mois</dd></div>
+              <div><dt>Itinéraire</dt><dd>À confirmer avec la marque</dd></div>
+              <div><dt>Disponibilité</dt><dd id="availableSpots">20 emplacements</dd></div>
+            </dl>
+            <div class="campaign-progress" aria-label="Progression du financement">
+              <div class="progress-copy"><span>Réservé</span><strong id="reservedAmount">0 € sur 10 000 €</strong></div>
+              <div class="progress-track"><span id="reservedProgress"></span></div>
+            </div>
+            <a class="button button-dark" href="/brandmyvan/funding-v1">Voir la campagne</a>
+          </div>
+        </article>
+
+        <article class="join-card" id="owners">
+          <div>
+            <p class="eyebrow">Propriétaires et créateurs</p>
+            <h3>Votre van pourrait être le prochain.</h3>
+            <p>Présentez votre véhicule, votre itinéraire, votre kilométrage et vos réseaux. Vous gardez le contrôle sur les marques acceptées.</p>
+          </div>
+          <ul>
+            <li>Profil public gratuit</li>
+            <li>Tarifs et emplacements libres</li>
+            <li>Validation de chaque demande</li>
+          </ul>
+          <a class="button button-primary" href="mailto:BRANDMYVAN@proton.me?subject=Candidature%20van%20Brand%20My%20Van">Proposer mon van</a>
+        </article>
+      </div>
+
+      <div class="empty-result" id="emptyResult" hidden>
+        <strong>Aucune campagne ne correspond à ces filtres.</strong>
+        <p>La marketplace démarre avec une première campagne réelle. Modifiez les filtres pour la consulter.</p>
+        <button class="button button-secondary" type="button" id="emptyReset">Afficher toutes les campagnes</button>
+      </div>
+    </section>
+
+    <section class="brand-section" id="brands" aria-labelledby="brands-title">
+      <div class="brand-intro">
+        <p class="eyebrow">Pour les marques</p>
+        <h2 id="brands-title">Une campagne adaptée à votre marché.</h2>
+        <p>Définissez votre zone, votre budget et votre public. Brand My Van identifie les profils pertinents et centralise la demande, la validation et les preuves.</p>
+        <a class="button button-primary" href="mailto:BRANDMYVAN@proton.me?subject=Brief%20campagne%20Brand%20My%20Van">Déposer un brief</a>
+      </div>
+      <div class="offer-list">
+        <article><span>01</span><div><h3>Affichage mobile</h3><p>Votre identité visuelle sur un ou plusieurs vans, pour une durée et des zones définies.</p></div></article>
+        <article><span>02</span><div><h3>Van et réseaux sociaux</h3><p>Affichage complété par des photos, vidéos ou publications prévues avec le créateur.</p></div></article>
+        <article><span>03</span><div><h3>Réseau de vans</h3><p>Plusieurs profils sélectionnés selon les régions, itinéraires et audiences recherchés.</p></div></article>
+      </div>
+    </section>
+
+    <section class="how section" id="how" aria-labelledby="how-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">Fonctionnement</p><h2 id="how-title">De la sélection aux preuves.</h2></div>
+        <p>Un processus lisible pour la marque et le propriétaire du van.</p>
+      </div>
+      <ol class="steps">
+        <li><span>01</span><h3>Sélectionnez un profil</h3><p>Comparez le véhicule, la personne, les trajets, l’audience et les emplacements.</p></li>
+        <li><span>02</span><h3>Envoyez votre demande</h3><p>Visualisez le logo, choisissez la zone et transmettez la proposition au créateur.</p></li>
+        <li><span>03</span><h3>Validez la campagne</h3><p>Les modalités, la création, la pose et les contreparties sont confirmées avant paiement.</p></li>
+        <li><span>04</span><h3>Recevez les preuves</h3><p>Photos de pose, suivi prévu et contenus sociaux sont réunis pour la marque.</p></li>
+      </ol>
+    </section>
+
+    <section class="faq section" aria-labelledby="faq-title">
+      <div class="faq-heading">
+        <p class="eyebrow">Questions fréquentes</p>
+        <h2 id="faq-title">Ce que la marketplace encadre.</h2>
+      </div>
+      <div class="faq-list">
+        <details open><summary>Que réserve exactement une marque ?</summary><p>Un emplacement défini sur un véhicule pour une durée indiquée. Le profil peut aussi proposer des photos, vidéos ou publications sur ses réseaux.</p></details>
+        <details><summary>Le propriétaire peut-il refuser une marque ?</summary><p>Oui. Chaque demande reste soumise à son approbation. Une demande ne devient pas automatiquement une campagne confirmée.</p></details>
+        <details><summary>Comment les profils sont-ils comparés ?</summary><p>Avec des données concrètes : véhicule, localisation, itinéraire, kilomètres annuels, réseaux, audience, prix, durée et emplacements disponibles.</p></details>
+        <details><summary>Qui s’occupe de l’impression et de la pose ?</summary><p>Ces prestations sont précisées pour chaque campagne. Elles peuvent être gérées par le propriétaire ou par un partenaire externe après validation du fichier.</p></details>
+        <details><summary>Quelles preuves reçoit la marque ?</summary><p>Les preuves prévues au contrat peuvent inclure les photos de pose, le suivi de la campagne, les zones parcourues et les statistiques des contenus sociaux.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a class="brand footer-brand" href="/brandmyvan/">BRAND <b>MYVAN</b></a>
+    <p>Véhicules, créateurs, audiences et présence physique.</p>
+    <nav aria-label="Navigation de pied de page"><a href="#explore">Explorer</a><a href="#brands">Marques</a><a href="#owners">Propriétaires</a></nav>
+    <span>© 2026 Brand My Van</span>
+  </footer>
+</body>
+</html>
