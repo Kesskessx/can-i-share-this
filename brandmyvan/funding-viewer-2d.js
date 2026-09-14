@@ -5,18 +5,18 @@ export function startFallback(){
  $('vanCanvas').hidden=true;stage.classList.add('fallback-active');
  const wrap=document.createElement('div');wrap.className='van-flat-wrap';
  const plane=document.createElement('div');plane.className='van-flat-plane';
- const photo=document.createElement('img');photo.alt='Van side preview';photo.draggable=false;
+ const photo=document.createElement('img');photo.alt='Aperçu latéral du van';photo.draggable=false;
  plane.append(photo);wrap.append(plane);viewer.append(wrap);
- const note=document.createElement('p');note.className='van-flat-note';note.textContent='2D preview · 3D is not supported in this browser. Your logo editor remains available.';viewer.append(note);
+ const note=document.createElement('p');note.className='van-flat-note';note.textContent='Aperçu 2D · La 3D n’est pas prise en charge par ce navigateur. L’éditeur de logo reste disponible.';viewer.append(note);
  let current='left',selected=null;const artwork=new Map(),buttons=new Map();
  for(const spot of spots){
-  const button=document.createElement('button');button.type='button';button.className='van-flat-spot';button.setAttribute('aria-label',spot.id+' · '+spot.tier+' · €'+spot.price);
+  const button=document.createElement('button');button.type='button';button.className='van-flat-spot';button.setAttribute('aria-label',spot.id+' · '+spot.tier+' · '+spot.price+' €');
   const drawing=document.createElement('canvas');drawing.hidden=true;const label=document.createElement('span');label.textContent=spot.id;button.append(drawing,label);
   button.addEventListener('click',()=>{if($('spotChoice').disabled||window.BMV_CONFIRMED?.has(spot.id))return;selected=spot.id;show(spot.view);emit('bmv:spot',spot.id);});
   buttons.set(spot.id,{button,drawing,label});plane.append(button);
  }
  function show(view){
-  current=view;photo.src='./fallback-'+view+'.png';photo.alt='Van '+view+' view';
+  current=view;photo.src='./fallback-'+view+'.png';photo.alt='Vue '+({left:'gauche',right:'droite',rear:'arrière'}[view])+' du van';
   const width=view==='rear'?model.width:model.length;
   plane.style.aspectRatio=String(width/model.height);
   plane.style.width=view==='rear'?'min(60%, 320px)':'100%';
@@ -26,10 +26,10 @@ export function startFallback(){
    button.classList.toggle('selected',s.id===selected);button.setAttribute('aria-pressed',String(s.id===selected));
   }
   document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
-  $('viewLabel').textContent=view.toUpperCase()+' · 2D PREVIEW';$('viewerTip').textContent='Tap a spot or use the list';
+  $('viewLabel').textContent=({left:'GAUCHE',right:'DROITE',rear:'ARRIÈRE'}[view])+' · APERÇU 2D';$('viewerTip').textContent='Touchez une zone ou utilisez la liste';
  }
  document.querySelectorAll('[data-view]').forEach(b=>{
-  if(b.dataset.view==='free'){b.disabled=true;b.textContent='3D unavailable';b.title='Open in a browser with WebGL support to rotate the van';}
+  if(b.dataset.view==='free'){b.disabled=true;b.textContent='3D indisponible';b.title='Ouvrez la page dans un navigateur compatible WebGL pour faire tourner le van';}
   else b.addEventListener('click',()=>{selected=null;show(b.dataset.view);emit('bmv:closed');});
  });
  $('resetVan').addEventListener('click',()=>{selected=null;show(current);emit('bmv:closed');});
@@ -41,6 +41,6 @@ export function startFallback(){
   entry.drawing.hidden=!hasLogo;entry.label.hidden=hasLogo;entry.button.classList.toggle('has-logo',hasLogo);
   if(hasLogo){entry.drawing.width=canvas.width;entry.drawing.height=canvas.height;entry.drawing.getContext('2d').drawImage(canvas,0,0);}
  });
- window.addEventListener('bmv:availability',()=>{for(const [id,e] of buttons){e.button.disabled=window.BMV_CONFIRMED.has(id);e.button.title=e.button.disabled?'Confirmed':'';}});
+ window.addEventListener('bmv:availability',()=>{for(const [id,e] of buttons){e.button.disabled=window.BMV_CONFIRMED.has(id);e.button.title=e.button.disabled?'Emplacement confirmé':'';}});
  show('left');emit('bmv:ready');
 }

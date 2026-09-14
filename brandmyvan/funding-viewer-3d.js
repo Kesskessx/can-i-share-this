@@ -21,9 +21,9 @@ const SPOTS=window.BMV_CONFIG.spots;
 
 let renderer;
 for(const options of [{antialias:false,powerPreference:'default'},{antialias:false,powerPreference:'low-power'}]){
- try{renderer=new THREE.WebGLRenderer({canvas,alpha:true,...options});break;}catch(error){console.warn('3D initialization attempt failed',error);}
+ try{renderer=new THREE.WebGLRenderer({canvas,alpha:true,...options});break;}catch(error){console.warn('Échec de l’initialisation 3D',error);}
 }
-if(!renderer)throw new Error('WebGL unavailable');
+if(!renderer)throw new Error('WebGL indisponible');
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
 const scene=new THREE.Scene();scene.background=new THREE.Color('#f7f6f1');
 const camera=new THREE.PerspectiveCamera(29,1,.01,100);
@@ -36,7 +36,8 @@ const floor=new THREE.Mesh(new THREE.CircleGeometry(4.3,72),new THREE.MeshStanda
 let model=null,modelBox=null,currentView='left',selectedId=null,tween=null,longAxis='x',wideAxis='z',garageGroup=null;
 const viewGroups={left:null,right:null,rear:null},viewSpotMeshes={left:[],right:[],rear:[]};
 const modelRaycaster=new THREE.Raycaster(),clickRaycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
-function money(v){return `€${v.toLocaleString('en-US')}`}
+function money(v){return `${v.toLocaleString('fr-FR')} €`}
+const viewNames={left:'GAUCHE',right:'DROITE',rear:'ARRIÈRE'};
 function axisVector(axis,value=1){const v=new THREE.Vector3();v[axis]=value;return v}
 function viewConfig(view){if(view==='rear')return{rayAxis:longAxis,hAxis:wideAxis,out:axisVector(longAxis,-1),flipU:longAxis==='z'};if(view==='left')return{rayAxis:wideAxis,hAxis:longAxis,out:axisVector(wideAxis,1),flipU:true};return{rayAxis:wideAxis,hAxis:longAxis,out:axisVector(wideAxis,-1),flipU:false}}
 function resize(){const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),r=renderer.getPixelRatio();if(canvas.width!==Math.round(w*r)||canvas.height!==Math.round(h*r))renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
@@ -45,7 +46,7 @@ function cameraPose(view){const center=modelBox.getCenter(new THREE.Vector3()),s
 function animateCamera(pos,target,duration=380){tween={startPos:camera.position.clone(),startTarget:controls.target.clone(),pos,target,started:performance.now(),duration}}
 function updateTween(){if(!tween)return;const t=Math.min(1,(performance.now()-tween.started)/tween.duration),e=1-Math.pow(1-t,3);camera.position.lerpVectors(tween.startPos,tween.pos,e);controls.target.lerpVectors(tween.startTarget,tween.target,e);if(t>=1)tween=null}
 
-function makeGarageSignTexture(){const c=document.createElement('canvas');c.width=1024;c.height=256;const ctx=c.getContext('2d');ctx.fillStyle='#111315';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#dcff29';ctx.font='900 92px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('BRAND MYVAN',512,105);ctx.fillStyle='#fff';ctx.font='700 28px Arial';ctx.fillText('GARAGE · SPONSOR BUILD',512,184);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.needsUpdate=true;return t}
+function makeGarageSignTexture(){const c=document.createElement('canvas');c.width=1024;c.height=256;const ctx=c.getContext('2d');ctx.fillStyle='#111315';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#dcff29';ctx.font='900 92px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('BRAND MYVAN',512,105);ctx.fillStyle='#fff';ctx.font='700 28px Arial';ctx.fillText('GARAGE · CAMPAGNE SPONSOR',512,184);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.needsUpdate=true;return t}
 function buildGarage(){
   if(!modelBox||garageGroup)return;const size=modelBox.getSize(new THREE.Vector3()),roomLong=Math.max(size[longAxis]*2.9,14),roomWide=Math.max(size[wideAxis]*5,12.5),roomHeight=Math.max(size.y*2.75,5.4),worldX=longAxis==='x'?roomLong:roomWide,worldZ=longAxis==='z'?roomLong:roomWide,backCoord=wideAxis==='z'?-worldZ/2:-worldX/2,insideBack=backCoord+.10;
   garageGroup=new THREE.Group();garageGroup.name='garage-environment';scene.add(garageGroup);
@@ -64,7 +65,7 @@ function buildGarage(){
 }
 function setEnvironmentMode(garage){if(garageGroup)garageGroup.visible=garage;floor.visible=!garage;scene.background.set(garage?0x1b1e22:0xf7f6f1);hemi.intensity=garage?1.45:3.1;key.intensity=garage?3.8:3.2;fill.intensity=garage?1.8:1.3;renderer.toneMappingExposure=garage?1.08:1.15}
 function setGroupVisibility(view){for(const k of['left','right','rear'])if(viewGroups[k])viewGroups[k].visible=view==='free'||k===view}
-function setFixedView(view,instant=false,keepSelection=false){if(!modelBox)return;currentView=view;setEnvironmentMode(false);controls.enableRotate=false;controls.enableZoom=false;controls.enablePan=false;controls.autoRotate=false;freeMessage.style.display='none';zoneLayer.style.display='none';setGroupVisibility(view);const pose=cameraPose(view);if(instant){camera.position.copy(pose.pos);controls.target.copy(pose.target);controls.update()}else animateCamera(pose.pos,pose.target);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view===view));const count=SPOTS.filter(s=>s.view===view).length;viewLabel.textContent=`${view.toUpperCase()} · ${count} AVAILABLE SPOTS`;viewLabel.style.display='block';if(viewerTip){viewerTip.textContent='Tap a spot to see price';viewerTip.style.display='block'}stopRotation();if(!keepSelection)closePanel()}
+function setFixedView(view,instant=false,keepSelection=false){if(!modelBox)return;currentView=view;setEnvironmentMode(false);controls.enableRotate=false;controls.enableZoom=false;controls.enablePan=false;controls.autoRotate=false;freeMessage.style.display='none';zoneLayer.style.display='none';setGroupVisibility(view);const pose=cameraPose(view);if(instant){camera.position.copy(pose.pos);controls.target.copy(pose.target);controls.update()}else animateCamera(pose.pos,pose.target);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view===view));const count=SPOTS.filter(s=>s.view===view).length;viewLabel.textContent=`${viewNames[view]} · ${count} EMPLACEMENTS DISPONIBLES`;viewLabel.style.display='block';if(viewerTip){viewerTip.textContent='Touchez une zone pour voir son prix';viewerTip.style.display='block'}stopRotation();if(!keepSelection)closePanel()}
 function setFreeView(keepSelection=false){currentView='free';setEnvironmentMode(true);zoneLayer.style.display='none';setGroupVisibility('free');viewLabel.style.display='none';freeMessage.style.display='block';if(viewerTip)viewerTip.style.display='none';controls.enableRotate=true;controls.enableZoom=true;controls.enablePan=false;const c=modelBox.getCenter(new THREE.Vector3()),size=modelBox.getSize(new THREE.Vector3()),d=fitDistance('left')*.90,p=c.clone();p[wideAxis]+=d*.66;p[longAxis]+=d*.66;p.y+=size.y*.20;controls.minDistance=d*.50;controls.maxDistance=d*1.10;animateCamera(p,c,460);viewButtons.forEach(b=>b.classList.toggle('active',b.dataset.view==='free'));if(!keepSelection)closePanel()}
 
 function sampleSurface(view,u,v,{strict=true}={}){if(!model||!modelBox)return null;const cfg=viewConfig(view),size=modelBox.getSize(new THREE.Vector3()),origin=modelBox.getCenter(new THREE.Vector3());origin[cfg.hAxis]=modelBox.min[cfg.hAxis]+u*size[cfg.hAxis];origin.y=modelBox.min.y+v*size.y;const margin=Math.max(.35,size[cfg.rayAxis]*.12);origin[cfg.rayAxis]=cfg.out[cfg.rayAxis]>0?modelBox.max[cfg.rayAxis]+margin:modelBox.min[cfg.rayAxis]-margin;const dir=cfg.out.clone().multiplyScalar(-1);modelRaycaster.set(origin,dir);modelRaycaster.far=size[cfg.rayAxis]*1.6;const hits=modelRaycaster.intersectObject(model,true);for(const hit of hits){if(!hit.face)continue;const n=hit.face.normal.clone().applyMatrix3(new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld)).normalize(),facing=n.dot(cfg.out);// Only the first visible surface can receive a sticker; never project through glass or trim.
@@ -88,7 +89,7 @@ function createSurfacePatch(view,{u0,u1,v0,v1,material,outline=[[0,0],[1,0],[1,1
     const sample=sampleSurface(view,u0+(u1-u0)*x/4,v0+(v1-v0)*y/4);
     if(sample)surfaceDepths.push(sample.point[cfg.rayAxis]);
   }
-  if(!surfaceDepths.length)throw new Error(`No printable body surface for ${view}`);
+  if(!surfaceDepths.length)throw new Error(`Aucune surface imprimable pour la vue ${viewNames[view]}`);
   const planes=[
     [cfg.hAxis,horizontalMin,1],[cfg.hAxis,horizontalMax,-1],
     ['y',bottom,1],['y',top,-1],
@@ -243,5 +244,5 @@ canvas.addEventListener('click',e=>{
 });
 viewButtons.forEach(btn=>btn.addEventListener('click',()=>btn.dataset.view==='free'?setFreeView():setFixedView(btn.dataset.view)));resetBtn?.addEventListener('click',()=>currentView==='free'?setFreeView():setFixedView(currentView));window.addEventListener('resize',()=>{if(modelBox&&currentView!=='free')setFixedView(currentView,true,true)});
 const frameClock=new THREE.Clock();renderer.setAnimationLoop(()=>{const delta=Math.min(frameClock.getDelta(),.1);resize();updateTween();controls.update(delta);renderer.render(scene,camera)});
-async function boot(){try{const gltf=await new GLTFLoader().loadAsync('./van-realistic.glb');model=gltf.scene;const rawBox=new THREE.Box3().setFromObject(model),rawSize=rawBox.getSize(new THREE.Vector3()),rawCenter=rawBox.getCenter(new THREE.Vector3()),scale=4.75/Math.max(rawSize.x,rawSize.y,rawSize.z),origin=new THREE.Vector3(rawCenter.x,rawBox.min.y,rawCenter.z);model.scale.setScalar(scale);model.position.copy(origin).multiplyScalar(-scale);scene.add(model);scene.updateMatrixWorld(true);modelBox=new THREE.Box3().setFromObject(model);const size=modelBox.getSize(new THREE.Vector3());longAxis=size.x>=size.z?'x':'z';wideAxis=longAxis==='x'?'z':'x';buildGarage();buildViewGroups();setEnvironmentMode(false);setFixedView('left',true,true);window.dispatchEvent(new CustomEvent('bmv:ready'));}catch(err){console.error(err);viewLabel.textContent='3D MODEL UNAVAILABLE';zoneLayer.style.display='none';throw err}}
+async function boot(){try{const gltf=await new GLTFLoader().loadAsync('./van-realistic.glb');model=gltf.scene;const rawBox=new THREE.Box3().setFromObject(model),rawSize=rawBox.getSize(new THREE.Vector3()),rawCenter=rawBox.getCenter(new THREE.Vector3()),scale=4.75/Math.max(rawSize.x,rawSize.y,rawSize.z),origin=new THREE.Vector3(rawCenter.x,rawBox.min.y,rawCenter.z);model.scale.setScalar(scale);model.position.copy(origin).multiplyScalar(-scale);scene.add(model);scene.updateMatrixWorld(true);modelBox=new THREE.Box3().setFromObject(model);const size=modelBox.getSize(new THREE.Vector3());longAxis=size.x>=size.z?'x':'z';wideAxis=longAxis==='x'?'z':'x';buildGarage();buildViewGroups();setEnvironmentMode(false);setFixedView('left',true,true);window.dispatchEvent(new CustomEvent('bmv:ready'));}catch(err){console.error(err);viewLabel.textContent='MODÈLE 3D INDISPONIBLE';zoneLayer.style.display='none';throw err}}
 await boot();
