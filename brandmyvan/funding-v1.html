@@ -24,6 +24,15 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
 @media(max-width:560px){.spot-panel{inset:auto;width:auto;padding:16px}.spot-panel p{font-size:14px}.spot-picker{top:52px;left:8px}.spot-picker select{max-width:240px}.view-tabs button{font-size:10px}.free-message{display:none!important}.hero-layout.is-editing .stage{min-height:42svh}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
+.social-symbols{position:absolute;width:0;height:0;overflow:hidden}.social-icon{display:block;width:22px;height:22px;flex:none;color:currentColor}
+.creator-profile{padding:58px 4vw 64px;background:#fff;border-bottom:1px solid var(--line);scroll-margin-top:70px}.creator-profile-header{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:24px}.creator-profile-header h2{max-width:760px;margin:9px 0 0;font-size:clamp(38px,4.8vw,64px);line-height:.93;letter-spacing:-3px}.creator-profile-shell{border:1px solid var(--line);background:var(--bg)}
+.creator-overview{display:grid;grid-template-columns:minmax(250px,.72fr) minmax(0,1.28fr);border-bottom:1px solid var(--line)}.creator-identity{padding:28px;background:#111;color:#fff}.profile-avatar{width:76px;height:76px;display:grid;place-items:center;margin-bottom:42px;background:var(--lime);color:#111;font-size:34px;font-weight:950}.creator-identity h3{margin:0;font-size:36px;line-height:1}.creator-identity>p{margin:8px 0 20px;color:#c9c9c9;font-size:14px}.profile-badges{display:flex;gap:7px;flex-wrap:wrap}.profile-badges span{border:1px solid #606060;padding:7px 9px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.6px}.profile-badges span:first-child{border-color:var(--lime);color:var(--lime)}
+.creator-story{padding:28px}.creator-story>p{max-width:780px;margin:0 0 24px;font-size:17px;line-height:1.7;color:#37342f}.profile-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0;border-top:1px solid #bbb7ad}.profile-facts div{padding:13px 10px 13px 0;border-bottom:1px solid #bbb7ad}.profile-facts div:not(:nth-child(3n)){border-right:1px solid #bbb7ad;margin-right:10px}.profile-facts dt{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}.profile-facts dd{margin:4px 0 0;font-size:14px;font-weight:800}
+.profile-networks{padding:26px 28px;border-bottom:1px solid var(--line)}.profile-networks-head{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:14px}.profile-networks-head h3{margin:0;font-size:25px}.profile-networks-head p{margin:0;color:var(--muted);font-size:12px}.profile-network-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.profile-network{min-height:70px;display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:11px;padding:10px;border:1px solid #c2beb5;background:#fff}.profile-network-logo{width:42px;height:42px;display:grid;place-items:center;background:#eceae4}.profile-network strong,.profile-network span{display:block}.profile-network strong{font-size:14px}.profile-network span{font-size:11px;color:var(--muted)}.profile-network b{font-size:15px}.profile-network.is-live{border-color:#111}.profile-network.is-live .profile-network-logo{background:#111;color:#fff}.profile-network.is-pending{color:#777;background:#f3f1eb}.profile-network.is-pending .profile-network-logo{color:#777}.profile-disclosure{margin:14px 0 0;font-size:12px;color:var(--muted)}
+.campaign-package{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.campaign-package article{min-height:190px;padding:22px;border-right:1px solid var(--line)}.campaign-package article:last-child{border-right:0}.campaign-package span{font-size:11px;font-weight:950;color:#596600}.campaign-package h3{margin:34px 0 8px;font-size:18px;line-height:1.15}.campaign-package p{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+@media(max-width:900px){.creator-profile-header{display:block}.creator-profile-header .cta{margin-top:18px}.creator-overview{grid-template-columns:1fr}.profile-avatar{margin-bottom:24px}.profile-network-grid{grid-template-columns:1fr 1fr}.campaign-package{grid-template-columns:1fr 1fr}.campaign-package article:nth-child(2){border-right:0}.campaign-package article:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+@media(max-width:560px){.creator-profile{padding:38px 12px 44px}.creator-profile-header h2{letter-spacing:-2px}.creator-identity,.creator-story,.profile-networks{padding:20px}.profile-facts{grid-template-columns:1fr 1fr}.profile-facts div:not(:nth-child(3n)){border-right:0;margin-right:0}.profile-facts div:nth-child(odd){border-right:1px solid #bbb7ad;margin-right:10px}.profile-network-grid{grid-template-columns:1fr}.profile-networks-head{display:block}.profile-networks-head p{margin-top:5px}.campaign-package{grid-template-columns:1fr}.campaign-package article:nth-child(n){min-height:0;border-right:0;border-bottom:1px solid var(--line)}.campaign-package article:last-child{border-bottom:0}.campaign-package h3{margin-top:22px}}
+
 .project-faq{padding:58px 4vw;border-bottom:1px solid var(--line);scroll-margin-top:80px}
 .project-faq h2{font-size:clamp(34px,4vw,54px);line-height:1.02;letter-spacing:-2px;margin:12px 0 22px;max-width:740px}
 .project-intro{max-width:780px;font-size:17px;line-height:1.7;color:#3e3a34}
@@ -58,6 +67,14 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
 <script type="importmap">{"imports":{"three":"./vendor/build/three.module.js"}}</script>
 </head>
 <body>
+<svg class="social-symbols" aria-hidden="true">
+  <symbol id="social-x" viewBox="0 0 24 24"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23Zm-1.16 17.52h1.83L7.08 4.13H5.11l11.97 15.64Z"/></symbol>
+  <symbol id="social-instagram" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.7" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="social-tiktok" viewBox="0 0 24 24"><path fill="currentColor" d="M14.1 3v11.2a4.3 4.3 0 1 1-3.7-4.26v2.66a1.75 1.75 0 1 0 1.15 1.64V3h2.55Zm0 0c.42 2.38 1.84 3.82 4.3 4.15v2.68a7.55 7.55 0 0 1-4.3-1.46V3Z"/></symbol>
+  <symbol id="social-youtube" viewBox="0 0 24 24"><path fill="currentColor" d="M22 8.1a3 3 0 0 0-2.1-2.12C18.04 5.5 12 5.5 12 5.5s-6.04 0-7.9.48A3 3 0 0 0 2 8.1 31.3 31.3 0 0 0 1.5 12a31.3 31.3 0 0 0 .5 3.9 3 3 0 0 0 2.1 2.12c1.86.48 7.9.48 7.9.48s6.04 0 7.9-.48A3 3 0 0 0 22 15.9a31.3 31.3 0 0 0 .5-3.9 31.3 31.3 0 0 0-.5-3.9ZM10 15.2V8.8l5.5 3.2-5.5 3.2Z"/></symbol>
+  <symbol id="social-facebook" viewBox="0 0 24 24"><path fill="currentColor" d="M14.2 22v-9h3l.45-3.5H14.2V7.27c0-1.01.28-1.7 1.74-1.7h1.86V2.44A25 25 0 0 0 15.1 2c-2.68 0-4.52 1.64-4.52 4.64V9.5H7.55V13h3.03v9h3.62Z"/></symbol>
+  <symbol id="social-linkedin" viewBox="0 0 24 24"><path fill="currentColor" d="M5.34 3.5A2.34 2.34 0 1 1 .66 3.5a2.34 2.34 0 0 1 4.68 0ZM1.05 7h3.9v12.5h-3.9V7Zm6.3 0h3.74v1.71h.05c.52-.99 1.8-2.03 3.7-2.03 3.96 0 4.69 2.6 4.69 5.99v6.83h-3.9v-6.06c0-1.45-.03-3.3-2.02-3.3-2.02 0-2.33 1.57-2.33 3.19v6.17h-3.9V7Z"/></symbol>
+</svg>
 <header>
   <a class="brand" href="/brandmyvan/" title="Retour à la marketplace">BRAND <b>MYVAN</b></a>
   <div class="header-progress"><span>0 / 20 confirmés</span><strong>0 € réservés</strong></div>
@@ -71,7 +88,7 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
         <p class="hero-sub">Basé dans les Pyrénées-Orientales, je prépare un projet de van destiné à circuler en France et en Espagne. Choisissez un emplacement et visualisez directement votre logo sur la carrosserie.</p>
         <div class="hero-meta"><span>Dès 200 €</span><span>12 000 km/an estimés</span><a href="https://x.com/THEFOFOSHOW" target="_blank" rel="noreferrer" aria-label="Voir le profil X de Fofo">X · @THEFOFOSHOW ↗</a><span>12 mois</span></div>
         <a class="cta" href="#vanStage">Choisir un emplacement</a>
-        <a class="faq-link" href="#project-faq">Le projet et les questions des marques ↗</a>
+        <a class="faq-link" href="#creator-profile">Voir le profil créateur détaillé ↗</a>
         <div class="hero-note">Les vues gauche, droite et arrière servent à choisir un emplacement. Le garage 3D permet d’inspecter le van sous tous les angles.</div>
       </div>
       <aside class="spot-panel" id="spotPanel" hidden aria-label="Aperçu de votre logo">
@@ -124,6 +141,51 @@ header{height:62px;display:flex;align-items:center;justify-content:space-between
     <div><span>Confirmés</span><strong>0</strong></div>
     <div><span>Paiements reçus</span><strong>0 € / 10 000 €</strong></div>
     <div><span>Durée</span><strong>12 mois</strong></div>
+  </section>
+  <section class="creator-profile" id="creator-profile" aria-labelledby="creator-profile-title">
+    <div class="creator-profile-header">
+      <div><div class="eyebrow">Profil créateur · Données déclarées</div><h2 id="creator-profile-title">Fofo, le créateur derrière la campagne.</h2></div>
+      <a class="cta" href="#vanStage">Voir les emplacements disponibles</a>
+    </div>
+    <div class="creator-profile-shell">
+      <article class="creator-overview">
+        <div class="creator-identity">
+          <div class="profile-avatar" aria-hidden="true">F</div>
+          <h3>Fofo</h3>
+          <p>Créateur · Pyrénées-Orientales</p>
+          <div class="profile-badges"><span>Ouvert aux collaborations</span><span>Français</span></div>
+        </div>
+        <div class="creator-story">
+          <p>Fofo prépare le premier projet référencé sur Brand My Van. Son objectif est de documenter la préparation du véhicule et ses futurs trajets en France et en Espagne, tout en construisant des collaborations cohérentes entre visibilité sur la route et communication en ligne.</p>
+          <dl class="profile-facts">
+            <div><dt>Base</dt><dd>Pyrénées-Orientales</dd></div>
+            <div><dt>Zone prévue</dt><dd>France · Espagne</dd></div>
+            <div><dt>Kilométrage</dt><dd>12 000 km/an estimés</dd></div>
+            <div><dt>Audience déclarée</dt><dd>700+ abonnés sur X</dd></div>
+            <div><dt>Véhicule</dt><dd>Projet en préparation</dd></div>
+            <div><dt>Campagne</dt><dd>12 mois</dd></div>
+          </dl>
+        </div>
+      </article>
+      <section class="profile-networks" aria-labelledby="profile-networks-title">
+        <div class="profile-networks-head"><h3 id="profile-networks-title">Réseaux sociaux</h3><p>Statistiques mises à jour en septembre 2026</p></div>
+        <div class="profile-network-grid">
+          <a class="profile-network is-live" href="https://x.com/THEFOFOSHOW" target="_blank" rel="noreferrer" aria-label="Voir le compte X de Fofo, plus de 700 abonnés"><span class="profile-network-logo"><svg class="social-icon" aria-hidden="true"><use href="#social-x"/></svg></span><span><strong>X</strong><span>@THEFOFOSHOW · 700+</span></span><b aria-hidden="true">↗</b></a>
+          <div class="profile-network is-pending"><span class="profile-network-logo"><svg class="social-icon" aria-hidden="true"><use href="#social-instagram"/></svg></span><span><strong>Instagram</strong><span>Non renseigné</span></span></div>
+          <div class="profile-network is-pending"><span class="profile-network-logo"><svg class="social-icon" aria-hidden="true"><use href="#social-tiktok"/></svg></span><span><strong>TikTok</strong><span>Non renseigné</span></span></div>
+          <div class="profile-network is-pending"><span class="profile-network-logo"><svg class="social-icon" aria-hidden="true"><use href="#social-youtube"/></svg></span><span><strong>YouTube</strong><span>Non renseigné</span></span></div>
+          <div class="profile-network is-pending"><span class="profile-network-logo"><svg class="social-icon" aria-hidden="true"><use href="#social-facebook"/></svg></span><span><strong>Facebook</strong><span>Non renseigné</span></span></div>
+          <div class="profile-network is-pending"><span class="profile-network-logo"><svg class="social-icon" aria-hidden="true"><use href="#social-linkedin"/></svg></span><span><strong>LinkedIn</strong><span>Non renseigné</span></span></div>
+        </div>
+        <p class="profile-disclosure">Seul le compte X est actuellement renseigné. Les autres réseaux restent visibles comme champs de profil, sans audience ni lien inventés.</p>
+      </section>
+      <div class="campaign-package" aria-label="Détails de la collaboration proposée">
+        <article><span>01</span><h3>Affichage physique</h3><p>Un emplacement précis sur la carrosserie pendant la durée convenue.</p></article>
+        <article><span>02</span><h3>Contenus sociaux</h3><p>Formats, nombre de publications et calendrier définis avec la marque avant validation.</p></article>
+        <article><span>03</span><h3>Preuves prévues</h3><p>Photos de pose, suivi de la campagne et éléments convenus avec le partenaire.</p></article>
+        <article><span>04</span><h3>Validation du créateur</h3><p>Chaque demande est examinée avant confirmation ; aucune marque n’est acceptée automatiquement.</p></article>
+      </div>
+    </div>
   </section>
   <section class="how" id="how">
     <div class="eyebrow">Fonctionnement</div>

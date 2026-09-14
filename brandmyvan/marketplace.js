@@ -9,6 +9,8 @@
   const grid=document.getElementById('campaignGrid');
   const empty=document.getElementById('emptyResult');
   const count=document.getElementById('resultCount');
+  const networkButtons=[...document.querySelectorAll('[data-network-filter]')];
+  let activeNetwork='all';
   const normalize=value=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 
   function applyFilters(){
@@ -17,7 +19,8 @@
     const matchesCountry=filters.country.value==='all'||card.dataset.country===filters.country.value;
     const matchesCategory=filters.category.value==='all'||card.dataset.categories.split(' ').includes(filters.category.value);
     const matchesBudget=filters.budget.value==='all'||Number(card.dataset.price)<=Number(filters.budget.value);
-    const visible=matchesSearch&&matchesCountry&&matchesCategory&&matchesBudget;
+    const matchesNetwork=activeNetwork==='all'||card.dataset.networks.split(' ').includes(activeNetwork);
+    const visible=matchesSearch&&matchesCountry&&matchesCategory&&matchesBudget&&matchesNetwork;
     card.hidden=!visible;
     empty.hidden=visible;
     grid.classList.toggle('single-result',visible);
@@ -29,11 +32,18 @@
     filters.country.value='all';
     filters.category.value='all';
     filters.budget.value='all';
+    activeNetwork='all';
+    networkButtons.forEach(button=>{const active=button.dataset.networkFilter==='all';button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
     applyFilters();
     filters.search.focus();
   }
 
   Object.values(filters).forEach(control=>control.addEventListener(control.tagName==='INPUT'?'input':'change',applyFilters));
+  networkButtons.forEach(button=>button.addEventListener('click',()=>{
+    activeNetwork=button.dataset.networkFilter;
+    networkButtons.forEach(item=>{const active=item===button;item.classList.toggle('active',active);item.setAttribute('aria-pressed',String(active));});
+    applyFilters();
+  }));
   document.getElementById('vanFilters').addEventListener('submit',event=>{event.preventDefault();applyFilters();});
   document.getElementById('resetFilters').addEventListener('click',resetFilters);
   document.getElementById('emptyReset').addEventListener('click',resetFilters);
