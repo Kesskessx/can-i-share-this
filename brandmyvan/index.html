@@ -20,176 +20,163 @@
     <symbol id="social-linkedin" viewBox="0 0 24 24"><path fill="currentColor" d="M5.34 3.5A2.34 2.34 0 1 1 .66 3.5a2.34 2.34 0 0 1 4.68 0ZM1.05 7h3.9v12.5h-3.9V7Zm6.3 0h3.74v1.71h.05c.52-.99 1.8-2.03 3.7-2.03 3.96 0 4.69 2.6 4.69 5.99v6.83h-3.9v-6.06c0-1.45-.03-3.3-2.02-3.3-2.02 0-2.33 1.57-2.33 3.19v6.17h-3.9V7Z"/></symbol>
   </svg>
   <header class="site-header">
-    <a class="brand" href="/brandmyvan/" aria-label="Brand My Van, accueil">BRAND <b>MYVAN</b></a>
-    <nav class="desktop-nav" aria-label="Navigation principale">
-      <a href="#explore">Explorer les vans</a>
+    <div class="header-main">
+      <a class="brand" href="/brandmyvan/" aria-label="Brand My Van, accueil">BRAND <b>MYVAN</b></a>
+      <form class="global-search" id="vanFilters" role="search">
+        <label class="visually-hidden" for="searchFilter">Rechercher un créateur, une région ou un itinéraire</label>
+        <input id="searchFilter" type="search" placeholder="Créateur, région, itinéraire…" autocomplete="off">
+        <button type="submit">Rechercher</button>
+      </form>
+      <a class="header-action" href="#owners">Inscrire mon van</a>
+    </div>
+    <nav class="marketplace-nav" aria-label="Catégories et navigation">
+      <a class="active" href="#explore" data-category-quick="all">Tous les créateurs</a>
+      <a href="#explore" data-category-quick="vanlife">Vanlife</a>
+      <a href="#explore" data-category-quick="road-trip">Road trip</a>
+      <a href="#explore" data-category-quick="outdoor">Outdoor</a>
       <a href="#brands">Pour les marques</a>
       <a href="#how">Fonctionnement</a>
     </nav>
-    <a class="header-action" href="#owners">Inscrire mon van</a>
   </header>
 
   <main>
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy">
+    <section class="marketplace-intro" aria-labelledby="hero-title">
+      <div>
         <p class="eyebrow">Marketplace française de sponsoring vanlife</p>
-        <h1 id="hero-title">Des créateurs.<br>Des itinéraires.<br><em>Votre marque en mouvement.</em></h1>
-        <p class="hero-text">Comparez le profil, le véhicule, l’audience, le kilométrage et les zones parcourues. Réservez une présence sur la route et définissez les contenus sociaux avec le créateur.</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="#explore">Explorer les profils</a>
-          <a class="button button-secondary" href="#brands">Déposer un brief</a>
-        </div>
+        <h1 id="hero-title">Trouvez le créateur qui fera rouler votre marque.</h1>
+        <p>Comparez immédiatement l’audience, l’itinéraire, le kilométrage, les contenus proposés et les emplacements disponibles.</p>
       </div>
-      <aside class="hero-proof" aria-label="Principes de la marketplace">
-        <div class="proof-index">01</div>
-        <p class="proof-kicker">Vous choisissez un profil, pas seulement un véhicule.</p>
-        <div class="proof-list">
-          <div><span>Véhicule</span><strong>Photos et emplacements</strong></div>
-          <div><span>Créateur</span><strong>Identité et univers</strong></div>
-          <div><span>Audience</span><strong>Réseaux et statistiques</strong></div>
-          <div><span>Terrain</span><strong>Itinéraire et kilomètres</strong></div>
-        </div>
-      </aside>
-    </section>
-
-    <section class="trust-strip" aria-label="Garanties Brand My Van">
-      <div><span aria-hidden="true">✓</span> Profils documentés par leurs créateurs</div>
-      <div><span aria-hidden="true">✓</span> Chaque réservation soumise à validation</div>
-      <div><span aria-hidden="true">✓</span> Preuves définies avant la campagne</div>
+      <dl class="marketplace-snapshot" aria-label="État actuel de la marketplace">
+        <div><dt>Profils réels</dt><dd>1</dd></div>
+        <div><dt>Prix dès</dt><dd>200 €</dd></div>
+        <div><dt>Emplacements</dt><dd id="snapshotSpots">20</dd></div>
+        <div><dt>Zone actuelle</dt><dd>France · Espagne</dd></div>
+      </dl>
     </section>
 
     <section class="explore section" id="explore" aria-labelledby="explore-title">
-      <div class="section-heading">
+      <div class="catalogue-heading">
         <div>
-          <p class="eyebrow">Explorer</p>
-          <h2 id="explore-title">Vans et créateurs</h2>
+          <p class="eyebrow">Catalogue</p>
+          <h2 id="explore-title">Créateurs disponibles</h2>
         </div>
-        <p>Les premières campagnes publiées sur Brand My Van. Aucun profil fictif.</p>
+        <p>Les profils sont publiés avec leurs données déclarées. Aucun van, sponsor ou résultat fictif.</p>
       </div>
-
-      <form class="filters" id="vanFilters">
-        <label class="search-field">
-          <span>Recherche</span>
-          <input id="searchFilter" type="search" placeholder="Créateur, région, itinéraire…" autocomplete="off">
-        </label>
-        <label>
-          <span>Pays</span>
-          <select id="countryFilter">
-            <option value="all">Tous les pays</option>
-            <option value="france">France</option>
-          </select>
-        </label>
-        <label>
-          <span>Catégorie</span>
-          <select id="categoryFilter">
-            <option value="all">Toutes</option>
-            <option value="vanlife">Vanlife</option>
-            <option value="road-trip">Road trip</option>
-            <option value="outdoor">Outdoor</option>
-          </select>
-        </label>
-        <label>
-          <span>Budget</span>
-          <select id="budgetFilter">
-            <option value="all">Tous les budgets</option>
-            <option value="250">Jusqu’à 250 €</option>
-            <option value="500">Jusqu’à 500 €</option>
-            <option value="1000">Jusqu’à 1 000 €</option>
-          </select>
-        </label>
-        <button class="reset-filter" id="resetFilters" type="button">Réinitialiser</button>
-      </form>
-
-      <div class="network-filter-panel" aria-label="Filtrer les créateurs par réseau social">
-        <div class="network-filter-copy"><strong>Réseaux sociaux</strong><span>Affichez les créateurs présents sur la plateforme choisie.</span></div>
-        <div class="network-filters" role="group" aria-label="Réseau social">
-          <button class="active" type="button" data-network-filter="all" aria-pressed="true">Tous</button>
-          <button type="button" data-network-filter="instagram" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-instagram"/></svg><span>Instagram</span></button>
-          <button type="button" data-network-filter="tiktok" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-tiktok"/></svg><span>TikTok</span></button>
-          <button type="button" data-network-filter="youtube" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-youtube"/></svg><span>YouTube</span></button>
-          <button type="button" data-network-filter="facebook" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-facebook"/></svg><span>Facebook</span></button>
-          <button type="button" data-network-filter="x" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-x"/></svg><span>X</span></button>
-          <button type="button" data-network-filter="linkedin" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-linkedin"/></svg><span>LinkedIn</span></button>
-        </div>
-      </div>
-
-      <div class="results-bar">
-        <strong id="resultCount" aria-live="polite">1 campagne disponible</strong>
-        <span>Mise à jour des disponibilités en direct</span>
-      </div>
-
-      <div class="campaign-grid" id="campaignGrid">
-        <article class="campaign-card" data-search="fofo pyrénées orientales france espagne vanlife road trip outdoor thefofoshow x" data-country="france" data-categories="vanlife road-trip outdoor" data-networks="x" data-price="200" data-available="true">
-          <a class="campaign-visual" href="/brandmyvan/funding-v1" aria-label="Voir la campagne de Fofo">
-            <img src="/brandmyvan/fallback-left.png" width="1200" height="720" alt="Vue latérale du van de la campagne de Fofo">
-            <span class="campaign-status"><i></i> Campagne ouverte</span>
-            <span class="campaign-number">01</span>
-          </a>
-          <div class="campaign-body">
-            <div class="campaign-title-row">
-              <div>
-                <p class="eyebrow">Projet vanlife</p>
-                <h3>Fofo — Campagne pilote</h3>
-              </div>
-              <span class="starting-price">Dès <strong>200 €</strong></span>
+      <div class="marketplace-layout">
+        <aside class="filter-sidebar" aria-label="Filtres du catalogue">
+          <div class="filter-sidebar-heading"><strong>Filtrer les profils</strong><span>Affinez votre sélection</span></div>
+          <label class="filter-control">
+            <span>Pays</span>
+            <select id="countryFilter">
+              <option value="all">Tous les pays</option>
+              <option value="france">France</option>
+            </select>
+          </label>
+          <label class="filter-control">
+            <span>Catégorie</span>
+            <select id="categoryFilter">
+              <option value="all">Toutes les catégories</option>
+              <option value="vanlife">Vanlife</option>
+              <option value="road-trip">Road trip</option>
+              <option value="outdoor">Outdoor</option>
+            </select>
+          </label>
+          <label class="filter-control">
+            <span>Budget maximum</span>
+            <select id="budgetFilter">
+              <option value="all">Tous les budgets</option>
+              <option value="250">Jusqu’à 250 €</option>
+              <option value="500">Jusqu’à 500 €</option>
+              <option value="1000">Jusqu’à 1 000 €</option>
+            </select>
+          </label>
+          <div class="network-filter-panel" aria-label="Filtrer les créateurs par réseau social">
+            <strong>Réseaux sociaux</strong>
+            <div class="network-filters" role="group" aria-label="Réseau social">
+              <button class="active" type="button" data-network-filter="all" aria-pressed="true">Tous</button>
+              <button type="button" data-network-filter="instagram" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-instagram"/></svg><span>Instagram</span></button>
+              <button type="button" data-network-filter="tiktok" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-tiktok"/></svg><span>TikTok</span></button>
+              <button type="button" data-network-filter="youtube" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-youtube"/></svg><span>YouTube</span></button>
+              <button type="button" data-network-filter="facebook" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-facebook"/></svg><span>Facebook</span></button>
+              <button type="button" data-network-filter="x" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-x"/></svg><span>X</span></button>
+              <button type="button" data-network-filter="linkedin" aria-pressed="false"><svg class="social-icon" aria-hidden="true"><use href="#social-linkedin"/></svg><span>LinkedIn</span></button>
             </div>
-            <div class="creator-summary">
-              <span class="creator-avatar" aria-hidden="true">F</span>
-              <div><strong>Fofo</strong><span>Créateur · Pyrénées-Orientales</span></div>
-              <span class="creator-status">Profil pilote</span>
-            </div>
-            <p class="campaign-bio">Fofo prépare le premier projet référencé sur Brand My Van. Basé dans les Pyrénées-Orientales, il souhaite documenter la préparation du véhicule et ses futurs trajets en France et en Espagne avec des partenaires cohérents avec son projet.</p>
-            <div class="campaign-social">
-              <div class="campaign-social-head"><strong>Réseau déclaré</strong><span>Audience déclarée · septembre 2026</span></div>
-              <a class="social-account social-x" href="https://x.com/THEFOFOSHOW" target="_blank" rel="noreferrer" aria-label="Voir le compte X de Fofo, plus de 700 abonnés">
-                <span class="social-logo"><svg class="social-icon" aria-hidden="true"><use href="#social-x"/></svg></span>
-                <span><strong>X</strong><small>@THEFOFOSHOW · 700+ abonnés</small></span>
-                <b aria-hidden="true">↗</b>
+          </div>
+          <button class="reset-filter" id="resetFilters" type="button">Réinitialiser les filtres</button>
+          <div class="buyer-standards">
+            <strong>Protection des marques</strong>
+            <ul><li>Demande soumise au créateur</li><li>Livrables définis avant accord</li><li>Preuves prévues dans la campagne</li></ul>
+          </div>
+        </aside>
+
+        <div class="catalogue-results">
+          <div class="results-bar">
+            <strong id="resultCount" aria-live="polite">1 créateur disponible</strong>
+            <span>Disponibilités actualisées sur les fiches</span>
+          </div>
+
+          <div class="campaign-grid" id="campaignGrid">
+            <article class="campaign-card" data-profile-id="fofo" data-search="fofo pyrénées orientales france espagne vanlife road trip outdoor thefofoshow x" data-country="france" data-categories="vanlife road-trip outdoor" data-networks="x" data-price="200" data-available="true">
+              <a class="campaign-visual" href="/brandmyvan/funding-v1" aria-label="Voir le profil et la campagne de Fofo">
+                <img src="/brandmyvan/fallback-left.png" width="1200" height="720" alt="Vue latérale du van associé au projet de Fofo">
+                <span class="campaign-status"><i></i> Campagne ouverte</span>
+                <span class="campaign-index">Profil 01</span>
               </a>
-            </div>
-            <p class="campaign-location">Zone principale · France et Espagne</p>
-            <div class="campaign-tags"><span>Vanlife</span><span>Road trip</span><span>Outdoor</span></div>
-            <dl class="campaign-data">
-              <div><dt>Audience</dt><dd>700+ abonnés sur X</dd></div>
-              <div><dt>Base</dt><dd>Pyrénées-Orientales</dd></div>
-              <div><dt>Kilométrage</dt><dd>12 000 km/an estimés</dd></div>
-              <div><dt>Itinéraire</dt><dd>France · Espagne</dd></div>
-              <div><dt>Langue</dt><dd>Français</dd></div>
-              <div><dt>Véhicule</dt><dd>Projet en préparation</dd></div>
-              <div><dt>Durée</dt><dd>12 mois</dd></div>
-              <div><dt>Disponibilité</dt><dd id="availableSpots">20 emplacements</dd></div>
-            </dl>
-            <div class="campaign-deliverables">
-              <strong>Collaboration proposée</strong>
-              <ul><li>Présence physique sur le van</li><li>Photos de pose et de suivi</li><li>Contenus sociaux définis avec la marque</li></ul>
-            </div>
-            <div class="campaign-progress" aria-label="Progression du financement">
-              <div class="progress-copy"><span>Réservé</span><strong id="reservedAmount">0 € sur 10 000 €</strong></div>
-              <div class="progress-track"><span id="reservedProgress"></span></div>
-            </div>
-            <a class="button button-dark" href="/brandmyvan/funding-v1">Voir le profil et les emplacements</a>
-          </div>
-        </article>
+              <div class="campaign-body">
+                <div class="campaign-topline"><span>Vanlife · Road trip</span><span>Données déclarées · sept. 2026</span></div>
+                <h3><a href="/brandmyvan/funding-v1">Fofo — Projet vanlife</a></h3>
+                <div class="creator-summary">
+                  <span class="creator-avatar" aria-hidden="true">F</span>
+                  <div><strong>Fofo</strong><span>Pyrénées-Orientales · Français</span></div>
+                  <span class="creator-status">Profil pilote</span>
+                </div>
+                <p class="campaign-bio">Un projet en préparation qui associe présence physique sur le van et contenus définis avec chaque marque partenaire.</p>
+                <a class="social-account social-x" href="https://x.com/THEFOFOSHOW" target="_blank" rel="noreferrer" aria-label="Voir le compte X de Fofo, plus de 700 abonnés">
+                  <span class="social-logo"><svg class="social-icon" aria-hidden="true"><use href="#social-x"/></svg></span>
+                  <span><strong>@THEFOFOSHOW</strong><small>700+ abonnés sur X</small></span>
+                  <b aria-hidden="true">↗</b>
+                </a>
+                <dl class="campaign-data">
+                  <div><dt>Zone prévue</dt><dd>France · Espagne</dd></div>
+                  <div><dt>Kilométrage</dt><dd>12 000 km/an estimés</dd></div>
+                  <div><dt>Durée</dt><dd>12 mois</dd></div>
+                  <div><dt>Véhicule</dt><dd>Projet en préparation</dd></div>
+                </dl>
+                <div class="campaign-tags" aria-label="Catégories"><span>Vanlife</span><span>Road trip</span><span>Outdoor</span></div>
+                <div class="campaign-deliverables">
+                  <strong>Inclus dans la proposition</strong>
+                  <ul><li>Logo sur le van</li><li>Photos de pose et de suivi</li><li>Contenus sociaux à définir</li></ul>
+                </div>
+                <div class="campaign-offer">
+                  <div><span>Prix à partir de</span><strong>200 €</strong><small>par emplacement · 12 mois</small></div>
+                  <div><span>Disponibilité</span><strong id="availableSpots">20 emplacements</strong><small>demande soumise à validation</small></div>
+                </div>
+                <a class="button button-dark" href="/brandmyvan/funding-v1">Voir le profil complet</a>
+              </div>
+            </article>
 
-        <article class="join-card" id="owners">
-          <div>
-            <p class="eyebrow">Propriétaires et créateurs</p>
-            <h3>Votre van pourrait être le prochain.</h3>
-            <p>Présentez votre véhicule, votre itinéraire, votre kilométrage et vos réseaux. Vous gardez le contrôle sur les marques acceptées.</p>
+            <article class="join-card" id="owners">
+              <div>
+                <span class="join-card-label">Ajouter un profil</span>
+                <p class="eyebrow">Propriétaires et créateurs</p>
+                <h3>Publiez votre van dans le catalogue.</h3>
+                <p>Présentez votre véhicule, votre itinéraire, votre audience, vos prix et les contenus proposés aux marques.</p>
+              </div>
+              <ul>
+                <li>Création du profil gratuite</li>
+                <li>10 % sur une vente confirmée</li>
+                <li>Chaque marque reste soumise à votre validation</li>
+              </ul>
+              <a class="button button-primary" href="mailto:BRANDMYVAN@proton.me?subject=Candidature%20van%20Brand%20My%20Van">Inscrire mon van</a>
+            </article>
           </div>
-          <ul>
-            <li>Profil public gratuit</li>
-            <li>10 % seulement sur une campagne encaissée</li>
-            <li>Validation de chaque demande</li>
-          </ul>
-          <a class="button button-primary" href="mailto:BRANDMYVAN@proton.me?subject=Candidature%20van%20Brand%20My%20Van">Proposer mon van</a>
-        </article>
-      </div>
 
-      <div class="empty-result" id="emptyResult" hidden>
-        <strong>Aucune campagne ne correspond à ces filtres.</strong>
-        <p>La marketplace démarre avec une première campagne réelle. Modifiez les filtres pour la consulter.</p>
-        <button class="button button-secondary" type="button" id="emptyReset">Afficher toutes les campagnes</button>
+          <div class="empty-result" id="emptyResult" hidden>
+            <strong>Aucun créateur ne correspond à ces filtres.</strong>
+            <p>La marketplace démarre avec une première campagne réelle. Modifiez les filtres pour la consulter.</p>
+            <button class="button button-secondary" type="button" id="emptyReset">Afficher tous les créateurs</button>
+          </div>
+        </div>
       </div>
     </section>
 
