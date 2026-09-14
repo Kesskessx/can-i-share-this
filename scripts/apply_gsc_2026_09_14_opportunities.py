@@ -210,7 +210,7 @@ def main() -> None:
         "/google-drive-link-not-working",
         DRIVE_NOT_WORKING,
         title="Google Drive Link Not Working? Fix Access & Opening Problems",
-        description="Google Drive link not working or not opening? Diagnose permissions, wrong-account issues, Workspace restrictions, moved files, deleted files, and copied-link problems.",
+        description="Google Drive link not working or not opening? Diagnose permissions, account issues, Workspace restrictions, moved or deleted files, and copied-link problems.",
         h1="Google Drive Link Not Working? Diagnose the Access Problem",
     )
     patch(
