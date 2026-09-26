@@ -33,6 +33,9 @@ jobs:
       - name: Build and audit every canonical route
         run: bash build.sh
 
+      - name: Audit search-intent cannibalization
+        run: python3 scripts/audit_cannibalization.py
+
       - name: Run Universal Safety Checker regression matrix
         run: node scripts/test_universal_matrix.js
 

@@ -109,6 +109,7 @@ python3 scripts/apply_visible_technical_evidence_v1.py
 python3 scripts/apply_gsc_2026_09_14_opportunities.py
 python3 scripts/apply_gsc_2026_09_24_opportunities.py
 python3 scripts/apply_seo_quality_v51.py
+python3 scripts/apply_drive_observed_checks_v1.py
 node scripts/test_mega_evidence.js
 node scripts/test_mega_evidence_v3.js
 node scripts/test_mega_evidence_v5.js
