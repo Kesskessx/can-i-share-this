@@ -105,8 +105,6 @@ python3 scripts/apply_scanner_unification.py
 python3 scripts/apply_local_image_ocr.py
 python3 scripts/apply_gemini_free_transparency.py
 python3 scripts/apply_explainable_result_v3.py
-python3 scripts/apply_detailed_analysis_v2.py
-python3 scripts/audit_detailed_analysis_v2.py
 python3 scripts/apply_gsc_2026_09_14_opportunities.py
 python3 scripts/apply_gsc_2026_09_24_opportunities.py
 python3 scripts/apply_seo_quality_v51.py
