@@ -11,14 +11,34 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 MANIFEST = ROOT / "seo" / "SEO_ROUTE_MANIFEST.json"
 HOST = "https://canisharethis.com"
-DATE_MODIFIED = "2026-09-14"
+def resolved_date_modified() -> str:
+    override = os.getenv("CIST_CONTENT_DATE", "").strip()
+    if re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", override):
+        return override
+    try:
+        value = subprocess.check_output(
+            ["git", "show", "-s", "--format=%cs", "HEAD"],
+            cwd=ROOT,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+        if re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", value):
+            return value
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return "2026-09-26"
+
+
+DATE_MODIFIED = resolved_date_modified()
 
 PREFERRED_HUBS = {
     "universal-safety": "/supported-checks",
@@ -36,13 +56,17 @@ TITLE_OVERRIDES = {
     "/malware-link-checker": "Malware Link Checker — Check a Suspicious URL",
     "/download-link-checker": "Download Link Checker — Check a File URL Before Opening",
     "/google-drive-link-checker": "Google Drive Link Checker — Test Access Before Sharing",
-    "/google-drive-link-not-working": "Google Drive Link Not Working? 7 Fixes to Try",
+    "/is-my-google-drive-link-public": "Is My Google Drive Link Public? Check Sharing Access",
     "/dropbox-link-checker": "Dropbox Link Checker — Test Access Before Sharing",
     "/dropbox-shared-link-not-working": "Dropbox Shared Link Not Working? 6 Fixes to Try",
     "/how-to-check-if-a-link-is-safe": "How to Check If a Link Is Safe Before Clicking It",
 }
 
 DESCRIPTION_OVERRIDES = {
+    "/is-my-google-drive-link-public": (
+        "Check whether a Google Drive link is accessible to anyone with the link or restricted "
+        "to specific accounts. Verify recipient access before sharing."
+    ),
     "/how-link-scanning-works": (
         "See how CanIShareThis evaluates URL structure, redirects, domain context, "
         "reputation, privacy signals and link types—and where scanning has limits."
@@ -93,15 +117,21 @@ PRIORITY_LINKS = {
     ],
     "/google-drive-link-checker": [
         ("/google-drive-link-not-working", "Fix a Drive link that is not working"),
+        ("/is-my-google-drive-link-public", "Check whether the Drive link is public"),
         ("/google-drive-permission-checker", "Check Drive permissions"),
         ("/check-google-drive-link-without-signing-in", "Test without signing in"),
-        ("/safe-link-checker", "General safe link checker"),
     ],
     "/google-drive-link-not-working": [
         ("/google-drive-link-checker", "Google Drive link checker"),
+        ("/is-my-google-drive-link-public", "Check whether the Drive link is public"),
         ("/google-drive-permission-checker", "Check Drive permissions"),
         ("/check-google-drive-link-without-signing-in", "Test without signing in"),
-        ("/safe-link-checker", "General safe link checker"),
+    ],
+    "/is-my-google-drive-link-public": [
+        ("/google-drive-link-checker", "Google Drive link checker"),
+        ("/google-drive-link-not-working", "Fix a Drive link that is not working"),
+        ("/google-drive-permission-checker", "Check Drive permissions"),
+        ("/google-drive-anyone-with-the-link-vs-restricted", "Anyone with the link vs Restricted"),
     ],
     "/dropbox-link-checker": [
         ("/dropbox-shared-link-not-working", "Fix a Dropbox shared link"),
@@ -131,6 +161,10 @@ CTA_COPY = {
     ),
     "/google-drive-link-not-working": (
         "Paste the exact Google Drive URL into the scanner to check the destination and recipient-facing access signals.",
+        "Check the Drive link",
+    ),
+    "/is-my-google-drive-link-public": (
+        "Paste the exact Google Drive URL into the scanner, then verify whether a recipient can open it without a specific invitation.",
         "Check the Drive link",
     ),
     "/dropbox-link-checker": (
@@ -168,6 +202,9 @@ OFFICIAL_SOURCES = {
         ("https://support.google.com/drive/answer/2494822?hl=en", "Google Drive Help — sharing and access"),
     ],
     "/google-drive-link-not-working": [
+        ("https://support.google.com/drive/answer/2494822?hl=en", "Google Drive Help — sharing and access"),
+    ],
+    "/is-my-google-drive-link-public": [
         ("https://support.google.com/drive/answer/2494822?hl=en", "Google Drive Help — sharing and access"),
     ],
     "/dropbox-link-checker": [
