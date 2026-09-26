@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Add product-specific observed-check data to existing Google Drive pages.
 
-Claims in this block mirror api/check.js behavior. The copy deliberately
-separates observable recipient-facing signals from private Google Drive ACLs.
+Claims mirror api/check.js behavior. Each page gets a distinct evidence block
+so the hub, permissions, signed-out and troubleshooting intents stay separate.
 """
 
 from __future__ import annotations
@@ -17,30 +17,56 @@ START = "<!-- DRIVE_OBSERVED_CHECKS_V1_START -->"
 END = "<!-- DRIVE_OBSERVED_CHECKS_V1_END -->"
 
 PAGES = {
-    "/google-drive-link-checker": (
-        "Use this page when you have the final Drive share URL and want a broad recipient-style check before sending it.",
-        "A public request can reveal the response status, redirect chain, final Google host, page metadata, content type and an observable sign-in or access wall.",
-    ),
-    "/google-drive-permission-checker": (
-        "Use this page when the URL looks correct but you suspect the recipient is being blocked by permissions, account requirements or organization policy.",
-        "The scanner can flag 401/403 responses and visible phrases such as “sign in”, “request access”, “you need permission” or “access denied”; it cannot read the file's private ACL.",
-    ),
-    "/check-google-drive-link-without-signing-in": (
-        "Use this page when the specific question is whether the recipient experience works from a signed-out or anonymous context.",
-        "The scanner makes a public request rather than using your Google session, follows redirects and reports whether the response exposes an observable login/access barrier.",
-    ),
-    "/is-my-google-drive-link-public": (
-        "Use this page when you need to distinguish a link that is recipient-accessible from one that is Restricted to explicitly approved accounts.",
-        "The authoritative setting remains Google Drive’s General access value. The scanner can observe the public response but cannot inspect Google’s private sharing list.",
-    ),
-    "/google-drive-link-not-working": (
-        "Use this page after a recipient reports that the link fails, asks for access, redirects unexpectedly or requires a different Google account.",
-        "The checker follows up to five redirects and inspects the first part of the returned page for recipient-facing access signals, while also reporting the final destination and HTTP response.",
-    ),
-    "/google-drive-folder-sharing-checker": (
-        "Use this page for a shared Drive folder, where the folder itself and items inside it can have different effective access behavior.",
-        "The scanner can observe the folder URL’s public response and access-wall signals, but it cannot enumerate private folder members or infer every child item's permission.",
-    ),
+    "/google-drive-link-checker": {
+        "use": "Use this page when you have the final Drive share URL and want a broad recipient-style check before sending it.",
+        "observed": "This is the cluster hub. It summarizes the public response rather than diagnosing one specific Google Drive setting.",
+        "rows": [
+            ("Redirect path", "Follows up to 5 HTTP redirects and records the final URL and host."),
+            ("HTTP response", "Reports the returned status and whether a public request was reachable."),
+            ("Access wall", "Checks for 401/403 plus visible sign-in, request-access, permission and access-denied cues."),
+            ("Returned content", "Reads up to the first 64 KB of HTML for page title, description and observable access signals."),
+        ],
+    },
+    "/google-drive-permission-checker": {
+        "use": "Use this page when the URL itself looks correct but a recipient appears blocked by permissions, account requirements or organization policy.",
+        "observed": "This page is about access-control symptoms, not general URL validity.",
+        "rows": [
+            ("Permission symptoms", "Flags 401/403 responses and visible “request access”, “you need permission” or “access denied” wording."),
+            ("Private ACL limit", "The scanner cannot read Google Drive's private sharing list, group membership or Workspace policy configuration."),
+        ],
+    },
+    "/check-google-drive-link-without-signing-in": {
+        "use": "Use this page when the exact question is whether the link exposes a usable signed-out or anonymous recipient experience.",
+        "observed": "The check is made as a public web request rather than through your own Google session.",
+        "rows": [
+            ("Signed-out signal", "Reports observable login/sign-in barriers in the public response and redirect path."),
+            ("Session limit", "A public request cannot reproduce every recipient's cookies, Google account state or organization membership."),
+        ],
+    },
+    "/is-my-google-drive-link-public": {
+        "use": "Use this page to distinguish a recipient-accessible link from one restricted to explicitly approved Google accounts.",
+        "observed": "Google Drive's General access setting is authoritative; this page explains how the scanner's public observation relates to that setting.",
+        "rows": [
+            ("Public response", "A response without an observable access wall is supporting evidence, not proof of the underlying sharing configuration."),
+            ("Authoritative setting", "Confirm General access in Google Drive: “Anyone with the link” and “Restricted” represent different sharing states."),
+        ],
+    },
+    "/google-drive-link-not-working": {
+        "use": "Use this page after someone reports that the link fails, asks for access, redirects unexpectedly or requires another Google account.",
+        "observed": "This page is for troubleshooting the failure path rather than simply deciding whether a link is public.",
+        "rows": [
+            ("Failure path", "The checker records redirects, the final destination and the returned HTTP status to show where the request ended."),
+            ("Visible blockers", "It can surface sign-in, request-access and permission wording when those cues appear in the returned page."),
+        ],
+    },
+    "/google-drive-folder-sharing-checker": {
+        "use": "Use this page for a shared Drive folder, where folder access and access to individual child items can differ.",
+        "observed": "This page focuses on the folder URL's recipient-facing response, not file-level permission inheritance.",
+        "rows": [
+            ("Folder response", "Checks the folder URL's public response, redirects and observable login/access barriers."),
+            ("Child-item limit", "The scanner cannot enumerate private folder members or infer every file's effective permission from the folder URL alone."),
+        ],
+    },
 }
 
 STYLE = """
@@ -56,13 +82,6 @@ STYLE = """
 </style>
 """
 
-ROWS = [
-    ("Redirects", "Follows up to 5 HTTP redirects and records the final URL."),
-    ("Access-wall signals", "Checks 401/403 responses plus visible sign-in, login, request-access, permission and access-denied cues."),
-    ("Returned page", "Reads up to the first 64 KB of HTML for title, description and observable access signals."),
-    ("Destination evidence", "Reports final host, HTTP status, content type and other URL-level safety signals when available."),
-]
-
 def route_file(route: str) -> Path:
     rel = route.strip("/")
     for p in (DIST / f"{rel}.html", DIST / rel / "index.html", DIST / rel):
@@ -71,19 +90,19 @@ def route_file(route: str) -> Path:
     raise RuntimeError(f"Missing Drive route: {route}")
 
 def block(route: str) -> str:
-    use_case, observed = PAGES[route]
+    cfg = PAGES[route]
     rows = "".join(
         f'<div class="drive-row"><dt>{html.escape(label)}</dt><dd>{html.escape(value)}</dd></div>'
-        for label, value in ROWS
+        for label, value in cfg["rows"]
     )
     return (
         f"\n{START}\n"
         '<section class="drive-observed-v1" aria-label="Observed Google Drive access checks">'
-        '<h2>What the checker can actually observe</h2>'
-        f'<p><strong>Best use:</strong> {html.escape(use_case)}</p>'
-        f'<p>{html.escape(observed)}</p>'
+        '<h2>What the checker can actually observe for this question</h2>'
+        f'<p><strong>Best use:</strong> {html.escape(cfg["use"])}</p>'
+        f'<p>{html.escape(cfg["observed"])}</p>'
         f'<dl>{rows}</dl>'
-        '<p class="drive-limit"><strong>Limit:</strong> Can I Share This? does not authenticate as your recipient, read private Google Drive ACLs, or guarantee that every recipient account has access. Google Drive’s own General access and account-level sharing rules remain authoritative.</p>'
+        '<p class="drive-limit"><strong>Limit:</strong> Can I Share This? does not authenticate as your recipient or read private Google Drive ACLs. Google Drive’s own sharing controls remain authoritative.</p>'
         '</section>'
         f"\n{END}\n"
     )
@@ -102,10 +121,10 @@ def main() -> None:
             doc = doc.replace("</main>", b + "</main>", 1)
         else:
             raise RuntimeError(f"Cannot place Drive observed-check block: {route}")
-        if "What the checker can actually observe" not in doc or "Follows up to 5 HTTP redirects" not in doc:
+        if "What the checker can actually observe for this question" not in doc:
             raise RuntimeError(f"Drive observed-check guard failed: {route}")
         p.write_text(doc, encoding="utf-8")
-    print(f"Added observed scanner evidence to {len(PAGES)} existing Google Drive pages")
+    print(f"Added intent-specific observed scanner evidence to {len(PAGES)} existing Google Drive pages")
 
 if __name__ == "__main__":
     main()
