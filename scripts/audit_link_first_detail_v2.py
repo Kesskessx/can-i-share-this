@@ -25,9 +25,16 @@ def main():
         "Domain & response",
         "What this result does not mean",
         "Advanced technical details",
+        "chainTitle=reds.length?'Redirect chain':'Direct destination'",
+        "syncAdvanced()",
+        "advanced.open?'Close ↑':'Open ↓'",
         "detailV2(d,r,rs)",
     ]
     missing=[x for x in required if x not in script]
+    if '.lf-advanced:not([open])>.lf-advanced-body{display:none!important}' not in s:
+        missing.append("advanced collapsed-state CSS")
+    if '@media(max-width:700px)' not in s or '#cist-link-detail-v2 .lf-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}' not in s:
+        missing.append("two-column mobile response grid")
     if missing:
         raise SystemExit("Native Detailed Analysis V2 audit failed:\n- "+"\n- ".join("missing "+x for x in missing))
 
