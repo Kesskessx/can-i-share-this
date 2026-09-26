@@ -128,6 +128,7 @@ for redirect in registry['redirects']:
     if target.is_file():
         target.unlink()
 PY
+python3 scripts/update_sitemap_lastmod.py
 python3 scripts/audit_seo_registry.py
 python3 scripts/audit_internal_routes.py
 INDEXNOW_KEY="$(tr -d '\r\n' < seo/indexnow-key.txt)"
