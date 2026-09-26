@@ -220,11 +220,78 @@ PAGES = [
     },
 ]
 
+
+INTENTS = {
+    "/social-media-profile-checker": "screen a social profile across supported platforms for observable impersonation, scam wording, contact-pressure and external-link risk",
+    "/fake-instagram-profile-checker": "evaluate an Instagram profile or DM for copycat usernames, verification-lookalikes, bio-link risk and payment or credential requests",
+    "/fake-facebook-profile-checker": "evaluate a Facebook profile or Page for cloned identity, account-recovery stories, urgent money requests and external-link risk",
+    "/fake-tiktok-account-checker": "evaluate a TikTok creator or brand account for copycat handles, fake giveaways, investment pitches and suspicious bio links",
+    "/fake-x-profile-checker": "evaluate an X profile for lookalike handles, fake support replies, crypto or giveaway claims and suspicious external links",
+    "/telegram-scam-profile-checker": "evaluate a Telegram username or profile link for fake support, crypto, investment, seed-phrase and payment scam signals",
+    "/how-to-spot-a-fake-social-media-profile": "learn a manual cross-platform workflow for spotting a fake or impersonating social profile before trusting it",
+    "/celebrity-impersonation-scam": "recognize celebrity impersonation scam patterns involving secret accounts, private contact, giveaways, romance and payment requests",
+    "/influencer-impersonation-scam": "recognize creator impersonation targeting followers or brands through giveaways, fake sponsorships, media-kit links and invoices",
+    "/catfish-profile-checker": "evaluate dating or social profiles for catfishing, rapid emotional pressure, verification avoidance and money or document requests",
+}
+
+EVIDENCE = {
+    "/social-media-profile-checker": [
+        ("Input coverage", "Supported profile URLs, @usernames, suspicious messages and screenshots."),
+        ("Scanner signals", "Lookalike or authority wording, money and credential cues, contact pressure, and observable external links."),
+        ("Boundary", "No private follower scraping, facial recognition or definitive identity certification."),
+    ],
+    "/fake-instagram-profile-checker": [
+        ("Primary identifier", "Exact @username; the display name alone is not treated as identity proof."),
+        ("Observable context", "Bio wording, verification-like symbols and external links when visible or supplied in a screenshot."),
+        ("High-stakes triggers", "Payment, gift-card, crypto, login-code or forced off-platform requests."),
+    ],
+    "/fake-facebook-profile-checker": [
+        ("Primary identifier", "Profile or Page URL and visible username rather than the profile photo alone."),
+        ("Observable context", "External destinations plus account-recovery, marketplace or urgent-payment wording."),
+        ("Independent check", "A known phone number, prior contact channel or the organization's official website."),
+    ],
+    "/fake-tiktok-account-checker": [
+        ("Primary identifier", "Exact @handle, including added backup/support words, punctuation and character substitutions."),
+        ("Observable context", "Giveaway or investment wording and bio-link destinations when available."),
+        ("Independent check", "A known creator website or another long-established official profile."),
+    ],
+    "/fake-x-profile-checker": [
+        ("Primary identifier", "Exact @handle rather than the display name."),
+        ("Observable context", "Fake-support, crypto or giveaway wording plus external and shortened links."),
+        ("Independent check", "The brand's official support path or website, not a reply that contacted you first."),
+    ],
+    "/telegram-scam-profile-checker": [
+        ("Primary identifier", "Exact Telegram username or profile link."),
+        ("Observable context", "Fake-support, seed-phrase, investment and payment wording plus external links."),
+        ("Independent check", "The Telegram link published by the official project or company website."),
+    ],
+    "/how-to-spot-a-fake-social-media-profile": [
+        ("Manual workflow", "Compare the exact username, claimed identity, request and destination as separate pieces of evidence."),
+        ("Scanner assist", "Profile, message or screenshot analysis can surface observable warning signs for review."),
+        ("Boundary", "No single cosmetic signal proves that an account is fake."),
+    ],
+    "/celebrity-impersonation-scam": [
+        ("Scenario focus", "Secret-account claims, private fan contact, giveaways and payments to a supposed assistant or manager."),
+        ("Evidence priority", "Official websites, agencies and long-established public accounts."),
+        ("Boundary", "A familiar photo, voice note or video alone is not identity proof."),
+    ],
+    "/influencer-impersonation-scam": [
+        ("Scenario focus", "Fake sponsorships, giveaways, media-kit links, invoices and payment-detail changes."),
+        ("Evidence priority", "The creator's established business contact and independently confirmed payment details."),
+        ("Boundary", "Follower count and copied public content are weak identity evidence."),
+    ],
+    "/catfish-profile-checker": [
+        ("Scenario focus", "Rapid intimacy, repeated verification avoidance, money requests and pressure for private material."),
+        ("Evidence priority", "Independent verification of identity and circumstances before money or sensitive documents are shared."),
+        ("Boundary", "The checker does not perform facial recognition or definitive real-world identity verification."),
+    ],
+}
+
 STYLE = """
 <style>
 :root{color-scheme:light dark;--bg:#f7f8fa;--card:#fff;--text:#17191d;--muted:#69707b;--line:#e1e5ea;--accent:#788ff7;--soft:#f0f2f5}
 @media(prefers-color-scheme:dark){:root{--bg:#0d0f12;--card:#15181d;--text:#f4f5f7;--muted:#a8afba;--line:#2a2f37;--soft:#1d2127}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit}.wrap{width:min(820px,calc(100% - 32px));margin:auto}header{border-bottom:1px solid var(--line);padding:18px 0}.brand{text-decoration:none;font-weight:850}.hero{padding:62px 0 28px}.eyebrow{font-size:12px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(38px,7vw,60px);line-height:1.02;letter-spacing:-.045em;margin:10px 0 18px}.lead{font-size:19px;color:var(--muted);max-width:760px}.cta{margin:28px 0;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--card)}.cta strong{display:block;font-size:18px}.cta a{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--accent);color:white;text-decoration:none;font-weight:800}article{padding-bottom:54px}section{margin-top:38px}h2{font-size:27px;line-height:1.18;letter-spacing:-.025em}p{color:var(--muted)}.faq{border-top:1px solid var(--line);padding-top:30px}.faq details{padding:13px 0;border-bottom:1px solid var(--line)}.faq summary{cursor:pointer;font-weight:780}.note{padding:15px 17px;background:var(--soft);border-radius:12px;font-size:14px;color:var(--muted)}footer{border-top:1px solid var(--line);padding:24px 0 36px;color:var(--muted);font-size:13px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit}.wrap{width:min(820px,calc(100% - 32px));margin:auto}header{border-bottom:1px solid var(--line);padding:18px 0}.brand{text-decoration:none;font-weight:850}.hero{padding:62px 0 28px}.eyebrow{font-size:12px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}h1{font-size:clamp(38px,7vw,60px);line-height:1.02;letter-spacing:-.045em;margin:10px 0 18px}.lead{font-size:19px;color:var(--muted);max-width:760px}.cta{margin:28px 0;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--card)}.cta strong{display:block;font-size:18px}.cta a{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--accent);color:white;text-decoration:none;font-weight:800}article{padding-bottom:54px}section{margin-top:38px}h2{font-size:27px;line-height:1.18;letter-spacing:-.025em}p{color:var(--muted)}.signal-matrix{margin-top:28px;padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--card)}.signal-matrix h2{margin-top:0}.signal-matrix dl{margin:0;display:grid;gap:10px}.signal-row{display:grid;grid-template-columns:minmax(130px,.42fr) minmax(0,1fr);gap:14px;padding:10px 0;border-top:1px solid var(--line)}.signal-row:first-child{border-top:0}.signal-row dt{font-weight:850}.signal-row dd{margin:0;color:var(--muted)}@media(max-width:620px){.signal-row{grid-template-columns:1fr;gap:3px}}.faq{border-top:1px solid var(--line);padding-top:30px}.faq details{padding:13px 0;border-bottom:1px solid var(--line)}.faq summary{cursor:pointer;font-weight:780}.note{padding:15px 17px;background:var(--soft);border-radius:12px;font-size:14px;color:var(--muted)}footer{border-top:1px solid var(--line);padding:24px 0 36px;color:var(--muted);font-size:13px}
 </style>
 """
 
@@ -248,6 +315,16 @@ def page_html(page: dict) -> str:
         f'<details><summary>{html.escape(q)}</summary><p>{html.escape(a)}</p></details>'
         for q, a in page["faqs"]
     )
+    evidence_rows = "".join(
+        f'<div class="signal-row"><dt>{html.escape(label)}</dt><dd>{html.escape(value)}</dd></div>'
+        for label, value in EVIDENCE[page["path"]]
+    )
+    evidence = (
+        '<section class="signal-matrix" aria-label="Can I Share This signal coverage">'
+        '<h2>What Can I Share This actually checks here</h2>'
+        f'<dl>{evidence_rows}</dl>'
+        '</section>'
+    )
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(page["title"])}</title>
@@ -258,6 +335,7 @@ def page_html(page: dict) -> str:
 <body><header><div class="wrap"><a class="brand" href="/">Can I Share This?</a></div></header>
 <main class="wrap"><div class="hero"><div class="eyebrow">Social profile safety</div><h1>{html.escape(page["h1"])}</h1><p class="lead">{html.escape(page["lead"])}</p></div>
 <div class="cta"><strong>Check the profile before you trust it</strong><p>Paste the profile URL, @username, suspicious message or screenshot into the universal scanner.</p><a href="/">Open the safety checker</a></div>
+{evidence}
 <article>{sections}<p class="note"><strong>Important:</strong> Can I Share This? evaluates observable risk signals. It does not prove who controls an account, perform facial recognition, scrape private profiles or authenticate a person's real-world identity.</p>
 <section class="faq"><h2>Frequently asked questions</h2>{faqs}</section></article></main>
 <footer><div class="wrap">Independent safety guidance · Results are signals, not identity certification.</div></footer></body></html>'''
@@ -272,7 +350,7 @@ def register_routes() -> None:
         route = {
             "path": page["path"], "status": "active", "index": True,
             "canonical": page["path"], "cluster": "social-profile-safety", "role": role,
-            "intent": f'help users evaluate {page["keyword"]} intent without claiming definitive identity verification',
+            "intent": INTENTS[page["path"]],
             "primaryKeyword": page["keyword"],
         }
         if page["path"] in by_path:
