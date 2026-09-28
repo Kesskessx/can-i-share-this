@@ -140,7 +140,7 @@ pulse();document.addEventListener('cist:mega-result',function(e){render(e&&e.det
 s = re.sub(r'\s*<style id="cist-link-first-home-v1-style">.*?</style>', '', s, count=1, flags=re.S)
 s = re.sub(r'\s*<script id="cist-link-first-home-v1-script">.*?</script>', '', s, count=1, flags=re.S)
 s = s.replace('</head>', STYLE + '\n</head>', 1).replace('</body>', SCRIPT + '\n</body>', 1)
-for token in ['Can you trust', 'Paste a suspicious link', 'cist-link-first-home-v1-style', 'cist-link-first-result', 'cist-link-detail-v2', 'Detailed analysis', 'Redirect chain', 'Domain & response', 'Advanced technical details', "chainTitle=reds.length?'Redirect chain':'Direct destination'", 'syncAdvanced()', '.lf-advanced:not([open])>.lf-advanced-body', 'detailV2(d,r,rs)', 'signal pulse']:
+for token in ['Is this link safe?', 'Can I Share This? is a free link safety checker', 'Paste a suspicious link', 'cist-link-first-home-v1-style', 'cist-link-first-result', 'cist-link-detail-v2', 'Detailed analysis', 'Redirect chain', 'Domain & response', 'Advanced technical details', "chainTitle=reds.length?'Redirect chain':'Direct destination'", 'syncAdvanced()', '.lf-advanced:not([open])>.lf-advanced-body', 'detailV2(d,r,rs)', 'signal pulse']:
     if token not in s:
         raise RuntimeError('Link-first homepage guard failed: ' + token)
 HOME.write_text(s, encoding='utf-8')
