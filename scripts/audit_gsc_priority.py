@@ -12,7 +12,7 @@ DIST = ROOT / "dist"
 HOST = "https://canisharethis.com"
 
 EXPECTED = {
-    "/google-drive-link-not-working": "Google Drive Link Not Working? Fix Access & Permission Problems",
+    "/google-drive-link-not-working": "Google Drive Link Not Working? 7 Fixes That Actually Work",
     "/google-drive-link-checker": "Google Drive Link Checker — Test Access Before Sharing",
     "/is-my-google-drive-link-public": "Is My Google Drive Link Public? Check Sharing Access",
     "/download-link-checker": "Download Link Checker — Check a File URL Before Opening",
@@ -92,8 +92,21 @@ def main() -> None:
         failures.append("/is-my-google-drive-link-public: GSC answer block missing")
 
     drive_doc = route_file("/google-drive-link-not-working").read_text(encoding="utf-8")
-    if "GSC_2026_09_24_START" not in drive_doc:
-        failures.append("/google-drive-link-not-working: GSC troubleshooting block missing")
+    if "GSC_2026_09_28_CONVERSION_START" not in drive_doc:
+        failures.append("/google-drive-link-not-working: 2026-09-28 conversion block missing")
+    if 'id="gsc-quick-diagnosis"' not in drive_doc:
+        failures.append("/google-drive-link-not-working: quick diagnosis table missing")
+    if drive_doc.count('id="cist-safety-form"') != 1:
+        failures.append("/google-drive-link-not-working: embedded checker missing or duplicated")
+    if "GSC_2026_09_14_START" in drive_doc or "GSC_2026_09_24_START" in drive_doc:
+        failures.append("/google-drive-link-not-working: duplicate historical GSC blocks still present")
+
+    for route in ("/google-drive-link-checker", "/download-link-checker"):
+        route_doc = route_file(route).read_text(encoding="utf-8")
+        if route_doc.count('id="cist-safety-form"') != 1:
+            failures.append(f"{route}: embedded checker missing or duplicated")
+        if route_doc.count('id="cist-console-result"') != 1:
+            failures.append(f"{route}: checker result target missing or duplicated")
 
     if failures:
         raise SystemExit("GSC priority audit failed:\n- " + "\n- ".join(failures))
