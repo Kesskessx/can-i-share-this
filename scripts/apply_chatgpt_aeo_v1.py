@@ -232,29 +232,18 @@ def patch_homepage() -> None:
 
 def patch_safe_link_checker() -> None:
     source = read(SAFE)
-    source = re.sub(
-        r'\s*<!-- CIST_SAFE_AEO_START -->.*?<!-- CIST_SAFE_AEO_END -->',
-        "",
-        source,
-        flags=re.S,
+    source = re.sub(r'\s*<!-- CIST_SAFE_AEO_START -->.*?<!-- CIST_SAFE_AEO_END -->', "", source, flags=re.S)
+    source = re.sub(r'\s+id=["\']cist-safe-answer["\']', "", source, flags=re.I)
+
+    intro = (
+        f'<p id="cist-safe-answer"><strong>{html.escape(ENTITY_SENTENCE)}</strong> '
+        'Use this page when you want to check whether an unfamiliar URL shows phishing, scam, redirect, '
+        'lookalike-domain or risky-download warning signs before opening it.</p>'
     )
-    block = f"""
-<!-- CIST_SAFE_AEO_START -->
-<section class="lead" id="cist-safe-answer">
-  <p><strong>{html.escape(ENTITY_SENTENCE)}</strong> Use this page when you want to check whether an unfamiliar URL shows phishing, scam, redirect, lookalike-domain or risky-download warning signs before opening it.</p>
-  <p>A checker cannot certify that a URL is harmless. The result describes the signals observed at check time and should be combined with independent verification for passwords, payments, identity documents or downloads.</p>
-</section>
-<!-- CIST_SAFE_AEO_END -->
-"""
-    reading_meta = '<div class="reading-meta">'
-    idx = source.find(reading_meta)
-    if idx < 0:
-        raise RuntimeError("Safe Link Checker reading-meta marker missing")
-    end = source.find("</div>", idx)
-    if end < 0:
-        raise RuntimeError("Safe Link Checker reading-meta closing tag missing")
-    end += len("</div>")
-    source = source[:end] + block + source[end:]
+    marker = '<section class="lead">'
+    if marker not in source:
+        raise RuntimeError("Safe Link Checker lead section missing")
+    source = source.replace(marker, marker + intro, 1)
 
     faq = {
         "@context": "https://schema.org",
