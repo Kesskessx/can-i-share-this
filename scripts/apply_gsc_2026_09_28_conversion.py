@@ -200,10 +200,14 @@ def checker_block(kind: str) -> str:
 def insert_checker(doc: str, kind: str) -> str:
     doc = strip_block(doc, START, END)
     block = checker_block(kind)
-    marker = '<article class="article">'
-    if marker not in doc:
-        raise RuntimeError("Priority article marker changed")
-    return doc.replace(marker, block + "\n" + marker, 1)
+    markers = (
+        '<article class="article">',
+        '<section class="answer">',
+    )
+    for marker in markers:
+        if marker in doc:
+            return doc.replace(marker, block + "\n" + marker, 1)
+    raise RuntimeError("No safe above-the-fold insertion marker found")
 
 
 FALLBACK_RUNTIME = r"""
