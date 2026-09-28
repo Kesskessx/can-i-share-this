@@ -8,17 +8,17 @@ if not HOME.is_file():
 s = HOME.read_text(encoding='utf-8')
 
 # Position the homepage around one job: understand a suspicious link before opening it.
-s = re.sub(r'<title>.*?</title>', '<title>Can I Share This? — Check Where a Link Goes Before You Open It</title>', s, count=1, flags=re.S)
-s = re.sub(r'<meta name="description" content="[^"]*">', '<meta name="description" content="Paste a suspicious or shortened link to reveal its final destination, redirects and trust signals. Can I Share This? explains why the link may or may not deserve your trust.">', s, count=1)
-s = re.sub(r'<meta property="og:title" content="[^"]*">', '<meta property="og:title" content="Can you trust this link? — Can I Share This?">', s, count=1)
-s = re.sub(r'<meta property="og:description" content="[^"]*">', '<meta property="og:description" content="See where a link really goes, what changed on the way, and why it may or may not deserve your trust.">', s, count=1)
-s = re.sub(r'<meta name="twitter:title" content="[^"]*">', '<meta name="twitter:title" content="Can you trust this link? — Can I Share This?">', s, count=1)
-s = re.sub(r'<meta name="twitter:description" content="[^"]*">', '<meta name="twitter:description" content="Reveal the destination, redirects and trust signals before you open a suspicious link.">', s, count=1)
+s = re.sub(r'<title>.*?</title>', '<title>Is This Link Safe? Free URL Safety Checker — Can I Share This?</title>', s, count=1, flags=re.S)
+s = re.sub(r'<meta name="description" content="[^"]*">', '<meta name="description" content="Check if a link is safe before opening it. Can I Share This? analyzes the final destination, redirects, suspicious URL patterns and available reputation signals.">', s, count=1)
+s = re.sub(r'<meta property="og:title" content="[^"]*">', '<meta property="og:title" content="Is This Link Safe? Free URL Safety Checker — Can I Share This?">', s, count=1)
+s = re.sub(r'<meta property="og:description" content="[^"]*">', '<meta property="og:description" content="Check if a link is safe before opening it. Inspect its final destination, redirects, suspicious URL patterns and available reputation signals.">', s, count=1)
+s = re.sub(r'<meta name="twitter:title" content="[^"]*">', '<meta name="twitter:title" content="Is This Link Safe? Free URL Safety Checker — Can I Share This?">', s, count=1)
+s = re.sub(r'<meta name="twitter:description" content="[^"]*">', '<meta name="twitter:description" content="Check a suspicious URL before opening it. Review its destination, redirects and available safety signals.">', s, count=1)
 
-hero = '''<p class="eyebrow">Link trust checker</p>
-      <h1 id="page-title">Can you trust <span class="cist-title-end">this link?</span></h1>
-      <p class="sub">Paste a suspicious or shortened link. See where it really goes, what changed on the way, and why it may—or may not—deserve your trust.</p>'''
-s, n = re.subn(r'<p class="eyebrow">.*?</p>\s*<h1 id="page-title">.*?</h1>\s*<p class="sub">.*?</p>', hero, s, count=1, flags=re.S)
+hero = '''<p class="eyebrow">Link safety checker</p>
+      <h1 id="page-title">Is this link safe?</h1>
+      <p class="sub" id="checker-intro">Can I Share This? is a free link safety checker that analyzes URLs before you open or share them. Paste a suspicious URL to inspect its final destination, redirects and available scam, phishing and reputation signals.</p>'''
+s, n = re.subn(r'<p class="eyebrow"[^>]*>.*?</p>\s*<h1 id="page-title"[^>]*>.*?</h1>\s*<p class="sub"[^>]*>.*?</p>', hero, s, count=1, flags=re.S)
 if n != 1:
     raise RuntimeError('Hero copy not found')
 s = re.sub(r'placeholder="Paste a link,[^"]*"', 'placeholder="Paste a suspicious link…"', s, count=1)
@@ -140,7 +140,7 @@ pulse();document.addEventListener('cist:mega-result',function(e){render(e&&e.det
 s = re.sub(r'\s*<style id="cist-link-first-home-v1-style">.*?</style>', '', s, count=1, flags=re.S)
 s = re.sub(r'\s*<script id="cist-link-first-home-v1-script">.*?</script>', '', s, count=1, flags=re.S)
 s = s.replace('</head>', STYLE + '\n</head>', 1).replace('</body>', SCRIPT + '\n</body>', 1)
-for token in ['Can you trust', 'Paste a suspicious link', 'cist-link-first-home-v1-style', 'cist-link-first-result', 'cist-link-detail-v2', 'Detailed analysis', 'Redirect chain', 'Domain & response', 'Advanced technical details', "chainTitle=reds.length?'Redirect chain':'Direct destination'", 'syncAdvanced()', '.lf-advanced:not([open])>.lf-advanced-body', 'detailV2(d,r,rs)', 'signal pulse']:
+for token in ['Is this link safe?', 'Can I Share This? is a free link safety checker', 'Paste a suspicious link', 'cist-link-first-home-v1-style', 'cist-link-first-result', 'cist-link-detail-v2', 'Detailed analysis', 'Redirect chain', 'Domain & response', 'Advanced technical details', "chainTitle=reds.length?'Redirect chain':'Direct destination'", 'syncAdvanced()', '.lf-advanced:not([open])>.lf-advanced-body', 'detailV2(d,r,rs)', 'signal pulse']:
     if token not in s:
         raise RuntimeError('Link-first homepage guard failed: ' + token)
 HOME.write_text(s, encoding='utf-8')
