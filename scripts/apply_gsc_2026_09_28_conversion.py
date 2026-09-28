@@ -45,6 +45,12 @@ STYLE = r"""
 .gsc-conversion-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .gsc-conversion-links a{display:inline-flex;padding:8px 10px;border:1px solid var(--line,#e4e7ec);border-radius:999px;text-decoration:none;font-size:12px;font-weight:750}
 .gsc-conversion-links a:hover{text-decoration:underline}
+.gsc-conversion-result{margin-top:16px;padding:14px 15px;border:1px solid var(--line,#e4e7ec);border-radius:14px;background:var(--card-soft,#f9fafb)}
+.gsc-conversion-result>strong{display:block;font-size:16px}
+.gsc-conversion-result p{margin:6px 0 0;font-size:13px;color:var(--muted,#69707d)}
+.gsc-conversion-result ul{margin:9px 0 0;padding-left:20px;font-size:13px}
+.gsc-conversion-result li{margin:5px 0}
+.gsc-conversion-loading{margin:13px 0 0;color:var(--muted,#69707d);font-size:13px}
 #gsc-quick-diagnosis{max-width:820px;margin:0 auto 22px;padding:clamp(20px,4vw,30px);border:1px solid var(--line,#e4e7ec);border-radius:20px;background:var(--card,#fff)}
 #gsc-quick-diagnosis h2{margin:0 0 8px;font-size:clamp(23px,3vw,30px);line-height:1.18;letter-spacing:-.025em}
 #gsc-quick-diagnosis>p{margin:0 0 16px;color:var(--muted,#69707d)}
@@ -160,6 +166,12 @@ def checker_block(kind: str) -> str:
             '<a href="/how-to-check-if-a-link-is-safe">Manual safety guide</a>'
         )
 
+    note = (
+        "No account required. This check cannot override Google Drive permissions."
+        if kind == "drive"
+        else "No account required. A URL check can expose destination and redirect signals, but it cannot prove that every downloaded file is harmless."
+    )
+
     return f"""
 {START}
 <section class="gsc-conversion-wrap" aria-label="Link checker">
@@ -176,7 +188,7 @@ def checker_block(kind: str) -> str:
         <button class="cist-action cist-action-primary" type="submit"><span>{html.escape(button)}</span></button>
       </div>
     </form>
-    <p class="gsc-conversion-note">No account required. A link check cannot override Google Drive permissions or prove that every downloaded file is harmless.</p>
+    <p class="gsc-conversion-note">{html.escape(note)}</p>
     <div class="gsc-conversion-links">{links}</div>
     <div id="cist-console-result" aria-live="polite"></div>
   </div>
@@ -192,6 +204,47 @@ def insert_checker(doc: str, kind: str) -> str:
     if marker not in doc:
         raise RuntimeError("Priority article marker changed")
     return doc.replace(marker, block + "\n" + marker, 1)
+
+
+FALLBACK_RUNTIME = r"""
+<script id="gsc-2026-09-28-checker-runtime">
+(function(){
+  if(window.__gscConversionCheckerInstalled)return;
+  window.__gscConversionCheckerInstalled=true;
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]})}
+  function render(data){
+    var root=document.getElementById("cist-console-result");
+    if(!root)return;
+    if(!data||data.error){root.innerHTML='<div class="gsc-conversion-result"><strong>Unable to check this URL.</strong><p>Verify the link and try again.</p></div>';return}
+    var safety=data.safety||{}, signals=Array.isArray(safety.signals)?safety.signals:[], redirects=Array.isArray(data.redirects)?data.redirects.length:0;
+    var items=signals.slice(0,4).map(function(x){return '<li><strong>'+esc(x.title||"Signal")+'</strong> — '+esc(x.detail||"")+'</li>'}).join("");
+    root.innerHTML='<div class="gsc-conversion-result"><strong>'+esc(safety.verdict||"Link check complete")+'</strong><p>Final host: '+esc(data.finalHost||"Unknown")+' · HTTP '+esc(data.status||0)+' · Redirects: '+esc(redirects)+'</p>'+(items?'<ul>'+items+'</ul>':'<p>No obvious suspicious URL-pattern signal was returned.</p>')+'</div>';
+  }
+  function install(){
+    var form=document.getElementById("cist-safety-form"), input=document.getElementById("cist-safety-url"), root=document.getElementById("cist-console-result");
+    if(!form||!input||!root)return;
+    form.addEventListener("submit",async function(e){
+      e.preventDefault();
+      var url=input.value.trim(); if(!url){input.focus();return}
+      root.innerHTML='<p class="gsc-conversion-loading">Checking link…</p>';
+      try{
+        var response=await fetch("/api/check",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({url:url})});
+        render(await response.json());
+      }catch(err){render({error:true})}
+    });
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install);else install();
+})();
+</script>
+"""
+
+
+def ensure_checker_runtime(doc: str) -> str:
+    if 'id="cist-safety-v6-script"' in doc or 'id="gsc-2026-09-28-checker-runtime"' in doc:
+        return doc
+    if "</body>" not in doc:
+        raise RuntimeError("Missing </body> for checker runtime")
+    return doc.replace("</body>", FALLBACK_RUNTIME + "\n</body>", 1)
 
 
 def patch_drive_problem() -> None:
@@ -214,10 +267,9 @@ def patch_drive_problem() -> None:
 def patch_checker_page(route: str, kind: str) -> None:
     path = route_file(route)
     doc = path.read_text(encoding="utf-8")
-    if 'id="cist-safety-v6-script"' not in doc:
-        raise RuntimeError(f"Existing safety checker runtime missing from {route}")
     doc = ensure_style(doc)
     doc = insert_checker(doc, kind)
+    doc = ensure_checker_runtime(doc)
     path.write_text(doc, encoding="utf-8")
 
 
@@ -250,6 +302,8 @@ def guard() -> None:
             raise RuntimeError(f"{route} checker result target missing or duplicated")
         if len(re.findall(r"<h1\b", doc, re.I)) != 1:
             raise RuntimeError(f"{route} H1 count changed")
+        if 'id="cist-safety-v6-script"' not in doc and 'id="gsc-2026-09-28-checker-runtime"' not in doc:
+            raise RuntimeError(f"{route} checker runtime missing")
 
 
 def main() -> None:
